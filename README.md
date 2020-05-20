@@ -1,5 +1,5 @@
-CAPASM an Assembler for the HP Capricorn CPU
-============================================
+CAPASM: an Assembler for the HP Capricorn CPU
+=============================================
 
 
 Index
