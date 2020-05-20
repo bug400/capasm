@@ -6,7 +6,7 @@ Index
 
 * [General](#general)
 * [Installation with the ANACONDA platform](#installation-with-the-anaconda-platform)
-* [Installation development versions from the GitHub Repository](#installation-of-development-versions-from-the-GitHub-Repository)
+* [Installation of development versions from the GitHub Repository](#installation-of-development-versions-from-the-GitHub-Repository)
 
 General
 -------
@@ -82,8 +82,8 @@ You should issue occasionally:
 to clean the conda package cache and save disk space.
 
 
-Installation development versions from the GitHub Repository
-------------------------------------------------------------
+Installation of development versions from the GitHub Repository
+---------------------------------------------------------------
 
 To use development versions of CAPASM download the capasm-master.zip file from GitHub [front page of CAPASM](https://github.com/bug400/capasm) ("Download ZIP" button). 
 
