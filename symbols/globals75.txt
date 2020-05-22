@@ -62,96 +62,96 @@ ZRO       DAD              0     ! for JSB X,ZRO
 ! |==================================================================|
 ! |__________________________________________________________________|
 !
-STACK	DAD	100000	! the R6 stack (384d bytes long)
-R6LIM1	DAD	100440	! leaves 96 bytes on R6 STACK
-INPBUF-1 DAD 100577	! one in front of input buffer
-INPBUF	DAD	100600	! input buffer (96 bytes long)
-INP+1	DAD	100601	! offset into input buffer
-INP+2	DAD	100602	! 
-INP+3	DAD	100603	! 
-INP+4	DAD	100604	! 
-INP+5	DAD	100605	! 
-INP+6	DAD	100606	! 
-INP+7	DAD	100607	!
-INP+8	DAD 100610  ! 
-INP+10	DAD	100612	! 
-INP+11	DAD	100613	! 
-INP+12	DAD	100614	! 
-INP+13	DAD	100615	! 
-INP+14	DAD	100616	! 
-INP+15	DAD	100617	! 
-INP+17	DAD	100621	! 
-INP+18	DAD	100622	! 
-INP+19	DAD	100623	! 
-INP+20	DAD	100624	! 
-INP+21	DAD	100625	! 
-INP+23	DAD	100627	! 
-INP+24	DAD	100630	! 
-INP+26	DAD	100632	! 
-INP+27	DAD	100633	! 
-INP+28	DAD	100634	! 
-INP+29	DAD	100635	! 
-INP+94	DAD	100736	! 
-INP+95	DAD	100737	!
-CRSPOT	DAD	100740	! a spot for the CR if we overflow INPBUF or have protected input.
+STACK   DAD   100000   ! the R6 stack (384d bytes long)
+R6LIM1   DAD   100440   ! leaves 96 bytes on R6 STACK
+INPBUF-1 DAD 100577   ! one in front of input buffer
+INPBUF   DAD   100600   ! input buffer (96 bytes long)
+INP+1   DAD   100601   ! offset into input buffer
+INP+2   DAD   100602   ! 
+INP+3   DAD   100603   ! 
+INP+4   DAD   100604   ! 
+INP+5   DAD   100605   ! 
+INP+6   DAD   100606   ! 
+INP+7   DAD   100607   !
+INP+8   DAD 100610  ! 
+INP+10   DAD   100612   ! 
+INP+11   DAD   100613   ! 
+INP+12   DAD   100614   ! 
+INP+13   DAD   100615   ! 
+INP+14   DAD   100616   ! 
+INP+15   DAD   100617   ! 
+INP+17   DAD   100621   ! 
+INP+18   DAD   100622   ! 
+INP+19   DAD   100623   ! 
+INP+20   DAD   100624   ! 
+INP+21   DAD   100625   ! 
+INP+23   DAD   100627   ! 
+INP+24   DAD   100630   ! 
+INP+26   DAD   100632   ! 
+INP+27   DAD   100633   ! 
+INP+28   DAD   100634   ! 
+INP+29   DAD   100635   ! 
+INP+94   DAD   100736   ! 
+INP+95   DAD   100737   !
+CRSPOT   DAD   100740   ! a spot for the CR if we overflow INPBUF or have protected input.
 
-BUFLEN	EQU	96d     ! length of INPBUF (96 bytes)
+BUFLEN   EQU   96d     ! length of INPBUF (96 bytes)
 
 !****************************************************
 ! buffers and temporary
 ! The following area is used as the area to hold error messages
 ! before printing and as a fixed location system scratch area of 82d bytes
 !****************************************************
-EBFLEN	EQU	34d		! size of ERRBUF
-ERRBUF	DAD	100741	! 34d byte error buffer start
-TMPMEM	DAD	100741	! 82d byte temp memory area
-PSTEMP	DAD	101003	! Beginning of 16d bytes of P.S.
-TMPMM2	DAD	101015	! loc of first dedicated temp memory 38d more bytes
-TMP2+2	DAD	101017	! a little ways into it
-TMPLEN	EQU	38d		! the length of the temp area
-PROTEM	DAD	101063	! really honest-top-gosh temporary
-TEMP2	DAD	101073	! referenced in KR&MTH
+EBFLEN   EQU   34d      ! size of ERRBUF
+ERRBUF   DAD   100741   ! 34d byte error buffer start
+TMPMEM   DAD   100741   ! 82d byte temp memory area
+PSTEMP   DAD   101003   ! Beginning of 16d bytes of P.S.
+TMPMM2   DAD   101015   ! loc of first dedicated temp memory 38d more bytes
+TMP2+2   DAD   101017   ! a little ways into it
+TMPLEN   EQU   38d      ! the length of the temp area
+PROTEM   DAD   101063   ! really honest-top-gosh temporary
+TEMP2   DAD   101073   ! referenced in KR&MTH
 
 !****************************************************
 ! system memory organization pointers
 !****************************************************
-PRFILE	DAD	101103	! file pointer for file routines
-EDFILE	DAD	101105	! pointer to the current file edited
-RNFILE	DAD	101107	! old pointer to current run program
-KLUDGE	DAD	101111	! the ADJUST kludge address
-PILPTR	DAD	101113	! pointer for active I/O line
-CODLOC	DAD 101113	! BARCODE ROM
-PCR   	DAD	101115	! BASIC program line pointer
-FWUSER	DAD	101117	! FWA user area
-FWVARS	DAD	101121	! pointer to base address of current var environment
-NXTMEM	DAD	101123	! next in available user memory
-STSIZE	DAD	101125	! statement size place holder
-TOS   	DAD	101127	! current top of R12 stack
-EXTRAG	DAD	101131	! unused (reserved for PPC use)
+PRFILE   DAD   101103   ! file pointer for file routines
+EDFILE   DAD   101105   ! pointer to the current file edited
+RNFILE   DAD   101107   ! old pointer to current run program
+KLUDGE   DAD   101111   ! the ADJUST kludge address
+PILPTR   DAD   101113   ! pointer for active I/O line
+CODLOC   DAD 101113   ! BARCODE ROM
+PCR      DAD   101115   ! BASIC program line pointer
+FWUSER   DAD   101117   ! FWA user area
+FWVARS   DAD   101121   ! pointer to base address of current var environment
+NXTMEM   DAD   101123   ! next in available user memory
+STSIZE   DAD   101125   ! statement size place holder
+TOS      DAD   101127   ! current top of R12 stack
+EXTRAG   DAD   101131   ! unused (reserved for PPC use)
 
 ! ** NOTE: ZZZZZZ assumes that LAVAIL thru LWAMEM = 8 bytes!
 ! ** If this changes, change code for added ram in ZZZZZZ (w
 
-LAVAIL	DAD	101133	! last available word in program area
-NEWERR	DAD	101135	! proposed new error number used by ERR.R21 until we really decide to use and then it goes into ERRORS
-FLAG1 	DAD	101136	! flag for caller in ROM. Beware using this, it will get changed at warmstart if the user adds new ram
-NXTRTN	DAD	101137	! next available GOSUB/RTN
-LWAMEM	DAD	101141	! LWA user memory
+LAVAIL   DAD   101133   ! last available word in program area
+NEWERR   DAD   101135   ! proposed new error number used by ERR.R21 until we really decide to use and then it goes into ERRORS
+FLAG1    DAD   101136   ! flag for caller in ROM. Beware using this, it will get changed at warmstart if the user adds new ram
+NXTRTN   DAD   101137   ! next available GOSUB/RTN
+LWAMEM   DAD   101141   ! LWA user memory
 
 ! ** important filenames
 
-PRNAME	DAD	101143	! filename parameter for file rou…
-EDNAME	DAD	101153	! the name of the currently edited file
-EDTYPE	DAD	101163	! the type of the currently edited file
-RNNAME	DAD	101165	! the name of the currently running program
+PRNAME   DAD   101143   ! filename parameter for file rou…
+EDNAME   DAD   101153   ! the name of the currently edited file
+EDTYPE   DAD   101163   ! the type of the currently edited file
+RNNAME   DAD   101165   ! the name of the currently running program
 
 ! ** system status stuff
 
-CURLN#	DAD	101175	! current line number
-AUTOI 	DAD	101177	! AUTO line# increment (zero if AUTO numbering off)
-DRG   	DAD	101201	! DEG/RAD/GRAD flag (0=RAD, 90C=DEG)
-OPTBAS	DAD	101202	! 2 byte permanent
-SVCWRD	DAD	101204	! BIT: 0=key, SRQ: 1=ROM, 6=BATT, 7=CMPRTR
+CURLN#   DAD   101175   ! current line number
+AUTOI    DAD   101177   ! AUTO line# increment (zero if AUTO numbering off)
+DRG      DAD   101201   ! DEG/RAD/GRAD flag (0=RAD, 90C=DEG)
+OPTBAS   DAD   101202   ! 2 byte permanent
+SVCWRD   DAD   101204   ! BIT: 0=key, SRQ: 1=ROM, 6=BATT, 7=CMPRTR
 !
 ! SVCWRD -- interrupts needing service attention
 !  Bit 0 = key waiting in KEYHIT
@@ -159,86 +159,86 @@ SVCWRD	DAD	101204	! BIT: 0=key, SRQ: 1=ROM, 6=BATT, 7=CMPRTR
 !  Bit 6 = turn on battery annunciator
 !  Bit 7 = comparator want's service
 !
-CURFUN	DAD	101205	! current user function address
-DELAY 	DAD	101207	! delay constant (2^-14 sec units)
-LOKPSW	DAD	101214	! password string for LOCK
-STEP  	DAD	101224	! the one and only step flag
-X(K-1)	DAD	101225	! previous random number
-ROMFL 	DAD	101235	! ROM flag for HANDI/HANDIO containing the event number
-BSEADR	DAD	101236	! ROM file base address (used by april ROM for SEND? data)
-BEEPOK	DAD	101240	! if NOT 0, it is OK to beep
-SLOT  	DAD	101241	! current ROM slot as a FFxx enable address
-ROMPTR	DAD	101243	! ROM resp. LEX file base address
-ROMOFF	DAD	101245	! offset to make ROMPTR absolute
-RUNING	DAD	101247	! the runnig flag (good for errors)
-TRFLAG	DAD	101250	! byte of trace bits
-RESULT	DAD	101251	! last result from DISP
-FILLOC	DAD	101261	! where the last FOPEN found the file
+CURFUN   DAD   101205   ! current user function address
+DELAY    DAD   101207   ! delay constant (2^-14 sec units)
+LOKPSW   DAD   101214   ! password string for LOCK
+STEP     DAD   101224   ! the one and only step flag
+X(K-1)   DAD   101225   ! previous random number
+ROMFL    DAD   101235   ! ROM flag for HANDI/HANDIO containing the event number
+BSEADR   DAD   101236   ! ROM file base address (used by april ROM for SEND? data)
+BEEPOK   DAD   101240   ! if NOT 0, it is OK to beep
+SLOT     DAD   101241   ! current ROM slot as a FFxx enable address
+ROMPTR   DAD   101243   ! ROM resp. LEX file base address
+ROMOFF   DAD   101245   ! offset to make ROMPTR absolute
+RUNING   DAD   101247   ! the runnig flag (good for errors)
+TRFLAG   DAD   101250   ! byte of trace bits
+RESULT   DAD   101251   ! last result from DISP
+FILLOC   DAD   101261   ! where the last FOPEN found the file
 
 ! ** assign# stuff
 
-A#LINE	DAD	101263	! assign # address of current line
-A#IO	DAD	101265	! assign# address of iofile
+A#LINE   DAD   101263   ! assign # address of current line
+A#IO   DAD   101265   ! assign# address of iofile
 
 ! ** transform stuff
 
-MISSNG	DAD	101267	! key for ROM missing in TRANSFORM
-PARERR	DAD	101270	! flag for parsing errors in TRANSFORM
+MISSNG   DAD   101267   ! key for ROM missing in TRANSFORM
+PARERR   DAD   101270   ! flag for parsing errors in TRANSFORM
 
 ! ** hpil flags and constants
 
-ESC?	DAD	101271	! escape flag for display driver
-SUBFWV	DAD	101272	! current subroutines FWVARS
+ESC?   DAD   101271   ! escape flag for display driver
+SUBFWV   DAD   101272   ! current subroutines FWVARS
 
 ! ** the following 7 PIL constants should be kept together
-DEVCNT	DAD	101274	! number of devices on HPIL loop
-PLSTAT	DAD	101275	! HPIL driver information
+DEVCNT   DAD   101274   ! number of devices on HPIL loop
+PLSTAT   DAD   101275   ! HPIL driver information
 ! PLSTAT:
-!	Bit 7=1 if HANDI call at sndfrm ne...
-!	Bit 6  not used
-!	Bit 5=1 if offio set
-!	Bit 4=1 if disp is device assigned
-!	Bit 3=1 if disp device active
-!	Bit 2=1 if pr.is device assigned
-!	Bit 1=1 if print device active
-!	Bit 0=1 if must test loop before use
+!   Bit 7=1 if HANDI call at sndfrm ne...
+!   Bit 6  not used
+!   Bit 5=1 if offio set
+!   Bit 4=1 if disp is device assigned
+!   Bit 3=1 if disp device active
+!   Bit 2=1 if pr.is device assigned
+!   Bit 1=1 if print device active
+!   Bit 0=1 if must test loop before use
 !
-RAMLEN	DAD	101276	! length of lines in iofile
-DEVLEN	DAD	101277	! length of lines in devfile
-PILADR	DAD	101300	! the HP-IL device address for kangaroo
-EOL   	DAD	101301	! 1-3 byte EOL terminator string for prints
-EOLLEN	DAD	101304	! the length of the EOL string starting at EOL
-PILINT	DAD	101305	! HPIL interrupt mask for IO ROM used by card reader when it inhibits and restores interrupt
-FAST! 	DAD	101306	! HPIL fast insert and delete. If set, can feed Sndfrm a start location and len and it'll send out string. This is faster than calling Sndfrm once for each character that we want to send.
-IOFLAG	DAD	101307	! I/O flags
-CDIG	DAD 101307	! BARCODE ROM
-DCOVFL	DAD	101310	! decompile overflow flag
+RAMLEN   DAD   101276   ! length of lines in iofile
+DEVLEN   DAD   101277   ! length of lines in devfile
+PILADR   DAD   101300   ! the HP-IL device address for kangaroo
+EOL      DAD   101301   ! 1-3 byte EOL terminator string for prints
+EOLLEN   DAD   101304   ! the length of the EOL string starting at EOL
+PILINT   DAD   101305   ! HPIL interrupt mask for IO ROM used by card reader when it inhibits and restores interrupt
+FAST!    DAD   101306   ! HPIL fast insert and delete. If set, can feed Sndfrm a start location and len and it'll send out string. This is faster than calling Sndfrm once for each character that we want to send.
+IOFLAG   DAD   101307   ! I/O flags
+CDIG   DAD 101307   ! BARCODE ROM
+DCOVFL   DAD   101310   ! decompile overflow flag
 
 ! ** DISP/PRINT stuff
 
-PRFLAG	DAD	101311	! any printing done yet? pointed to by P_FLAG
-DSFLAG	DAD	101312	! any displaying done yet? pointed to by P_FLAG
-DISPLN	DAD	101313	! display line width, set up by WIDTH statement, pointed to by LINELN
-PRNTLN	DAD	101314	! printer line width, set up by PWIDTH statement, pointed to by LINELN
-ROUTE 	DAD	101315	! current output stream route 1=:display, 2=:printer
-P_PTR 	DAD	101316	! print length pointer to DISPTR or PRTPTR
-P_FLAG	DAD	101320	! print flag pointer to DSFLAG or PRFLAG
-LINELN	DAD	101322	! print width pointer to DISPLN or PRNTLN
-PRNT#?	DAD	101324	! 1= in a PRINT# statement
-DISPTR	DAD	101325	! current display output position pointed to by P_PTR
-PRTPTR	DAD	101327	! current printer output position pointed to by P_PTR
-USING?	DAD	101331	! 1 if USING an IMAGE statement
+PRFLAG   DAD   101311   ! any printing done yet? pointed to by P_FLAG
+DSFLAG   DAD   101312   ! any displaying done yet? pointed to by P_FLAG
+DISPLN   DAD   101313   ! display line width, set up by WIDTH statement, pointed to by LINELN
+PRNTLN   DAD   101314   ! printer line width, set up by PWIDTH statement, pointed to by LINELN
+ROUTE    DAD   101315   ! current output stream route 1=:display, 2=:printer
+P_PTR    DAD   101316   ! print length pointer to DISPTR or PRTPTR
+P_FLAG   DAD   101320   ! print flag pointer to DSFLAG or PRFLAG
+LINELN   DAD   101322   ! print width pointer to DISPLN or PRNTLN
+PRNT#?   DAD   101324   ! 1= in a PRINT# statement
+DISPTR   DAD   101325   ! current display output position pointed to by P_PTR
+PRTPTR   DAD   101327   ! current printer output position pointed to by P_PTR
+USING?   DAD   101331   ! 1 if USING an IMAGE statement
 
 ! ** LCD/keyboard stuff
 
-CREST 	DAD	101332	! how far along with LCD's ESC sequence?
-I/RFLG	DAD	101333	! 1=insert, 0=replace
-CURSOR	DAD	101334	! is the LCD on?
-LETSEE	DAD	101335	! let user see output cad input
-LCDESC	DAD	101336	! has LCD just seen an ESC character?
-JUSTSO	DAD	101337	! have CHEDIT treat next key as normal
-LCDOFF	DAD	101340	! disable LCD I/O flag
-DEAD  	DAD	101341	! clear LCD when next character arrives?
+CREST    DAD   101332   ! how far along with LCD's ESC sequence?
+I/RFLG   DAD   101333   ! 1=insert, 0=replace
+CURSOR   DAD   101334   ! is the LCD on?
+LETSEE   DAD   101335   ! let user see output cad input
+LCDESC   DAD   101336   ! has LCD just seen an ESC character?
+JUSTSO   DAD   101337   ! have CHEDIT treat next key as normal
+LCDOFF   DAD   101340   ! disable LCD I/O flag
+DEAD     DAD   101341   ! clear LCD when next character arrives?
 !****************************************************************************
 ! The QA department wants to know about changes to the following things:
 !   LCDPTR, LCDWIN, LCDBUF, ANNFLG
@@ -247,165 +247,165 @@ DEAD  	DAD	101341	! clear LCD when next character arrives?
 
 ! ** LCDPTR & LCDWIN must be together in this order
 
-LCDPTR	DAD	101342	! 2-byte LCD buffer pointer
-LCDWIN	DAD	101344	! 2-byte LCD window pointer
-LCDBUF	DAD	101346	! LCD buffer (96 bytes)
+LCDPTR   DAD   101342   ! 2-byte LCD buffer pointer
+LCDWIN   DAD   101344   ! 2-byte LCD window pointer
+LCDBUF   DAD   101346   ! LCD buffer (96 bytes)
 
-LCDMIN	EQU	80d		! LCD far left address
-LCDMAX	EQU	49d		! LCD far right address
-LCDSIZ	EQU	32d		! the width of the LCD
+LCDMIN   EQU   80d      ! LCD far left address
+LCDMAX   EQU   49d      ! LCD far right address
+LCDSIZ   EQU   32d      ! the width of the LCD
 
 ! ** Annunciator positions
 
-ANN.L 	EQU	48d		! LCD position of left annunciator
-ANN.R 	EQU	47d		! LCD position of right annunciator
+ANN.L    EQU   48d      ! LCD position of left annunciator
+ANN.R    EQU   47d      ! LCD position of right annunciator
 
 ! ** Parameters for GETLN
 
-GL.LIN	DAD	101506	! 2-byte line position
-GL.CUR	DAD	101510	! 2-byte cursor position
-GL.LEN	DAD	101512	! 1-byte input length
-ANNFLG	DAD	101513	! annunciators status (one bit each)
-SHIELD	DAD	101514	! 12d-byte 96d-bit protection shield mask (one bit for each character)
-LASTCH	DAD	101530	! last character (2 bytes)
-OLDLST	DAD	101532	! last LASTCH
+GL.LIN   DAD   101506   ! 2-byte line position
+GL.CUR   DAD   101510   ! 2-byte cursor position
+GL.LEN   DAD   101512   ! 1-byte input length
+ANNFLG   DAD   101513   ! annunciators status (one bit each)
+SHIELD   DAD   101514   ! 12d-byte 96d-bit protection shield mask (one bit for each character)
+LASTCH   DAD   101530   ! last character (2 bytes)
+OLDLST   DAD   101532   ! last LASTCH
 
 ! **********************************************************************
 ! INPCHK is the address of a routine that gets invoked each time the character
 ! editor gets a character.  This is used by the pocket secretary & time mode.
 ! **********************************************************************
 
-INPCHK	DAD	101534	! address of CHEDIT address check
+INPCHK   DAD   101534   ! address of CHEDIT address check
 
 ! ** keyboard stuff
 
-KY.TYP   EQU 0		! typewriter mode
-KY.CAP   EQU 1		! shift alphas
-KY.PAD   EQU 2		! numeric pad
+KY.TYP   EQU 0      ! typewriter mode
+KY.CAP   EQU 1      ! shift alphas
+KY.PAD   EQU 2      ! numeric pad
 
-CAPLOK	DAD	101536	! caps lock flag (could be any of the KY.xxx EQUs)
-KEYHIT	DAD	101537	! key hit last
-INPTR 	DAD	101540	! input line pointer
+CAPLOK   DAD   101536   ! caps lock flag (could be any of the KY.xxx EQUs)
+KEYHIT   DAD   101537   ! key hit last
+INPTR    DAD   101540   ! input line pointer
 
 ! ** parse stuff
 
-THENFL	DAD	101542	! legal after THEN-ish statement
-PRECNT	DAD	101544	! count of the precedence groups
-RTNFLG	DAD	101545	! invisible RTN parsetime flag, NO if INVRTN to be placed befor... EOL and/or GOTO (& ON GOTO) tok...
-INPR10	DAD	101546	! parse pointer for INPUT statement
-SAVR10	DAD	101550	! R10 saved permanenent (does anyone understand that?)
+THENFL   DAD   101542   ! legal after THEN-ish statement
+PRECNT   DAD   101544   ! count of the precedence groups
+RTNFLG   DAD   101545   ! invisible RTN parsetime flag, NO if INVRTN to be placed befor... EOL and/or GOTO (& ON GOTO) tok...
+INPR10   DAD   101546   ! parse pointer for INPUT statement
+SAVR10   DAD   101550   ! R10 saved permanenent (does anyone understand that?)
 
 ! ** error stuff
 
-EDEBUG 	DAD	101552	! debug for error (address of error called)
-ERRR10	DAD	101554	! R10 at time of error (used for parsing errors)
-ERRTMP	DAD	101556	! save error stuff
-HANDLD	DAD	101565	! we HANDLeD this HANDI call
-REPLN#	DAD	101566	! report a line number
-DEFAUL	DAD	101567	! shall we default errors?
-ERLIN#	DAD	101570	! line number in which last error occured
-ERNUM#	DAD	101572	! last error number
-ERRORS	DAD	101573	! number of current error or zero
-ERRTYP	DAD	101574	! error type (prog/calc)
-ERROM#	DAD	101575	! ROM number of last error
-DCMLEN	DAD	101577	! decompile length limit (address of end of buffer)
+EDEBUG    DAD   101552   ! debug for error (address of error called)
+ERRR10   DAD   101554   ! R10 at time of error (used for parsing errors)
+ERRTMP   DAD   101556   ! save error stuff
+HANDLD   DAD   101565   ! we HANDLeD this HANDI call
+REPLN#   DAD   101566   ! report a line number
+DEFAUL   DAD   101567   ! shall we default errors?
+ERLIN#   DAD   101570   ! line number in which last error occured
+ERNUM#   DAD   101572   ! last error number
+ERRORS   DAD   101573   ! number of current error or zero
+ERRTYP   DAD   101574   ! error type (prog/calc)
+ERROM#   DAD   101575   ! ROM number of last error
+DCMLEN   DAD   101577   ! decompile length limit (address of end of buffer)
 
 ! ** allocation stuff
 
-FILEND	DAD	101601	! temp address of file end (2 bytes)
-RSTAR 	DAD	101603	! temp allocator (2 bytes)
-CSTAR 	DAD	101605	! temp allocator (1 byte)
+FILEND   DAD   101601   ! temp address of file end (2 bytes)
+RSTAR    DAD   101603   ! temp allocator (2 bytes)
+CSTAR    DAD   101605   ! temp allocator (1 byte)
 
 ! ** next 8 bytes cleared at once in allocate initialization
 
-DFPAR1	DAD	101606	! begin of function varaible block
-DFPAR2	DAD	101610	! end of function varaible block
-EXTRAA	DAD	101612	! gets trashed in deallocation
-ENVFLG	DAD	101613	! flag for call recursion
-EXTRAE	DAD	101615	! gets trashed in deallocation
+DFPAR1   DAD   101606   ! begin of function varaible block
+DFPAR2   DAD   101610   ! end of function varaible block
+EXTRAA   DAD   101612   ! gets trashed in deallocation
+ENVFLG   DAD   101613   ! flag for call recursion
+EXTRAE   DAD   101615   ! gets trashed in deallocation
 
-DIMFLG	DAD	101616	! dimension flag for ALLOC
-VARPTR	DAD	101617	! pointer for variable pointer comp (ALLOC)
-ERRSTP	DAD	101621	! err addr alloc (2 bytes)
-EXTRAB	DAD	101623	! unused byte (reserved for PPC members)
+DIMFLG   DAD   101616   ! dimension flag for ALLOC
+VARPTR   DAD   101617   ! pointer for variable pointer comp (ALLOC)
+ERRSTP   DAD   101621   ! err addr alloc (2 bytes)
+EXTRAB   DAD   101623   ! unused byte (reserved for PPC members)
 
 ! ** time stuff
 
-TMBASE	DAD	101624	! time base storage (7 bytes)
-TMEERR	DAD	101633	! time error storage (7 bytes)
-TMEXCT	DAD	101642	! time last exact done (7 bytes)
-TMEADJ	DAD	101651	! time adjust storage (7 bytes)
+TMBASE   DAD   101624   ! time base storage (7 bytes)
+TMEERR   DAD   101633   ! time error storage (7 bytes)
+TMEXCT   DAD   101642   ! time last exact done (7 bytes)
+TMEADJ   DAD   101651   ! time adjust storage (7 bytes)
 
-RMARG	DAD	101660	! The right margin (set by MARGIN)
-ORIGIN	DAD	101662	! original file type for trasnfor (TEXT or LIF1)
-STAND?	DAD	101663	! STANDBY ON HPIL info:
-!						bit 7 = 1 if no PIL timeout
-!						bit 0 = 1 if leave oscillator on between frames
-!						(other bits not used)
-TMOUT?	DAD	101664	! timeout on/off flag: bit 0=1 if no deep sleep timeout (other bits not used)
-TMEOUT	DAD	101665	! Kangaroo will count down this far before checking whether or not to go to deep sleep
-LIGHT?	DAD	101670	! timeout for light sleep point. When the TMEOUT reaches this point, we will go to light sleep
-EXTRAD	DAD	101673	! unused (reserved for use by PPC members)
-XTNDLW	DAD	101675	! extended LEEWAY flag
-LEEWAY	DAD	101676	! variable memory leeway
-NEW?  	DAD	101700	! new line marker for PRINT#, this is set if we have created a line for a print#
-!						but have not print#ed anything to it yet, so if we get an error we can delete it
-LSTPLN	DAD	101701	! change in evironment size
-LSTELN	DAD	101703	! last size of P.PLEN
+RMARG   DAD   101660   ! The right margin (set by MARGIN)
+ORIGIN   DAD   101662   ! original file type for trasnfor (TEXT or LIF1)
+STAND?   DAD   101663   ! STANDBY ON HPIL info:
+!                  bit 7 = 1 if no PIL timeout
+!                  bit 0 = 1 if leave oscillator on between frames
+!                  (other bits not used)
+TMOUT?   DAD   101664   ! timeout on/off flag: bit 0=1 if no deep sleep timeout (other bits not used)
+TMEOUT   DAD   101665   ! Kangaroo will count down this far before checking whether or not to go to deep sleep
+LIGHT?   DAD   101670   ! timeout for light sleep point. When the TMEOUT reaches this point, we will go to light sleep
+EXTRAD   DAD   101673   ! unused (reserved for use by PPC members)
+XTNDLW   DAD   101675   ! extended LEEWAY flag
+LEEWAY   DAD   101676   ! variable memory leeway
+NEW?     DAD   101700   ! new line marker for PRINT#, this is set if we have created a line for a print#
+!                  but have not print#ed anything to it yet, so if we get an error we can delete it
+LSTPLN   DAD   101701   ! change in evironment size
+LSTELN   DAD   101703   ! last size of P.PLEN
 
 ! ** image stuff
 
-IMSLEN	DAD	101705	! IMAGE start length
-IMSADR	DAD	101707	! IMAGE starting address
-IMCLEN	DAD	101711	! IMAGE current address
-IMCADR	DAD	101713	! IMAGE current address
-IMWADR	DAD	101715	! IMAGE wraparound address
-STLIN#	DAD	101717	! temp for starting line number
-STARAD	DAD 101721	! temp for renumber address
-ENLIN#	DAD	101721	! temp ending line #, renumber address
-ONFLG	DAD	101723	! on gosub/goto flag for decompile
+IMSLEN   DAD   101705   ! IMAGE start length
+IMSADR   DAD   101707   ! IMAGE starting address
+IMCLEN   DAD   101711   ! IMAGE current address
+IMCADR   DAD   101713   ! IMAGE current address
+IMWADR   DAD   101715   ! IMAGE wraparound address
+STLIN#   DAD   101717   ! temp for starting line number
+STARAD   DAD 101721   ! temp for renumber address
+ENLIN#   DAD   101721   ! temp ending line #, renumber address
+ONFLG   DAD   101723   ! on gosub/goto flag for decompile
 
 ! ** appointment stuff
 
-TMPLAT	DAD	101724	! pocket secretary template (32 bytes)
-APTSIZ	DAD	101764	! pocket secretary appt size
-PSIOST	DAD	101765	! pocket secretary I/O status
-PSSTAT	DAD	101766	! pocket secretary status
-CNALRM	DAD	101767	! continuous alaram number (0=off)
+TMPLAT   DAD   101724   ! pocket secretary template (32 bytes)
+APTSIZ   DAD   101764   ! pocket secretary appt size
+PSIOST   DAD   101765   ! pocket secretary I/O status
+PSSTAT   DAD   101766   ! pocket secretary status
+CNALRM   DAD   101767   ! continuous alaram number (0=off)
 
 ! ** intercepts
 
-INTBGN	DAD 101770	! beginning of the intercept space
-KYIDLE	DAD	101770	! keyboard intercept used by DINGO
-IMERR 	DAD	102000	! IMAGE error intecept
-IRQ20 	DAD	102010	! loc for ROM -> RAM code, trashed at warmstart
-PSTRAP 	DAD	102020	! power supply intecept
-HPINTC	DAD	102030	! HP header intecept (card reader)
-PILTRP	DAD	102040	! HPIL intecept used by DINGO
-SPAR0 	DAD	102050	! spare interrupt 0
-SPAR1 	DAD	102060	! spare interrupt 1
-SPAR2 	DAD	102070	! spare interrupt 2
-CMPINT	DAD	102100	! comparator intercept vector
-INTEND	DAD	102110	! end of intercept area
+INTBGN   DAD 101770   ! beginning of the intercept space
+KYIDLE   DAD   101770   ! keyboard intercept used by DINGO
+IMERR    DAD   102000   ! IMAGE error intecept
+IRQ20    DAD   102010   ! loc for ROM -> RAM code, trashed at warmstart
+PSTRAP    DAD   102020   ! power supply intecept
+HPINTC   DAD   102030   ! HP header intecept (card reader)
+PILTRP   DAD   102040   ! HPIL intecept used by DINGO
+SPAR0    DAD   102050   ! spare interrupt 0
+SPAR1    DAD   102060   ! spare interrupt 1
+SPAR2    DAD   102070   ! spare interrupt 2
+CMPINT   DAD   102100   ! comparator intercept vector
+INTEND   DAD   102110   ! end of intercept area
 
 ! ** More stuff
 
-EXTRAJ	DAD	102110	! littel used ram location.  LSbit of EXTRAJ...
-!						by MATHROM which assumes it is non-volatile, other bits not touched.
-!						Note that interrupts are not disabled when EXTRAJ is played with, so
-!						service code shouldn't use any bits.
-NOCHEK	DAD	102111	! make CMPCHK do nothing (used for INPUT and c...)
-EXTRAF	DAD	102112	! unused ram location
-NDATTN	DAD	102113	! don't check for ATTN before sending
-ROMNUM	DAD	102114	! current ROM at time of sleep
-PWRFLG	DAD	102116	! 1= if below second battery interrupt
-ALKFLG	DAD	102117	! alkaline battery flag
-MINMIN	DAD	102120	! left LCD address
-MAXMAX	DAD	102121	! right LCD address
-SIZSIZ	DAD	102122	! LCD size
-TOKEN 	DAD	102124	! token number (or EROMTK, ROM#, token#)
-WDBRIC	DAD	102130	! Wait, Delay, Beep RTC constant, absolute time to stop whatever
-VCPNTR	DAD	101135	! Vzcalc pointer
+EXTRAJ   DAD   102110   ! littel used ram location.  LSbit of EXTRAJ...
+!                  by MATHROM which assumes it is non-volatile, other bits not touched.
+!                  Note that interrupts are not disabled when EXTRAJ is played with, so
+!                  service code shouldn't use any bits.
+NOCHEK   DAD   102111   ! make CMPCHK do nothing (used for INPUT and c...)
+EXTRAF   DAD   102112   ! unused ram location
+NDATTN   DAD   102113   ! don't check for ATTN before sending
+ROMNUM   DAD   102114   ! current ROM at time of sleep
+PWRFLG   DAD   102116   ! 1= if below second battery interrupt
+ALKFLG   DAD   102117   ! alkaline battery flag
+MINMIN   DAD   102120   ! left LCD address
+MAXMAX   DAD   102121   ! right LCD address
+SIZSIZ   DAD   102122   ! LCD size
+TOKEN    DAD   102124   ! token number (or EROMTK, ROM#, token#)
+WDBRIC   DAD   102130   ! Wait, Delay, Beep RTC constant, absolute time to stop whatever
+VCPNTR   DAD   101135   ! Vzcalc pointer
 
 !*************************************************************************************
 ! VARIABLES FOR CARD READER
@@ -414,49 +414,49 @@ VCPNTR	DAD	101135	! Vzcalc pointer
 
 ! ** don't separate or change the order of these variables
 
-CRDSIZ	EQU	650d	! Card size (data field) standard card size
+CRDSIZ   EQU   650d   ! Card size (data field) standard card size
 
-FULTRK	DAD	102137	! maximum track size
-CRDSTS	DAD	102141	! card status for verify
-LSTTRK	DAD	102142	! last data track (of file) length
+FULTRK   DAD   102137   ! maximum track size
+CRDSTS   DAD   102141   ! card status for verify
+LSTTRK   DAD   102142   ! last data track (of file) length
 
-TMRBUF	DAD 102144	! Another name for TRKTBL
-TMPMM3	DAD	102144	! Yet another name for TRKTBL
-TRKTBL	DAD	102144	! track-load table #1 (38d bytes)
+TMRBUF   DAD 102144   ! Another name for TRKTBL
+TMPMM3   DAD   102144   ! Yet another name for TRKTBL
+TRKTBL   DAD   102144   ! track-load table #1 (38d bytes)
 
-TMP3+1	DAD 102145	! and some locations inside TRKTBL
-TRKT+1	DAD	102145	!
-TMP3+3	DAD	102147	!
-TRKT+3	DAD	102147	!
-TMP3+4	DAD	102150	!
-TMP3+5	DAD	102151	!
-TRKT+5	DAD	102151	!
-TMP3+6	DAD	102152	!
-TMP3+7	DAD	102153	!
-DNAME 	DAD	102154	! 
-SRCPOS	DAD	102160	! 
-DSTPOS	DAD	102162	!
+TMP3+1   DAD 102145   ! and some locations inside TRKTBL
+TRKT+1   DAD   102145   !
+TMP3+3   DAD   102147   !
+TRKT+3   DAD   102147   !
+TMP3+4   DAD   102150   !
+TMP3+5   DAD   102151   !
+TRKT+5   DAD   102151   !
+TMP3+6   DAD   102152   !
+TMP3+7   DAD   102153   !
+DNAME    DAD   102154   ! 
+SRCPOS   DAD   102160   ! 
+DSTPOS   DAD   102162   !
 
-SUBPNT	DAD	102212	! return-stack mark #1
-SUBP+1	DAD	102213	! return-stack mark #1
-RTNSVE	DAD 102214	! Abort return pointer
-ABTFLG	DAD	102216	! Abort flag
-HPHEAD	DAD	102217	! HP header area #3 normally HPCV(700D)00
-WRTPRO	DAD	102227	! write protect area #3, 0 ok to write, #0 not ok
-SUBFRM	DAD	102234	! sub-format code #3 normally 0
-FLHEAD	DAD	102235	! file header area #3 track # and # of tracks
-TRKSZE	DAD	102237	! track size #3
-FILSZE	DAD	102241	! file size #3
-FILTYP	DAD	102243	! file type #3
-TMEDTE	DAD	102245	! time/date created #3, 2^-14 secs since century
-FILNME	DAD	102251	! file name #3
-PASWRD	DAD	102261	! file password #3
-FLECHK	DAD	102265	! file checksum #3 including directory
-PRTSTS	DAD	102267	! partial file status #3 (normally =0)
-PRT1ST	DAD	102270	! partial file 1st stmt #3 (# of bytes from track start to start of next statement)
-PRTNXT	DAD	102272	! partial file next stmt #3 (same as PRT1ST but for next...)
-CHKSUM	DAD	102274	! data checksum #3
-HDCKSM	DAD	102276	! header checksum #3
+SUBPNT   DAD   102212   ! return-stack mark #1
+SUBP+1   DAD   102213   ! return-stack mark #1
+RTNSVE   DAD 102214   ! Abort return pointer
+ABTFLG   DAD   102216   ! Abort flag
+HPHEAD   DAD   102217   ! HP header area #3 normally HPCV(700D)00
+WRTPRO   DAD   102227   ! write protect area #3, 0 ok to write, #0 not ok
+SUBFRM   DAD   102234   ! sub-format code #3 normally 0
+FLHEAD   DAD   102235   ! file header area #3 track # and # of tracks
+TRKSZE   DAD   102237   ! track size #3
+FILSZE   DAD   102241   ! file size #3
+FILTYP   DAD   102243   ! file type #3
+TMEDTE   DAD   102245   ! time/date created #3, 2^-14 secs since century
+FILNME   DAD   102251   ! file name #3
+PASWRD   DAD   102261   ! file password #3
+FLECHK   DAD   102265   ! file checksum #3 including directory
+PRTSTS   DAD   102267   ! partial file status #3 (normally =0)
+PRT1ST   DAD   102270   ! partial file 1st stmt #3 (# of bytes from track start to start of next statement)
+PRTNXT   DAD   102272   ! partial file next stmt #3 (same as PRT1ST but for next...)
+CHKSUM   DAD   102274   ! data checksum #3
+HDCKSM   DAD   102276   ! header checksum #3
 
 !
 ! ** Comparator and ON TIMER stuff
@@ -464,35 +464,35 @@ HDCKSM	DAD	102276	! header checksum #3
 ! don't seperate or change order of these variables
 !
 
-CMPFLG	DAD	102277	! comparator flags
-CMPPNT	DAD	102300	! comparator table pointer
-CMPTBL	DAD	102301	! comparator table (63 bytes)
-TMEINC	DAD	102400	! time adjust increment value (7 bytes)
-TMRRTC	DAD	102407	! timer RTC for suspend (abs time of suspension)
-TMRNMB	DAD	102420	! current timer line number
-TMRFLG	DAD	102420	! pending timer flag (#0 means timer waiting to execute)
-VARBAS	DAD	102421	! base of I/O ROM variables
-BATTRY	DAD	102423	! battery interrupt levels (1st byte is #1 level, 2nd byte is #2 level)
-BATTRY+	DAD 102424
-PRNT#1	DAD	102425	! =1 if 1st PRINT# item flag
-ACCESS	DAD	102426	! access byte of current file for READ# PRINT# RESTORE#, etc.
-FILNUM	DAD	102427	! current file number for READ# PRINT#
-FLSPEC	DAD	102431	! file specifier for handling flag (see HANDI docs for meaning)
-RNTYPE	DAD	102432	! the access bytes for the runfile
-PERRSV	DAD	102433	! save area for errors around parse code
-TEXT? 	DAD	102436	! flag for PRINT# to TEXT files
-RANDOM	DAD	102437	! random flag for ASSIGN#
+CMPFLG   DAD   102277   ! comparator flags
+CMPPNT   DAD   102300   ! comparator table pointer
+CMPTBL   DAD   102301   ! comparator table (63 bytes)
+TMEINC   DAD   102400   ! time adjust increment value (7 bytes)
+TMRRTC   DAD   102407   ! timer RTC for suspend (abs time of suspension)
+TMRNMB   DAD   102420   ! current timer line number
+TMRFLG   DAD   102420   ! pending timer flag (#0 means timer waiting to execute)
+VARBAS   DAD   102421   ! base of I/O ROM variables
+BATTRY   DAD   102423   ! battery interrupt levels (1st byte is #1 level, 2nd byte is #2 level)
+BATTRY+   DAD 102424
+PRNT#1   DAD   102425   ! =1 if 1st PRINT# item flag
+ACCESS   DAD   102426   ! access byte of current file for READ# PRINT# RESTORE#, etc.
+FILNUM   DAD   102427   ! current file number for READ# PRINT#
+FLSPEC   DAD   102431   ! file specifier for handling flag (see HANDI docs for meaning)
+RNTYPE   DAD   102432   ! the access bytes for the runfile
+PERRSV   DAD   102433   ! save area for errors around parse code
+TEXT?    DAD   102436   ! flag for PRINT# to TEXT files
+RANDOM   DAD   102437   ! random flag for ASSIGN#
 
 !*************************************************************************************
 ! The ROM table is here
 !*************************************************************************************
-ROMTAB	DAD	102440	! table of ROM-enable addresses (42 bytes, FFxx)
-TABEND	DAD	102512	! end of ROMTAB
+ROMTAB   DAD   102440   ! table of ROM-enable addresses (42 bytes, FFxx)
+TABEND   DAD   102512   ! end of ROMTAB
 
 !*************************************************************************************
 ! The home directory is here
 !*************************************************************************************
-DIRECT	DAD	102512	! beginning of directory
+DIRECT   DAD   102512   ! beginning of directory
 
 ! ahrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
 !
@@ -507,7 +507,7 @@ DIRECT	DAD	102512	! beginning of directory
 
 
 
-G.A125	DAD	120445	! KANGA interrupt vector table value at ABS address 2 in ROM
+G.A125   DAD   120445   ! KANGA interrupt vector table value at ABS address 2 in ROM
 
 !  __________________________________________________________________
 ! |                                                                  |
@@ -530,61 +530,61 @@ G.A125	DAD	120445	! KANGA interrupt vector table value at ABS address 2 in ROM
 ! |==================================================================|
 ! |__________________________________________________________________|
 !
-GINTEN	DAD	177400	! global interrupt enable address
-GINTDS	DAD	177401	! global interrupt disable address
-KEYSTS	DAD	177402	! keyboard status byte
+GINTEN   DAD   177400   ! global interrupt enable address
+GINTDS   DAD   177401   ! global interrupt disable address
+KEYSTS   DAD   177402   ! keyboard status byte
 
-CRDRDR	DAD	177410	! card reader status byte
+CRDRDR   DAD   177410   ! card reader status byte
 
-IOSTAT	DAD	177420	! == PILR0, PIL register 0
-IOINTC	DAD 177421	! IO CONTR-INTRUPT
-IODATA	DAD	177422	! IO DATA
-PPOLL	DAD	177423	! PARALLEL POLL REG
-AUXINP	DAD	177427	! PIL R7 (BIT 0=OSCDIS)
+IOSTAT   DAD   177420   ! == PILR0, PIL register 0
+IOINTC   DAD 177421   ! IO CONTR-INTRUPT
+IODATA   DAD   177422   ! IO DATA
+PPOLL   DAD   177423   ! PARALLEL POLL REG
+AUXINP   DAD   177427   ! PIL R7 (BIT 0=OSCDIS)
 
-PILR0 	DAD	177420	! PIL register 0
-PILR1 	DAD	177421	! PIL register 1
-PILR2 	DAD	177422	! PIL register 2
-PILR3 	DAD	177423	! PIL register 3
-PILR4 	DAD	177424	! PIL register 4
-PILR5 	DAD	177425	! PIL register 5
-PILR6 	DAD	177426	! PIL register 6
-PILR7 	DAD	177427	! PIL register 7 (bit 7: 0=OSCDIS)
+PILR0    DAD   177420   ! PIL register 0
+PILR1    DAD   177421   ! PIL register 1
+PILR2    DAD   177422   ! PIL register 2
+PILR3    DAD   177423   ! PIL register 3
+PILR4    DAD   177424   ! PIL register 4
+PILR5    DAD   177425   ! PIL register 5
+PILR6    DAD   177426   ! PIL register 6
+PILR7    DAD   177427   ! PIL register 7 (bit 7: 0=OSCDIS)
 
-ROM3A 	DAD	177460	! port 3 - 1st 8K
-ROM1A 	DAD	177462	! port 1 - 1st 8K
-ROM2A 	DAD	177464	! port 2 - 1st 8K
-ROM3B 	DAD	177470	! port 3 - 2nd 8K
-ROM1B 	DAD	177472	! port 1 - 2nd 8K
-ROM2B 	DAD	177474	! port 2 - 2nd 8K
-ROM3C 	DAD	177500	! port 3 - 3rd 8K
-ROM1C 	DAD	177502	! port 1 - 3rd 8K
-ROM2C 	DAD	177504	! port 2 - 3rd 8K
+ROM3A    DAD   177460   ! port 3 - 1st 8K
+ROM1A    DAD   177462   ! port 1 - 1st 8K
+ROM2A    DAD   177464   ! port 2 - 1st 8K
+ROM3B    DAD   177470   ! port 3 - 2nd 8K
+ROM1B    DAD   177472   ! port 1 - 2nd 8K
+ROM2B    DAD   177474   ! port 2 - 2nd 8K
+ROM3C    DAD   177500   ! port 3 - 3rd 8K
+ROM1C    DAD   177502   ! port 1 - 3rd 8K
+ROM2C    DAD   177504   ! port 2 - 3rd 8K
 
-SYSSLT	DAD	177506	! ALTROM enable address
-ROM3EN	DAD	177506	! enable system ROM
-ROM3EN+1 DAD 177507	! disable system ROM
+SYSSLT   DAD   177506   ! ALTROM enable address
+ROM3EN   DAD   177506   ! enable system ROM
+ROM3EN+1 DAD 177507   ! disable system ROM
 
-DIAG	DAD	177510	! enable diagnostic ROM slot
-ROM3D 	DAD	177510	! port 3 - top 8K
+DIAG   DAD   177510   ! enable diagnostic ROM slot
+ROM3D    DAD   177510   ! port 3 - top 8K
 
-DIAG+1	DAD	177511	! disable diagnostic ROM slot
-ROM1D 	DAD	177512	! port 1 - top 8K
-ROM2D 	DAD	177514	! port 2 - top 8K
-MELSLT	DAD	177516	! MELROM enable address
+DIAG+1   DAD   177511   ! disable diagnostic ROM slot
+ROM1D    DAD   177512   ! port 1 - top 8K
+ROM2D    DAD   177514   ! port 2 - top 8K
+MELSLT   DAD   177516   ! MELROM enable address
 
-SAOFF 	DAD	177525	! signature analysis off (DINGO)
-!						Causes test pads to become inactive (see SAON.)
-CMPSB 	DAD	177600	! comparator status byte
-RTC		DAD	177601	! real time clock status byte
-RTCSB	DAD	177601	! A SYNONYM FOR RTC
-PSSB  	DAD	177602	! Power Supply Status Bits
-SAON  	DAD	177652	! signature analysis on (DINGO)
-!						Writing to this address causes test pads on various kangaroo chips
-!						to become active.  This is used by Dave Patton's signature analysis
-!						system to determine in conjunction with DINGO whether the hardware
-!						is functioning correctly.
-LCD   	DAD	177774	! LCD interface address
+SAOFF    DAD   177525   ! signature analysis off (DINGO)
+!                  Causes test pads to become inactive (see SAON.)
+CMPSB    DAD   177600   ! comparator status byte
+RTC      DAD   177601   ! real time clock status byte
+RTCSB   DAD   177601   ! A SYNONYM FOR RTC
+PSSB     DAD   177602   ! Power Supply Status Bits
+SAON     DAD   177652   ! signature analysis on (DINGO)
+!                  Writing to this address causes test pads on various kangaroo chips
+!                  to become active.  This is used by Dave Patton's signature analysis
+!                  system to determine in conjunction with DINGO whether the hardware
+!                  is functioning correctly.
+LCD      DAD   177774   ! LCD interface address
 !  __________________________________________________________________
 ! | ROMS ROM#S                                                       |
 ! |==================================================================|
@@ -611,25 +611,25 @@ LCD   	DAD	177774	! LCD interface address
 ! * Only a group of foolhardy explorers doomed to certain  *
 ! * death would dare to use anything but these equates!    *
 ! **********************************************************
-BASROM	DAD	0		! the BASic ROM
-ALTROM	DAD	1		! the ALTername ROM
-MELROM	DAD	2		! the Memory-Errors-Leftovers ROM
-MONITR	DAD	401		! the monitor rom
-TSTCRD	DAD	402		! the test card rom
-APRLEX	DAD	421		! the april rom assembly stuff
-APRBSC	DAD	422		! the april rom basic stuff
-LODCRD	DAD	1404	! the load card rom
-DEMOA 	DAD	50000	! demo rom (first 8K)
-DEMOB 	DAD	50001	! demo rom (second 8K)
-BARCROM DAD 114623	! barcode rom
+BASROM   DAD   0      ! the BASic ROM
+ALTROM   DAD   1      ! the ALTername ROM
+MELROM   DAD   2      ! the Memory-Errors-Leftovers ROM
+MONITR   DAD   401      ! the monitor rom
+TSTCRD   DAD   402      ! the test card rom
+APRLEX   DAD   421      ! the april rom assembly stuff
+APRBSC   DAD   422      ! the april rom basic stuff
+LODCRD   DAD   1404   ! the load card rom
+DEMOA    DAD   50000   ! demo rom (first 8K)
+DEMOB    DAD   50001   ! demo rom (second 8K)
+BARCROM DAD 114623   ! barcode rom
 
-ROM		DAD	60000	! where a rom begins
+ROM      DAD   60000   ! where a rom begins
 
-RMHEAD	DAD 16343	! the rom header.
+RMHEAD   DAD 16343   ! the rom header.
 ! These two bytes are the first two bytes of all roms (not lexfiles in ram)
 
-ROMDIR	DAD 60002	! where the ROM directory begins
-RELMAR	DAD	177777	! relocation marker for lexfiles
+ROMDIR   DAD 60002   ! where the ROM directory begins
+RELMAR   DAD   177777   ! relocation marker for lexfiles
 
 **********************************************************************
 * layout of ROM HEAD for all ROMS (relative offsets)
@@ -649,12 +649,12 @@ RELMAR	DAD	177777	! relocation marker for lexfiles
 * RM.ERR   EQU 36      pointer to ERROR MESSAGES
 * RM.INI   EQU 40      pointer to INIT ROUTINE (HANDI calls this)
 **********************************************************************
-RM.ID	DAD	0		! rom id number
-RM.RUN	DAD 2		! pointer to runtime table
-RM.ASC	DAD	4		! pointer to ascii token table
-RM.PAR	DAD	6		! pointer to parsetime entries
-RM.ERR	DAD	10		! pointer to error messages
-RM.INI	DAD 12		! pointer to init routine (this is what HANDI calls)
+RM.ID   DAD   0      ! rom id number
+RM.RUN   DAD 2      ! pointer to runtime table
+RM.ASC   DAD   4      ! pointer to ascii token table
+RM.PAR   DAD   6      ! pointer to parsetime entries
+RM.ERR   DAD   10      ! pointer to error messages
+RM.INI   DAD 12      ! pointer to init routine (this is what HANDI calls)
 
 R60K      DAD       060000     ! address of start of ROM at 6000
 R60K.ID   DAD       060026     ! ROM header ID
@@ -681,8 +681,8 @@ R60K.INI  DAD       060040     ! ROM init routine
 ! |==================================================================|
 ! |__________________________________________________________________|
 !
-LEN8K	DAD	20000	! len of a ROM
-LEN8K-23 DAD 17751	! len barcode ROM
+LEN8K   DAD   20000   ! len of a ROM
+LEN8K-23 DAD 17751   ! len barcode ROM
 
 !*** DIRECTORY LAYOUT ***
 DR.LOC  DAD 0       ! loc of file
@@ -751,25 +751,25 @@ ECBLEN    EQU 36    ! length of ECB
 !   "I had fish for dinner."
 !   "But Roo-man, I thought you were a vegetarian and, besides that, you hate fish."
 !
-IDLSTS    EQU 0       idle mode
-CLCSTS    EQU 1       calculator mode
-RUNSTS    EQU 2       running
-DACSTS    EQU 3       deactivated (used in environment
+IDLSTS    EQU 0      ! idle mode
+CLCSTS    EQU 1      ! calculator mode
+RUNSTS    EQU 2      ! running
+DACSTS    EQU 3      ! deactivated (used in environment
 ! the following two are odd so th... they don't appear to be a runni... state (some places do a JEV)
-EALSTS    EQU 375     environmental allocation (used by RUNING flag)
-ALOSTS    EQU 377     allocation (used by RUNING flag only)
+EALSTS    EQU 375    ! environmental allocation (used by RUNING flag)
+ALOSTS    EQU 377    ! allocation (used by RUNING flag only)
 
 ! *** bit constants
-ONES	EQU		377
-TRUE	EQU		377
-FF		EQU		377
-FFFF	EQU		177777
+ONES   EQU      377
+TRUE   EQU      377
+FF      EQU      377
+FFFF   EQU      177777
 
 ! *** Battery levels
-ALKLN1    EQU 146D    3.10v alkaline interrupt
-ALKLN2    EQU 127D    2.70v alkaline interrupt
-NICAD1    EQU 167D    3.55v nicad interrupt
-NICAD2    EQU 155D    3.30v nicad interrupt
+ALKLN1    EQU 146D   ! 3.10v alkaline interrupt
+ALKLN2    EQU 127D   ! 2.70v alkaline interrupt
+NICAD1    EQU 167D   ! 3.55v nicad interrupt
+NICAD2    EQU 155D   ! 3.30v nicad interrupt
 
 ! **********************************************
 ! * EVENT NUMBERS for use with HANDI and HANDIO
@@ -882,27 +882,27 @@ V.TEST   EQU 99D !      the TEST event for XYZZY
 !           v            |           v             |
 !           ------------>|           ------------->|
 !
-VF.COD	EQU	7		! code to indicate we have been h
-VF.DL	EQU	10		! start location of medium direct
-VF.BIG	EQU	14		! medium directory size
-VF.LOC	EQU	20		! current location on medium
-VF.MED	EQU	23		! maximum size of medium
-VF.FLG	EQU	25		! done seek before (flag = 0)
-VF.RSW	EQU	26		! current status (read, write, or
-VF.TTT	EQU	27		! current copy type (tape to tape
-VF.CDE	EQU	30		! current directory entry
-VF.FTY	EQU	42		! file type (current directory)
-VF.CST	EQU	46		! file start address (current dir
-VF.CLN	EQU	52		! file length (current directory)
-VF.CTC	EQU	54		! time of creation (current direc
-VF.CMP	EQU	64		! implementation bytes [password]
-VF.CDL	EQU	70		! location of current directory e
-VF.2DE	EQU	73		! space for another directory (in
-VF.RDE	EQU	133		! current directory in roo form
-EXTLEN	EQU	109d	! new length of devfile line with
-VFREAD	EQU	1		! doing read flag    \
-VFWRITE EQU	0		! doing write flag    --- used fo
-VFSEEK	EQU	377		! doing seek flag    /
+VF.COD   EQU   7      ! code to indicate we have been h
+VF.DL   EQU   10      ! start location of medium direct
+VF.BIG   EQU   14      ! medium directory size
+VF.LOC   EQU   20      ! current location on medium
+VF.MED   EQU   23      ! maximum size of medium
+VF.FLG   EQU   25      ! done seek before (flag = 0)
+VF.RSW   EQU   26      ! current status (read, write, or
+VF.TTT   EQU   27      ! current copy type (tape to tape
+VF.CDE   EQU   30      ! current directory entry
+VF.FTY   EQU   42      ! file type (current directory)
+VF.CST   EQU   46      ! file start address (current dir
+VF.CLN   EQU   52      ! file length (current directory)
+VF.CTC   EQU   54      ! time of creation (current direc
+VF.CMP   EQU   64      ! implementation bytes [password]
+VF.CDL   EQU   70      ! location of current directory e
+VF.2DE   EQU   73      ! space for another directory (in
+VF.RDE   EQU   133      ! current directory in roo form
+EXTLEN   EQU   109d   ! new length of devfile line with
+VFREAD   EQU   1      ! doing read flag    \
+VFWRITE EQU   0      ! doing write flag    --- used fo
+VFSEEK   EQU   377      ! doing seek flag    /
 
 ! ** A quick study of the duodecimal system
 ! **********************************************************
@@ -919,48 +919,48 @@ VFSEEK	EQU	377		! doing seek flag    /
 ! ****************************************
 ! ** a collection of sizes
 
-DVNMSZ	EQU	4		! const = size of device name
-PWNMSZ	EQU	4		! const = size of password
-FLNMSZ	EQU	8d		! const = size of filename
-GOSBSZ	EQU	6d		! const = size of GOSUB entry
-FORSZ	EQU	22d		! const = size of FOR entry
+DVNMSZ   EQU   4      ! const = size of device name
+PWNMSZ   EQU   4      ! const = size of password
+FLNMSZ   EQU   8d      ! const = size of filename
+GOSBSZ   EQU   6d      ! const = size of GOSUB entry
+FORSZ   EQU   22d      ! const = size of FOR entry
 
-LEWYSZ	EQU	576d	! guaranteed room for R12 stack
-ENDSIZ	EQU	5		! length of the endline
+LEWYSZ   EQU   576d   ! guaranteed room for R12 stack
+ENDSIZ   EQU   5      ! length of the endline
 
-TYPSIZ	EQU	2		! size of the type information
+TYPSIZ   EQU   2      ! size of the type information
 
 ! ** file TYPE stuff
 
 ! ** just the name bits
-TYNAM	EQU	7		! mask for the name bytes
-TYNSYS	EQU	0		! name of SYSTEM type
-TYNAPP	EQU	65d		! 'A' name of APPOINTMENT type
-TYNBAS	EQU	66d		! 'B' name of BASIC type
-TYNLI1	EQU	73d		! 'I' name of LIF type 1 file
-TYNLEX	EQU	76d		! 'L' name of LEX file
-TYNROM	EQU	82d		! 'R' name of ROM file
-TYNTEX	EQU	84d		! 'T' name of TEXT type
-TYNVSC	EQU	87d		! 'W' name of VISICALC file
-TYN???	EQU	63d		! '?' name of STRANGER type
+TYNAM   EQU   7      ! mask for the name bytes
+TYNSYS   EQU   0      ! name of SYSTEM type
+TYNAPP   EQU   65d      ! 'A' name of APPOINTMENT type
+TYNBAS   EQU   66d      ! 'B' name of BASIC type
+TYNLI1   EQU   73d      ! 'I' name of LIF type 1 file
+TYNLEX   EQU   76d      ! 'L' name of LEX file
+TYNROM   EQU   82d      ! 'R' name of ROM file
+TYNTEX   EQU   84d      ! 'T' name of TEXT type
+TYNVSC   EQU   87d      ! 'W' name of VISICALC file
+TYN???   EQU   63d      ! '?' name of STRANGER type
 
 ! ** bit masks for access type byte
-TYRAM?	EQU	128d	! test if file in RAM
-TYROM?	EQU	0		! test if file in ROM
-TYRUN?	EQU	64d		! test if file can be run
-TYEDT?	EQU	32d		! test if file is editable
-TYLST?	EQU	16d		! test if file is listable
-TYPUR?	EQU	8d		! test if file can be purged
-TYCOP?	EQU	4		! test if file can be copied
-TYLIN?	EQU 2		! test if file is standard lined file
-TYTOK?	EQU	1		! test if file is token file
-TYENTR	EQU 141d	! type of code for PMS software (barcode ROM)
+TYRAM?   EQU   128d   ! test if file in RAM
+TYROM?   EQU   0      ! test if file in ROM
+TYRUN?   EQU   64d      ! test if file can be run
+TYEDT?   EQU   32d      ! test if file is editable
+TYLST?   EQU   16d      ! test if file is listable
+TYPUR?   EQU   8d      ! test if file can be purged
+TYCOP?   EQU   4      ! test if file can be copied
+TYLIN?   EQU 2      ! test if file is standard lined file
+TYTOK?   EQU   1      ! test if file is token file
+TYENTR   EQU 141d   ! type of code for PMS software (barcode ROM)
 
-TYCODE	EQU	27		! attributes byte of code for PMS (barcode ROM)
+TYCODE   EQU   27      ! attributes byte of code for PMS (barcode ROM)
 
-TYPRI?	EQU	52d		! test if private
-TYDAT?	EQU	126d	! data file for PRINT#/READ#
-TYLF1?	EQU	12d		! is it LIF type 1 file?
+TYPRI?   EQU   52d      ! test if private
+TYDAT?   EQU   126d   ! data file for PRINT#/READ#
+TYLF1?   EQU   12d      ! is it LIF type 1 file?
 
 ! **********************************************************
 ! "Hi Roo-man! NNMRELPCLT."
@@ -968,185 +968,185 @@ TYLF1?	EQU	12d		! is it LIF type 1 file?
 ! **********************************************************
 ! ** basic file types (TYname*256 + AccessBits)
 ! ** ie, TYname in upper byte, AccessBits in lower byte.
-TYCALC	DAD	342		! filetype for calc
-TYSYSM	DAD	0		! filetype for system
-TYTEXT	DAD	52276	! filetype for text
-TYBASC	DAD	41376	! filetype for basic
-TYAPPT	DAD	40614	! filetype for appointment
-TYLEXF	DAD	46011	! filetype for LEX
-TYLIF1	DAD	44614	! filetype for LIF
-TYROMF	DAD	51214	! filetype for ROM
-TYDIAG	DAD	10		! filetype for diag
+TYCALC   DAD   342      ! filetype for calc
+TYSYSM   DAD   0      ! filetype for system
+TYTEXT   DAD   52276   ! filetype for text
+TYBASC   DAD   41376   ! filetype for basic
+TYAPPT   DAD   40614   ! filetype for appointment
+TYLEXF   DAD   46011   ! filetype for LEX
+TYLIF1   DAD   44614   ! filetype for LIF
+TYROMF   DAD   51214   ! filetype for ROM
+TYDIAG   DAD   10      ! filetype for diag
 
 ! ** constants
 
-RTN		EQU	236		! a return instruction
-ONE		EQU	1
-TWO		EQU	2
-THREE	EQU	3
-FOUR	EQU	4
-FIVE	EQU	5
-SIX		EQU 6
-SEVEN	EQU	7
-EIGHT	EQU	8D
-NINE	EQU	9D
-TEN		EQU	10D
-TENTHOUS	DAD	10000D
-ONETHOUS	DAD	1000D
-ONEHUND		DAD	100D
+RTN      EQU   236      ! a return instruction
+ONE      EQU   1
+TWO      EQU   2
+THREE   EQU   3
+FOUR   EQU   4
+FIVE   EQU   5
+SIX      EQU 6
+SEVEN   EQU   7
+EIGHT   EQU   8D
+NINE   EQU   9D
+TEN      EQU   10D
+TENTHOUS   DAD   10000D
+ONETHOUS   DAD   1000D
+ONEHUND      DAD   100D
 
-FILL1	EQU	377		! -1 for protect shield
-FILL0	EQU	0		! 0 for protect shield
+FILL1   EQU   377      ! -1 for protect shield
+FILL0   EQU   0      ! 0 for protect shield
 
-VACANT	DAD	0		! empty entries for address tables, e.g. runtime and parse tables
+VACANT   DAD   0      ! empty entries for address tables, e.g. runtime and parse tables
 
 ! ** Key equates
 
-CR		EQU	13d		! carriage return
-LF		EQU	10d		! line feed
-BS		EQU	8d		! backspace
-FS		EQU	207		! forward space
-ESC		EQU	27d		! escape
+CR      EQU   13d      ! carriage return
+LF      EQU   10d      ! line feed
+BS      EQU   8d      ! backspace
+FS      EQU   207      ! forward space
+ESC      EQU   27d      ! escape
 
-CNTL	EQU	100		! control bit for non-ascii keys
-SHIFT	EQU	40		! shift bit for non-ascii keys
+CNTL   EQU   100      ! control bit for non-ascii keys
+SHIFT   EQU   40      ! shift bit for non-ascii keys
 
 ! ** The non-ASCII keys.  They are all >= 128d
 
-ATTNKY	EQU	200		! Attention Key
-NAPKEY	EQU	240		! Nap key
-TIMEKY	EQU	201		! Time key
-APPTKY	EQU	202		! Appointment key
-EDITKY	EQU	203		! Edit key
-UPKEY 	EQU	204		! Up arrow key
-S+UPKY	EQU	244		! SHIFT + UPKEY
-DOWNKY	EQU	205		! Down arrow key
-S+DNKY	EQU	245		! SHIFT + DOWNKY
-LEFTKY	EQU	206		! Left arrow key
-RGHTKY	EQU	207		! Right arrow key
-IRKEY	EQU 210		! Insert/Replace key
-I/RKEY	EQU	210		! Insert/Replace key
-LITKEY	EQU	250		! Literalize key = shift-I/R
-FTCHKY	EQU	211		! Fetch key
-DELKEY	EQU	212		! Delete key
-CLRKEY	EQU	213		! Clear key
-LOCKKY	EQU	214		! Lock key
-RUNKEY	EQU	215		! Run key
-STEPKY	EQU	255		! Step key = shift-RUN
-BACKEY	EQU	217		! Backspace key
-SEMKEY	EQU 73		! used in ZAP ROM
+ATTNKY   EQU   200      ! Attention Key
+NAPKEY   EQU   240      ! Nap key
+TIMEKY   EQU   201      ! Time key
+APPTKY   EQU   202      ! Appointment key
+EDITKY   EQU   203      ! Edit key
+UPKEY    EQU   204      ! Up arrow key
+S+UPKY   EQU   244      ! SHIFT + UPKEY
+DOWNKY   EQU   205      ! Down arrow key
+S+DNKY   EQU   245      ! SHIFT + DOWNKY
+LEFTKY   EQU   206      ! Left arrow key
+RGHTKY   EQU   207      ! Right arrow key
+IRKEY   EQU 210      ! Insert/Replace key
+I/RKEY   EQU   210      ! Insert/Replace key
+LITKEY   EQU   250      ! Literalize key = shift-I/R
+FTCHKY   EQU   211      ! Fetch key
+DELKEY   EQU   212      ! Delete key
+CLRKEY   EQU   213      ! Clear key
+LOCKKY   EQU   214      ! Lock key
+RUNKEY   EQU   215      ! Run key
+STEPKY   EQU   255      ! Step key = shift-RUN
+BACKEY   EQU   217      ! Backspace key
+SEMKEY   EQU 73      ! used in ZAP ROM
 
 ! ** Artificial keys
 
-LEFT!	EQU	372		! juggernaut go left!!!
-APNOTE	EQU	373		! appt note mode switcher
-APCMND	EQU	374		! appt command mode switcher
-BEEPKY	EQU	375		! a beeping key used for errors in number pad
-BYEKEY	EQU	376		! key generated by BYE (like NAPK
-NOPKEY	EQU	377		! no-operation key
+LEFT!   EQU   372      ! juggernaut go left!!!
+APNOTE   EQU   373      ! appt note mode switcher
+APCMND   EQU   374      ! appt command mode switcher
+BEEPKY   EQU   375      ! a beeping key used for errors in number pad
+BYEKEY   EQU   376      ! key generated by BYE (like NAPK
+NOPKEY   EQU   377      ! no-operation key
 
-INTFLG	EQU	377		! INTeger FLaG
-STRLEN	EQU	32d		! default LENgth for a STRing
+INTFLG   EQU   377      ! INTeger FLaG
+STRLEN   EQU   32d      ! default LENgth for a STRing
 
 ! ** TOKEN equates
 
-PGMRSW	EQU	241		! program-mode reserved word ATTRIBUTE
-CLCRSW	EQU	141		! calc-mode reserved word ATTRIBUTE
+PGMRSW   EQU   241      ! program-mode reserved word ATTRIBUTE
+CLCRSW   EQU   141      ! calc-mode reserved word ATTRIBUTE
 
 ! ** some relationships between tokens
 
-ST#DIF	EQU	10		! the difference between string compare tokens and numeric compare tokens
-VTKDIF	EQU	20		! the difference between address and fetch tokens for variables
-FTKDIF	EQU	25		! the difference between FN call tokens and the variable address tokens
-ATKLIM	EQU	260		! a limit above which the only variable referencing tokens are for A() and A(,)
+ST#DIF   EQU   10      ! the difference between string compare tokens and numeric compare tokens
+VTKDIF   EQU   20      ! the difference between address and fetch tokens for variables
+FTKDIF   EQU   25      ! the difference between FN call tokens and the variable address tokens
+ATKLIM   EQU   260      ! a limit above which the only variable referencing tokens are for A() and A(,)
 
 ! ** These are equates for token numbers
 
-SNVTOK	EQU	1		! simple numeric variable
-SAVTOK	EQU	2		! array
-STRTOK	EQU	3		! string
-STOTOK	EQU	10		! STORE SV
-CRTNTK	EQU	15		! CR
-EOLTOK	EQU	16		! end of line
-LVA$TK	EQU	23		! Lvalue string token
-MST#TK	EQU	24		! multistore numeric
-MST$TK	EQU	25		! multistore string
-TAILTK	EQU	31		! INPUT tail
-INTTK	EQU	32		! integer constant
-JPSTOK	EQU	33		! JMP FALSE
-JMPTOK	EQU	34		! JMP REL
-SSC1TK	EQU	35		! subscript 1 dim
-SSC2TK	EQU	36		! subscript 2 dim
-PRARRY	EQU	42		! print# array
-RDARRY	EQU	44		! read# array
-SEMI	EQU	47		! SEMICOLON
-STARTK	EQU	52		! *
-ADDTOK	EQU	53		! +
-SUBTK2	EQU	55		! diadic -
-EQUALS	EQU	65		! EQUALS
-SUBTK1	EQU	70		! monadic -
-ATTOK	EQU	100		! @
-FNSYM	EQU	104		! FN ILET
-CATATK	EQU	106		! CAT ALL
-CAT$TK	EQU	110		! CAT$
-CATTK	EQU	112		! CAT
-CALLTK	EQU	117		! CALL
-RUNTK	EQU	124		! RUN
-DISPTK	EQU	126		! DISP
-GOTOK	EQU	132		! GOTO
-GOSTOK	EQU	133		! GOSUB
-INPTOK	EQU	137		! INPUT
-ONTOK	EQU	146		! ON
-EDITTK	EQU	163		! EDIT
-CLRVTK	EQU	170		! CLEAR VARS
-COPYTK	EQU	174		! COPY
-PURGTK	EQU	175		! PURGE
-RENATK	EQU	176		! RENAME
-MISTOK	EQU	202		! ROM MISSING
-ARY2TK	EQU	206		! 
-RENUTK	EQU	211		! RENUMBER
-BANGTK	EQU	213		! ! comment
-IMAGTK	EQU	216		! IMAGE
-NXTTOK	EQU	217		! NEXT
-LETTOK	EQU	221		! implied LET
-CLRLTK	EQU	223		! clear loop
-CLRDTK	EQU	225		! clear <device>
-PRITOK	EQU	226		! prime parse & primed string
-TXTTOK	EQU	227		! TEXT
-BASTOK	EQU	230		! BASIC
-INTOTK	EQU	233		! INTO
-IPOPTK	EQU	234		! invisible POP
-TOTOK	EQU	237		! TO
-ULNTOK	EQU	240		! USING line number
-RDSTK.	EQU	241		! READ string
-CRTOK	EQU	242		! PRINT end
-PRS$TK	EQU	243		! PRINT semicolon string
-PRC$TK	EQU	244		! PRINT comma string
-PR#STK	EQU	245		! PRINT# semicolon
-COM#TK	EQU	246		! PRINT# comma
-CR#TOK	EQU	247		! PRINT# eol
-ONGUY	EQU	250		! the ON token as in ON/OFF
-OFFTOK	EQU	251		! the OFF token as in ON/OFF
-IFNDTK	EQU	257		! invisible function end
-EROMTK	EQU	264		! external ROM
-ARY1TK	EQU	265		! 1 DIM ARRAY A()
-ARY2TK	EQU	266		! 2 DIM ARRAY A(,)
-RDNTK.	EQU	310		! READ(num)
-USTOK	EQU	313		! USING
-THENTO	EQU	314		! THEN
-STPTOK	EQU	316		! STEP
-NOTTOK	EQU	320		! NOT
-ELSTOK	EQU	327		! ELSE
-TOTOK2	EQU	333		! TO (assign)
-RSTL#	EQU	334		! RESTORE to line
-LBRACK	EQU	336		! [
+SNVTOK   EQU   1      ! simple numeric variable
+SAVTOK   EQU   2      ! array
+STRTOK   EQU   3      ! string
+STOTOK   EQU   10      ! STORE SV
+CRTNTK   EQU   15      ! CR
+EOLTOK   EQU   16      ! end of line
+LVA$TK   EQU   23      ! Lvalue string token
+MST#TK   EQU   24      ! multistore numeric
+MST$TK   EQU   25      ! multistore string
+TAILTK   EQU   31      ! INPUT tail
+INTTK   EQU   32      ! integer constant
+JPSTOK   EQU   33      ! JMP FALSE
+JMPTOK   EQU   34      ! JMP REL
+SSC1TK   EQU   35      ! subscript 1 dim
+SSC2TK   EQU   36      ! subscript 2 dim
+PRARRY   EQU   42      ! print# array
+RDARRY   EQU   44      ! read# array
+SEMI   EQU   47      ! SEMICOLON
+STARTK   EQU   52      ! *
+ADDTOK   EQU   53      ! +
+SUBTK2   EQU   55      ! diadic -
+EQUALS   EQU   65      ! EQUALS
+SUBTK1   EQU   70      ! monadic -
+ATTOK   EQU   100      ! @
+FNSYM   EQU   104      ! FN ILET
+CATATK   EQU   106      ! CAT ALL
+CAT$TK   EQU   110      ! CAT$
+CATTK   EQU   112      ! CAT
+CALLTK   EQU   117      ! CALL
+RUNTK   EQU   124      ! RUN
+DISPTK   EQU   126      ! DISP
+GOTOK   EQU   132      ! GOTO
+GOSTOK   EQU   133      ! GOSUB
+INPTOK   EQU   137      ! INPUT
+ONTOK   EQU   146      ! ON
+EDITTK   EQU   163      ! EDIT
+CLRVTK   EQU   170      ! CLEAR VARS
+COPYTK   EQU   174      ! COPY
+PURGTK   EQU   175      ! PURGE
+RENATK   EQU   176      ! RENAME
+MISTOK   EQU   202      ! ROM MISSING
+ARY2TK   EQU   206      ! 
+RENUTK   EQU   211      ! RENUMBER
+BANGTK   EQU   213      ! ! comment
+IMAGTK   EQU   216      ! IMAGE
+NXTTOK   EQU   217      ! NEXT
+LETTOK   EQU   221      ! implied LET
+CLRLTK   EQU   223      ! clear loop
+CLRDTK   EQU   225      ! clear <device>
+PRITOK   EQU   226      ! prime parse & primed string
+TXTTOK   EQU   227      ! TEXT
+BASTOK   EQU   230      ! BASIC
+INTOTK   EQU   233      ! INTO
+IPOPTK   EQU   234      ! invisible POP
+TOTOK   EQU   237      ! TO
+ULNTOK   EQU   240      ! USING line number
+RDSTK.   EQU   241      ! READ string
+CRTOK   EQU   242      ! PRINT end
+PRS$TK   EQU   243      ! PRINT semicolon string
+PRC$TK   EQU   244      ! PRINT comma string
+PR#STK   EQU   245      ! PRINT# semicolon
+COM#TK   EQU   246      ! PRINT# comma
+CR#TOK   EQU   247      ! PRINT# eol
+ONGUY   EQU   250      ! the ON token as in ON/OFF
+OFFTOK   EQU   251      ! the OFF token as in ON/OFF
+IFNDTK   EQU   257      ! invisible function end
+EROMTK   EQU   264      ! external ROM
+ARY1TK   EQU   265      ! 1 DIM ARRAY A()
+ARY2TK   EQU   266      ! 2 DIM ARRAY A(,)
+RDNTK.   EQU   310      ! READ(num)
+USTOK   EQU   313      ! USING
+THENTO   EQU   314      ! THEN
+STPTOK   EQU   316      ! STEP
+NOTTOK   EQU   320      ! NOT
+ELSTOK   EQU   327      ! ELSE
+TOTOK2   EQU   333      ! TO (assign)
+RSTL#   EQU   334      ! RESTORE to line
+LBRACK   EQU   336      ! [
 
-!???INP#TK	EQU	320		! INPUT number
+!???INP#TK   EQU   320      ! INPUT number
 
-RBRACT	EQU	337		! ]
-INP$TK	EQU	345		! INPUT string
-PRS#TK	EQU	347		! PRINT semicolon numeric
-PRC#TK	EQU	350		! PRINT comma numeric
+RBRACT   EQU   337      ! ]
+INP$TK   EQU   345      ! INPUT string
+PRS#TK   EQU   347      ! PRINT semicolon numeric
+PRC#TK   EQU   350      ! PRINT comma numeric
 
 !**********************************************************************
 ! Please note:
@@ -1174,18 +1174,18 @@ PRC#TK	EQU	350		! PRINT comma numeric
 !
 !**********************************************************************
 
-BLANK	EQU	32d		! SPACE
-PRIME	EQU	39d		! ASCII prime (')
-STAR	EQU	42d		! *
-DOLLAR	EQU	36d		! $
-PLUS	EQU	43d		! +
-MINUS	EQU	45d		! -
-OPEN	EQU	40d		! (
-CLOSE	EQU	41d		! )
-SLASH	EQU	47d		! /
-PERIOD	EQU	46d		! .
-COMMA	EQU	44d		! ,
-QUOTE	EQU	34d		! "
+BLANK   EQU   32d      ! SPACE
+PRIME   EQU   39d      ! ASCII prime (')
+STAR   EQU   42d      ! *
+DOLLAR   EQU   36d      ! $
+PLUS   EQU   43d      ! +
+MINUS   EQU   45d      ! -
+OPEN   EQU   40d      ! (
+CLOSE   EQU   41d      ! )
+SLASH   EQU   47d      ! /
+PERIOD   EQU   46d      ! .
+COMMA   EQU   44d      ! ,
+QUOTE   EQU   34d      ! "
 
 ! ** Joey talks about setting bits
 ! *****************************************************************************
@@ -1202,8 +1202,8 @@ QUOTE	EQU	34d		! "
 !
 ! *****************************************************************************
 
-STRSIZ	EQU	4		! size of a string on the R12 stack
-ENDLIN	DAD	124631	! A999c special last line of program
+STRSIZ   EQU   4      ! size of a string on the R12 stack
+ENDLIN   DAD   124631   ! A999c special last line of program
 
 ! ** PIL constants
 ! ******************************************************************************
@@ -1214,55 +1214,55 @@ ENDLIN	DAD	124631	! A999c special last line of program
 ! * "Well, Joey, it looks like some more of that godless octal stuff.
 ! *  It's time to set out the octal hotel."
 
-CMD		EQU	200		! COMMAND
-AAU		EQU	115200	! CMD/auto unconfig	(200/232)
-AAU'	EQU	232		! lower byte of AAU
-DCL		EQU	12200	! CMD/device clear 	(200/24)
-DCL'	EQU	24		! lower byte of DCL
-IFC		EQU	110200	! CMD/interface clr (200/220)
-IFC'	EQU	220		! lower byte of interface clear
-LAD		EQU	20200	! CMD/listen address(200/40)
-LAD'	EQU	40		! lower byte of LAD
-LD(1)'	EQU	41		! lower byte of LAD (addr of 1)
-SDC		EQU 2200	! CMD/selected devclr (200/4)
-SDC'	EQU	4		! lower byte of SDC
-TAD'	EQU	100		! lower byte of TAD
-UNL		EQU	37600	! CMD/unlisten
-UNL'	EQU	77		! lower byte of UNL
-UNT'	EQU	137		! lower byte of UNT
-RDY		EQU	240		! ready
-ASP		EQU	100240	! RDY/auto address (240/2xx)
-ASP(1)	EQU	100640	! ASP with address of 1
-ASP'	EQU	200		! lower byte of ASP(address of 0)
-RFC		EQU	240		! RDY/ready for CMD (240/0)
-IDY		EQU	300		! identify
+CMD      EQU   200      ! COMMAND
+AAU      EQU   115200   ! CMD/auto unconfig   (200/232)
+AAU'   EQU   232      ! lower byte of AAU
+DCL      EQU   12200   ! CMD/device clear    (200/24)
+DCL'   EQU   24      ! lower byte of DCL
+IFC      EQU   110200   ! CMD/interface clr (200/220)
+IFC'   EQU   220      ! lower byte of interface clear
+LAD      EQU   20200   ! CMD/listen address(200/40)
+LAD'   EQU   40      ! lower byte of LAD
+LD(1)'   EQU   41      ! lower byte of LAD (addr of 1)
+SDC      EQU 2200   ! CMD/selected devclr (200/4)
+SDC'   EQU   4      ! lower byte of SDC
+TAD'   EQU   100      ! lower byte of TAD
+UNL      EQU   37600   ! CMD/unlisten
+UNL'   EQU   77      ! lower byte of UNL
+UNT'   EQU   137      ! lower byte of UNT
+RDY      EQU   240      ! ready
+ASP      EQU   100240   ! RDY/auto address (240/2xx)
+ASP(1)   EQU   100640   ! ASP with address of 1
+ASP'   EQU   200      ! lower byte of ASP(address of 0)
+RFC      EQU   240      ! RDY/ready for CMD (240/0)
+IDY      EQU   300      ! identify
 
-DDL'	EQU	240		! DDL FRAME, LOW BYTE
-DDT'	EQU	300		! DDT FRAME, LOW BYTE
-SAI		EQU	61640	! SAI both bytes
-NRD		EQU	41240	! NRD frame, both bytes
-SDA		EQU	60240	! SDA frame, both bytes
-SST		EQU	60640	! SST frame, both bytes
-ETO		EQU	40240	! ETO frame, both bytes
+DDL'   EQU   240      ! DDL FRAME, LOW BYTE
+DDT'   EQU   300      ! DDT FRAME, LOW BYTE
+SAI      EQU   61640   ! SAI both bytes
+NRD      EQU   41240   ! NRD frame, both bytes
+SDA      EQU   60240   ! SDA frame, both bytes
+SST      EQU   60640   ! SST frame, both bytes
+ETO      EQU   40240   ! ETO frame, both bytes
 
 ! ** iofile offsets for assign#
 ! ** NOTE: ioopen expects data#, line# and type# to be adjacent
 
-LEN#	EQU	2		! length of entry in iofile
-NAME#	EQU	3		! entry for file name in iofile
-DATA#	EQU	11d		! entry for current data item#
-LINE#	EQU	12d		! entry for current line#
-TYPE#	EQU	14d		! entry for type of file in iofile
-ROM#	EQU	15d		! go entry for rom# if basic in rom
+LEN#   EQU   2      ! length of entry in iofile
+NAME#   EQU   3      ! entry for file name in iofile
+DATA#   EQU   11d      ! entry for current data item#
+LINE#   EQU   12d      ! entry for current line#
+TYPE#   EQU   14d      ! entry for type of file in iofile
+ROM#   EQU   15d      ! go entry for rom# if basic in rom
 
 ! ** PIL device table
 ! ** devfile offsets for devices
 ! ** see above for len#
 
-DNAME	EQU	3		! entry for device name
-SETUP	EQU	5		! entry for pr/disp is setup bits
-DADDR	EQU	6		! entry for device loop address
-DACPOL	EQU	7		! entry for device accessory poll
+DNAME   EQU   3      ! entry for device name
+SETUP   EQU   5      ! entry for pr/disp is setup bits
+DADDR   EQU   6      ! entry for device loop address
+DACPOL   EQU   7      ! entry for device accessory poll
 
 ! ******************************************************************
 ! Register save/restore constants
@@ -1271,7 +1271,7 @@ DACPOL	EQU	7		! entry for device accessory poll
 ! from the stack.)  They save code when used in place of 4 or more
 ! consecutive PUMD (POMD) Rnn,+(-)R6 instructions.  Call as follows:
 !
-!    JSB =RSAVE	      save the following:
+!    JSB =RSAVE         save the following:
 !    DEF Snn-mm       registers nn thru mm
 !    ...
 !    JSB =RREST       restore the following:
@@ -1303,49 +1303,49 @@ DACPOL	EQU	7		! entry for device accessory poll
 ! ******************************************************************
 
 ! ** R10-?
-S10-11	DAD	177011		! -2d*256d+10
+S10-11   DAD   177011      ! -2d*256d+10
 
 ! ** R17-?
-S17-77	DAD	147417		! -49d*256d+17
+S17-77   DAD   147417      ! -49d*256d+17
 
 ! ** R20-?
-S20-25	DAD	175025		!  -6d*256d+20
-S20-27	DAD 174027		!  -8d*256d+20
-S20-37	DAD	170037		! -16d*256d+20
-S20-33	DAD	172033		! -12d*256d+20
-S20-47	DAD	164047		! -24d*256d+20
-S20-57	DAD	160057		! -32d*256d+20
-S20-67	DAD	154067		! -40d*256d+20
-S20-77	DAD	150077		! -48d*256d+20
+S20-25   DAD   175025      !  -6d*256d+20
+S20-27   DAD 174027      !  -8d*256d+20
+S20-37   DAD   170037      ! -16d*256d+20
+S20-33   DAD   172033      ! -12d*256d+20
+S20-47   DAD   164047      ! -24d*256d+20
+S20-57   DAD   160057      ! -32d*256d+20
+S20-67   DAD   154067      ! -40d*256d+20
+S20-77   DAD   150077      ! -48d*256d+20
 
 ! ** R22-?
-S22-77	DAD	151022		! -46d*256d+22
+S22-77   DAD   151022      ! -46d*256d+22
 
 ! ** R26-?
-S26-37	DAD	173037		! -10d*256d+26
+S26-37   DAD   173037      ! -10d*256d+26
 
 ! ** R27-?
-S27-57	DAD	163457		! -25d*256d+27
+S27-57   DAD   163457      ! -25d*256d+27
 
 ! ** R30-?
-S30-31	DAD	177031		!  -2d*256d+30
-S30-57	DAD	164057		! -24d*256d+30
-S30-77	DAD	154077		! -40d*256d+30
+S30-31   DAD   177031      !  -2d*256d+30
+S30-57   DAD   164057      ! -24d*256d+30
+S30-77   DAD   154077      ! -40d*256d+30
 
 ! ** R36-37
-S36-77	DAD	157077		! -34d*256d+36
+S36-77   DAD   157077      ! -34d*256d+36
 
 ! ** R40-47
-S40-47	DAD	174047		! -8d*256d+40
+S40-47   DAD   174047      ! -8d*256d+40
 
 ! ** R41-47
-S41-47	DAD	174447		! -7d*256d+41
+S41-47   DAD   174447      ! -7d*256d+41
 
 ! ** R50-67
-S50-67	DAD	170067		! -16d*256d+50
+S50-67   DAD   170067      ! -16d*256d+50
 
 ! ** R55-57
-S55-57	DAD	176457		!  -3d*256d+55
+S55-57   DAD   176457      !  -3d*256d+55
 
 ! ***************************************************************
 ! MELROM CONSTANTS
@@ -1395,21 +1395,21 @@ S55-57	DAD	176457		!  -3d*256d+55
 !
 ! Total length of FNB is 43, equated to FNBLEN.
 
-FLDEV0	EQU	0		! source device for COPY, RENAME
-FLDEV1	EQU	4		! target device for COPY, RENAME
-FLNAM	EQU	8d		! filename for PURGE
-FLNAM0	EQU	16d		! source filename for RENAME, COPY
-FLDEV	EQU	20d		! device for CAT and PURGE
-FLDIR0	EQU	22d		! pointer to roo directory entry for source file for COPY
-FNBR60	EQU	24d		! filename for CAT, target
-FLNAM1	EQU	24d		! filename for COPY, RENAME
-FLDIR1	EQU	30d		! pointer to roo directory entry target file for COPY
-FLPWD1	EQU	32d		! target password for COPY, RENAME
-FLPWD0	EQU	36d		! source password for COPY, RENAME
-FLSTOP	EQU	40d		! number of registers pushed in initialization into the FNB
-FNBSW	EQU	40d		! space for switching R36/37
-FLSFLG	EQU	42d		! file same flag
-FNBLEN	EQU	43d		! length of FNB
+FLDEV0   EQU   0      ! source device for COPY, RENAME
+FLDEV1   EQU   4      ! target device for COPY, RENAME
+FLNAM   EQU   8d      ! filename for PURGE
+FLNAM0   EQU   16d      ! source filename for RENAME, COPY
+FLDEV   EQU   20d      ! device for CAT and PURGE
+FLDIR0   EQU   22d      ! pointer to roo directory entry for source file for COPY
+FNBR60   EQU   24d      ! filename for CAT, target
+FLNAM1   EQU   24d      ! filename for COPY, RENAME
+FLDIR1   EQU   30d      ! pointer to roo directory entry target file for COPY
+FLPWD1   EQU   32d      ! target password for COPY, RENAME
+FLPWD0   EQU   36d      ! source password for COPY, RENAME
+FLSTOP   EQU   40d      ! number of registers pushed in initialization into the FNB
+FNBSW   EQU   40d      ! space for switching R36/37
+FLSFLG   EQU   42d      ! file same flag
+FNBLEN   EQU   43d      ! length of FNB
 !
 !************************************
 BIT#0     EQU              1     ! 
@@ -1421,7 +1421,7 @@ BIT#5     EQU             40     !
 BIT#6     EQU            100     ! 
 BIT#7     EQU            200     ! 
 NONE      EQU             11     ! 
-NOT#0     EQU			 376	 !
+NOT#0     EQU          376    !
 NOT#1     EQU            375     ! 
 NOT#3     EQU            367     ! 
 NOT#6     EQU            277     ! 
@@ -1432,39 +1432,39 @@ STNDIF    EQU             10     !
 !*****************************************************
 !* COMPARATOR EQUs from file: CMP
 !*****************************************************
-ADJFLG	EQU	40		! TIME ADJUST FLAG
-APRFLG	EQU	100		! REPEATING ALARM FLAG
-APTFLG	EQU	200		! APPOINTMENT FLAG
-C/SFLG	EQU	20		! CLOCK/STOPWATCH FLAG
-CLRCLK	EQU	20		! CLEAR CLOCK FLAG
-CT.ADJ	EQU	42D		! TIME ADJUST TABLE ENTRY
-CT.DM1	EQU	35D		! DUMMY 1 TABLE ENTRY
-CT.DM2	EQU	49D		! DUMMY 2 TABLE ENTRY
-CT.DM3	EQU	56D		! DUMMY 3 TABLE ENTRY
-CT.RPA	EQU	14D		! APPT REPEAT TABLE ENTRY
-CT.APT	EQU	7D		! APPOINTMENT TABLE ENTRY
-CT.C/S	EQU	21D		! CLOCK/STOPWATCH ENTRY
-CT.RLV	EQU	0D		! ROLLOVER ENTRY (MUST=0)
-CT.TMR	EQU	28D		! TIMER TABLE ENTRY
-DECFLG	EQU	10		! ADJUST DEC FLAG
-DECRMT	EQU	10		! CLOCK DECREMENT BIT
-DM1FLG	EQU	2		! DUMMY 1 FLAG
-DM2FLG	EQU	4		! DUMMY 2 FLAG
-DM3FLG	EQU	10		! DUMMY 3 FLAG
-DSAINT	EQU	375		! DISABLE INTERRUPT
-ENAINT	EQU	2		! ENABLE INTERRUPT
-NEXACT	EQU	375		! CLEAR EXACT BIT (PSSTAT)
-RTCMSK	EQU	243		! MASK FOR RTC STATUS
-TBLEND	EQU	63D		! MARKER FOR TABLE END
-TBLINC	EQU	7		! TABLE INC VALUE
+ADJFLG   EQU   40      ! TIME ADJUST FLAG
+APRFLG   EQU   100      ! REPEATING ALARM FLAG
+APTFLG   EQU   200      ! APPOINTMENT FLAG
+C/SFLG   EQU   20      ! CLOCK/STOPWATCH FLAG
+CLRCLK   EQU   20      ! CLEAR CLOCK FLAG
+CT.ADJ   EQU   42D      ! TIME ADJUST TABLE ENTRY
+CT.DM1   EQU   35D      ! DUMMY 1 TABLE ENTRY
+CT.DM2   EQU   49D      ! DUMMY 2 TABLE ENTRY
+CT.DM3   EQU   56D      ! DUMMY 3 TABLE ENTRY
+CT.RPA   EQU   14D      ! APPT REPEAT TABLE ENTRY
+CT.APT   EQU   7D      ! APPOINTMENT TABLE ENTRY
+CT.C/S   EQU   21D      ! CLOCK/STOPWATCH ENTRY
+CT.RLV   EQU   0D      ! ROLLOVER ENTRY (MUST=0)
+CT.TMR   EQU   28D      ! TIMER TABLE ENTRY
+DECFLG   EQU   10      ! ADJUST DEC FLAG
+DECRMT   EQU   10      ! CLOCK DECREMENT BIT
+DM1FLG   EQU   2      ! DUMMY 1 FLAG
+DM2FLG   EQU   4      ! DUMMY 2 FLAG
+DM3FLG   EQU   10      ! DUMMY 3 FLAG
+DSAINT   EQU   375      ! DISABLE INTERRUPT
+ENAINT   EQU   2      ! ENABLE INTERRUPT
+NEXACT   EQU   375      ! CLEAR EXACT BIT (PSSTAT)
+RTCMSK   EQU   243      ! MASK FOR RTC STATUS
+TBLEND   EQU   63D      ! MARKER FOR TABLE END
+TBLINC   EQU   7      ! TABLE INC VALUE
 ! WARNING! The following equate from CMP redefines another GLOBAL define!!!!
-!TMRFLG	EQU	1		! TIMER FLAG
-WAKEUP	EQU	277		! FULL SPEED POWSUP STATUS
+!TMRFLG   EQU   1      ! TIMER FLAG
+WAKEUP   EQU   277      ! FULL SPEED POWSUP STATUS
 !*****************************************************
 !
-WILD	EQU	56		! FROM IV%KCL
+WILD   EQU   56      ! FROM IV%KCL
 !
-INP-LCD	EQU	177232	! FROM KXIO - equal to (INPBUF-LCDBUF)
+INP-LCD   EQU   177232   ! FROM KXIO - equal to (INPBUF-LCDBUF)
 !  __________________________________________________________________
 ! | ENTRY                                                            |
 ! |==================================================================|
@@ -1486,984 +1486,984 @@ INP-LCD	EQU	177232	! FROM KXIO - equal to (INPBUF-LCDBUF)
 ! |==================================================================|
 ! |__________________________________________________________________|
 !
-ROM#0	DAD	    0	! SYSROM0:
-CLRVA.	DAD	   77	! SYSROM0: 
-CALNAM	DAD	  104	! SYSROM0: 
-UPSET 	DAD	  134	! SYSROM0: 
-SETCAL	DAD	  147	! SYSROM0: 
-EXEC  	DAD	  212	! SYSROM0: 
-CRUNCH	DAD	  235	! SYSROM0: 
-INTRP 	DAD	  276	! SYSROM0: 
-ENDIT 	DAD	  314	! SYSROM0: 
-SETR12	DAD	  341	! SYSROM0: 
-SETALN	DAD	  346	! SYSROM0: 
-! INITBL	DAD	  365	! SYSROM0: 
-DOCMD 	DAD	  441	! SYSROM0: 
-OTHER 	DAD	  515	! SYSROM0: 
-HANB  	DAD	  552	! SYSROM0: 
-CONBIN	DAD	  612	! SYSROM0: 
-UNAUTO	DAD	  763	! SYSROM0: 
-OUTLIN	DAD	 1053	! SYSROM0: 
-REPORP	DAD	 1141	! SYSROM0: 
-REPRP#	DAD	 1142	! SYSROM0: 
-KEYSRV	DAD	 1167	! SYSROM0: 
-CRDSIZ	DAD	 1212	! SYSROM0: 
-TRKEY 	DAD	 1246	! SYSROM0: 
-CMPSRV	DAD	 2012	! SYSROM0: 
-NOATTN	DAD	 2113	! SYSROM0: 
-CMAJST	DAD	 2271	! SYSROM0: 
-CMPENA	DAD	 2352	! SYSROM0: 
-CMPDSA	DAD	 2367	! SYSROM0: 
-CMPENT	DAD	 2401	! SYSROM0: 
-CMPCHK	DAD	 2454	! SYSROM0: 
-CMPSET	DAD	 2665	! SYSROM0: 
-CMPLD 	DAD	 2677	! SYSROM0: 
-PWRSRV	DAD	 2756	! SYSROM0: 
-STOP? 	DAD	 3046	! SYSROM0: 
-PWROK?	DAD	 3053	! SYSROM0: 
-SVCSET	DAD	 3064	! SYSROM0: 
-SVCCLR	DAD	 3077	! SYSROM0: 
-B.INIT	DAD	 3114	! SYSROM0: 
-VERMN0	DAD	 3234	! SYSROM0: 
-BRT835	DAD	 3237	! SYSROM0: 
-BRT840	DAD	 3241	! SYSROM0: 
-MAKEIT	DAD	 3250	! SYSROM0: 
-LIT?  	DAD	 3263	! SYSROM0: 
-CURSE+	DAD	 3277	! SYSROM0: 
-CURSE-	DAD	 3304	! SYSROM0: 
-SETLN 	DAD	 3311	! SYSROM0: 
-SETLN+	DAD	 3351	! SYSROM0: 
-SETLIN	DAD	 3404	! SYSROM0: 
-SETCHR	DAD	 3520	! SYSROM0: 
-WAITKY	DAD	 3525	! SYSROM0: 
-LETBD 	DAD	 3632	! SYSROM0: 
-DEQUE 	DAD	 3643	! SYSROM0: 
-PUT.  	DAD	 3660	! SYSROM0: 
-PUTKEY	DAD	 3701	! SYSROM0: 
-HLFOUT	DAD	 3726	! SYSROM0: 
-MSSOUT	DAD	 3743	! SYSROM0: 
-OUTSTR	DAD	 3752	! SYSROM0: 
-HLFLIN	DAD	 3761	! SYSROM0: 
-OUTCHR	DAD	 4014	! SYSROM0: 
-OUTC40	DAD	 4024	! SYSROM0: 
-OUTESC	DAD	 4031	! SYSROM0: 
-OUT1CH	DAD	 4035	! SYSROM0: 
-OUTEOL	DAD	 4054	! SYSROM0: 
-EDLND 	DAD	 4065	! SYSROM0: 
-ATTN? 	DAD	 4113	! SYSROM0: 
-KEY?  	DAD	 4124	! SYSROM0: 
-BOUND 	DAD	 4142	! SYSROM0: 
-CHECK 	DAD	 4172	! SYSROM0: 
-BYE.  	DAD	 4211	! SYSROM0: 
-ZZZZZZ	DAD	 4231	! SYSROM0: 
-AWAKE!	DAD	 4711	! SYSROM0: 
-SETPSB	DAD	 4715	! SYSROM0: 
-PAR1  	DAD	 4727	! SYSROM0: 
-PAR1  	DAD	 4727	! SYSROM0: 
-RETURN	DAD	 4746	! SYSROM0: 
-IOFILE	DAD	 4747	! SYSROM0: 
-APFIL0	DAD	 4757	! SYSROM0: 
-APFILE	DAD	 4767	! SYSROM0: 
-BLANKS	DAD	 4773	! SYSROM0: 
-NULERT	DAD	 5003	! SYSROM0: 
-SEARCH	DAD	 5005	! SYSROM0: 
-LOOKUP	DAD	 5046	! SYSROM0: 
-DTAB-1	DAD	 5113	! SYSROM0: 
-DTAB0 	DAD	 5114	! SYSROM0: 
-DAYSEC	DAD	 5126	! SYSROM0: 
-KOPY  	DAD	 5137	! SYSROM0: 
-NUMCHK	DAD	 5151	! SYSROM0: 
-TOASC2	DAD	 5221	! SYSROM0: 
-TOBCD2	DAD	 5236	! SYSROM0: 
-TOBCD8	DAD	 5270	! SYSROM0: 
-TOBIN2	DAD	 5314	! SYSROM0: 
-TOBIN8	DAD	 5333	! SYSROM0: 
-INIPRS	DAD	 5402	! SYSROM0: 
-INIPR-	DAD	 5406	! SYSROM0: 
-PARSER	DAD	 5416	! SYSROM0: 
-PARSIT	DAD	 5647	! SYSROM0: 
-PARSE!	DAD	 5652	! SYSROM0: 
-LINMED	DAD	 6025	! SYSROM0: 
-EOL   	DAD	 6174	! SYSROM0: 
-SFSCAN	DAD	 6232	! SYSROM0: 
-SCAN+ 	DAD	 6240	! SYSROM0: 
-SCAN  	DAD	 6243	! SYSROM0: 
-INTEBR	DAD	 6426	! SYSROM0: 
-NUMBER	DAD	 6500	! SYSROM0: 
-SCHAR 	DAD	 6753	! SYSROM0: 
-SCHAR0	DAD	 6755	! SYSROM0: 
-ALFA  	DAD	 7002	! SYSROM0: 
-ALFA# 	DAD	 7003	! SYSROM0: 
-DIGIT 	DAD	 7034	! SYSROM0: 
-BACK10	DAD	 7053	! SYSROM0: 
-SAVRES	DAD	 7063	! SYSROM0: 
-SAVRS+	DAD	 7071	! SYSROM0: 
-RSTREG	DAD	 7121	! SYSROM0: 
-NUMVA+	DAD	 7155	! SYSROM0: 
-NUMVAL	DAD	 7160	! SYSROM0: 
-FUN1  	DAD	 7701	! SYSROM0: 
-ERR89 	DAD	10116	! SYSROM0: 
-ARRAY 	DAD	10133	! SYSROM0: 
-SETCMA	DAD	10146	! SYSROM0: 
-SETCM?	DAD	10153	! SYSROM0: 
-ISCMA!	DAD	10165	! SYSROM0: 
-CRCOM?	DAD	10177	! SYSROM0: 
-SBSCR 	DAD	10207	! SYSROM0: 
-SMLINT	DAD	10243	! SYSROM0: 
-NUMREP	DAD	10266	! SYSROM0: 
-SBSCR 	DAD	10267	! SYSROM0: 
-STREX+	DAD	10372	! SYSROM0: 
-STREXP	DAD	10375	! SYSROM0: 
-STRREF	DAD	10526	! SYSROM0: 
-STRCN+	DAD	10623	! SYSROM0: 
-REM   	DAD	10656	! SYSROM0: 
-UNQUOT	DAD	11022	! SYSROM0: 
-P1ANC!	DAD	11054	! SYSROM0: 
-PUSH1A	DAD	11057	! SYSROM0: 
-SCANE1	DAD	11062	! SYSROM0: 
-PUSH45	DAD	11067	! SYSROM0: 
-PUSH32	DAD	11100	! SYSROM0: 
-PU368C	DAD	11110	! SYSROM0: 
-S01$  	DAD	11120	! SYSROM0: 
-GET2N 	DAD	11130	! SYSROM0: 
-GET2N 	DAD	11130	! SYSROM0: 
-GETPA?	DAD	11135	! SYSROM0: 
-GET1N 	DAD	11141	! SYSROM0: 
-SET1N 	DAD	11141	! SYSROM0: 
-GETPAR	DAD	11144	! SYSROM0: 
-GETPAR	DAD	11144	! SYSROM0: 
-SXX3  	DAD	11211	! SYSROM0: 
-GET1$ 	DAD	11216	! SYSROM0: 
-GETSTP	DAD	11226	! SYSROM0: 
-STREX!	DAD	11231	! SYSROM0: 
-STRX-!	DAD	11234	! SYSROM0: 
-S01N$ 	DAD	11271	! SYSROM0: 
-S$012N	DAD	11306	! SYSROM0: 
-G$!012	DAD	11320	! SYSROM0: 
-S01N  	DAD	11327	! SYSROM0: 
-S012N 	DAD	11334	! SYSROM0: 
-S0TO4N	DAD	11341	! SYSROM0: 
-S1TO2N	DAD	11363	! SYSROM0: 
-TRY1N 	DAD	11374	! SYSROM0: 
-ASSIGN	DAD	11403	! SYSROM0: 
-OPTION	DAD	11437	! SYSROM0: 
-ONERRO	DAD	11500	! SYSROM0: 
-PARSE!	DAD	11503	! SYSROM0: 
-DIM   	DAD	11530	! SYSROM0: 
-DMNDCR	DAD	11545	! SYSROM0: 
-DMDCR-	DAD	11552	! SYSROM0: 
-DINITE	DAD	11563	! SYSROM0: 
-TYPSTM	DAD	11707	! SYSROM0: 
-DEF   	DAD	11741	! SYSROM0: 
-FNEND 	DAD	12157	! SYSROM0: 
-INPUT 	DAD	12527	! SYSROM0: 
-DATA  	DAD	12634	! SYSROM0: 
-RESTOR	DAD	12725	! SYSROM0: 
-RETLIN	DAD	12735	! SYSROM0: 
-READ# 	DAD	12745	! SYSROM0: 
-READ  	DAD	12763	! SYSROM0: 
-FORMAR	DAD	13033	! SYSROM0: 
-ILET  	DAD	13104	! SYSROM0: 
-LET   	DAD	13111	! SYSROM0: 
-FNLET 	DAD	13226	! SYSROM0: 
-REFNUM	DAD	13274	! SYSROM0: 
-IF    	DAD	13325	! SYSROM0: 
-ITHEN 	DAD	13337	! SYSROM0: 
-FOR   	DAD	13540	! SYSROM0: 
-NEXT  	DAD	13605	! SYSROM0: 
-ON    	DAD	13626	! SYSROM0: 
-GOTOPR	DAD	13673	! SYSROM0: 
-GOTOSU	DAD	13676	! SYSROM0: 
-SEQNO 	DAD	13730	! SYSROM0: 
-SEQ#  	DAD	13747	! SYSROM0: 
-NOCLC!	DAD	13774	! SYSROM0: 
-QUIP? 	DAD	14007	! SYSROM0: 
-SALT  	DAD	14016	! SYSROM0: 
-SETRUN	DAD	14252	! SYSROM0: 
-PRINT 	DAD	14276	! SYSROM0: 
-PRINT+	DAD	14301	! SYSROM0: 
-PRINT#	DAD	14345	! SYSROM0: 
-PRNT#+	DAD	14350	! SYSROM0: 
-PLIST 	DAD	14406	! SYSROM0: 
-PURGE.	DAD	14576	! SYSROM0: 
-EDPURG	DAD	14606	! SYSROM0: 
-RENAM.	DAD	14651	! SYSROM0: 
-FILHAN	DAD	14671	! SYSROM0: 
-FLDDTH	DAD	14677	! SYSROM0: 
-COPY. 	DAD	15103	! SYSROM0: 
-CDPC? 	DAD	15410	! SYSROM0: 
-UPRC# 	DAD	15465	! SYSROM0: 
-PLIST.	DAD	15501	! SYSROM0: 
-LIST. 	DAD	15510	! SYSROM0: 
-HALT? 	DAD	15611	! SYSROM0: 
-GF2LN#	DAD	15673	! SYSROM0: 
-GRANGE	DAD	15730	! SYSROM0: 
-DELET.	DAD	16001	! SYSROM0: 
-RENUM.	DAD	16056	! SYSROM0: 
-FRENUM	DAD	16137	! SYSROM0: 
-RTDIN 	DAD	16352	! SYSROM0: 
-CONINT	DAD	16467	! SYSROM0: 
-FETSVA	DAD	16646	! SYSROM0: 
-FETAV 	DAD	16655	! SYSROM0: 
-FETSV 	DAD	16662	! SYSROM0: 
-FETNUM	DAD	16665	! SYSROM0: 
-FETIND	DAD	16670	! SYSROM0: 
-FETBET	DAD	16703	! SYSROM0: 
-FETCHA	DAD	16706	! SYSROM0: 
-FETRVA	DAD	16720	! SYSROM0: 
-FNUM  	DAD	16770	! SYSROM0: 
-FETAVA	DAD	17103	! SYSROM0: 
-FETST 	DAD	17337	! SYSROM0: 
-STRIND	DAD	17370	! SYSROM0: 
-PUTREL	DAD	17406	! SYSROM0: 
-PUTADR	DAD	17407	! SYSROM0: 
-GETADR	DAD	17421	! SYSROM0: 
-GETAD#	DAD	17422	! SYSROM0: 
-GETAD+	DAD	17424	! SYSROM0: 
-FLINIT	DAD	17433	! SYSROM0: 
-RSETEN	DAD	17455	! SYSROM0: 
-ONR12?	DAD	17472	! SYSROM0: 
-SETRN 	DAD	17507	! SYSROM0: 
-SETPR 	DAD	17534	! SYSROM0: 
-ROOM? 	DAD	17555	! SYSROM0: 
-UROOM!	DAD	17605	! SYSROM0: 
-ROOM! 	DAD	17612	! SYSROM0: 
-ALCALL	DAD	17623	! SYSROM0: 
-ALLDC 	DAD	17637	! SYSROM0: 
-DELETE	DAD	17663	! SYSROM0: 
-FPURGE	DAD	17726	! SYSROM0: 
-INSERT	DAD	17774	! SYSROM0: 
-! ***************************     	   	     	
-ROM#1 	DAD	20000	! SYSROM1: start
-FCRALO	DAD	20021	! SYSROM1:
-FCREAT	DAD	20155	! SYSROM1:
-FCRNUL	DAD	20170	! SYSROM1:
-BASEND	DAD	20232	! SYSROM1
-FEMPT?	DAD	20245	! SYSROM1
-FRENAM	DAD	20304	! SYSROM1
-FCOPY 	DAD	20404	! SYSROM1
-FCOPYG	DAD	20424	! SYSROM1
-FNDLPR	DAD	20500	! SYSROM1
-FNDLRN	DAD	20506	! SYSROM1
-FNDLED	DAD	20514	! SYSROM1
-FSEEK 	DAD	20524	! SYSROM1
-PFNDPR	DAD	20544	! SYSROM1
-PREFND	DAD	20552	! SYSROM1
-SKPLN 	DAD	20605	! SYSROM1
-SKPLN#	DAD	20607	! SYSROM1
-IOOPEN	DAD	20616	! SYSROM1
-IZOPEN	DAD	20631	! SYSROM1
-FSREPL	DAD	20644	! SYSROM1
-REPLIN	DAD	20647	! SYSROM1
-LINLEN	DAD	20745	! SYSROM1
-DELLIN	DAD	20763	! SYSROM1
-PTALO?	DAD	21007	! SYSROM1
-FLOPEN	DAD	21022	! SYSROM1
-MOVEUP	DAD	21030	! SYSROM1
-FDELLN	DAD	21037	! SYSROM1
-DELLNS	DAD	21055	! SYSROM1
-FREPLS	DAD	21114	! SYSROM1
-FREPLN	DAD	21131	! SYSROM1
-MOVE  	DAD	21160	! SYSROM1
-COPY  	DAD	21347	! SYSROM1
-ADJUST	DAD	21477	! SYSROM1
-INSRTM	DAD	21716	! SYSROM1
-REPLAC	DAD	21753	! SYSROM1
-RESCON	DAD	22030	! SYSROM1: 
-RSMEM-	DAD	22037	! SYSROM1: 
-RSMEM=	DAD	22040	! SYSROM1
-RELMEM	DAD	22123	! SYSROM1
-TYPOK?	DAD	22170	! SYSROM1
-FOPAC?	DAD	22177	! SYSROM1
-FOPEN!	DAD	22222	! SYSROM1
-GOPEN!	DAD	22227	! SYSROM1
-FOPEN 	DAD	22240	! SYSROM1
-FOPENG	DAD	22244	! SYSROM1
-GOPEN 	DAD	22314	! SYSROM1
-ROPEN 	DAD	22321	! SYSROM1
-GETRID	DAD	22370	! SYSROM1
-SIGNIF	DAD	22373	! SYSROM1
-SIGNF-	DAD	22376	! SYSROM1
-ROMCLA	DAD	22564	! SYSROM1
-ROMCL-	DAD	22573	! SYSROM1
-PTRALO	DAD	22603	! SYSROM1
-FRET  	DAD	23241	! SYSROM1
-ENTSIZ	DAD	23511	! SYSROM1
-ROMCPY	DAD	23575	! SYSROM1
-ROMVPA	DAD	23607	! SYSROM1
-VSRCH 	DAD	23640	! SYSROM1
-SKPVR 	DAD	23702	! SYSROM1
-VSTOR 	DAD	23742	! SYSROM1
-ALOSNV	DAD	23771	! SYSROM1
-AVCALL	DAD	24003	! SYSROM1
-ALVENT	DAD	24350	! SYSROM1
-TSTRM 	DAD	24431	! SYSROM1
-TSTEND	DAD	24445	! SYSROM1
-Z36.56	DAD	25147	! SYSROM1
-ZROMEM	DAD	25154	! SYSROM1
-ZROM1-	DAD	25171	! SYSROM1
-FNDVPA	DAD	25234	! SYSROM1
-ENVALO	DAD	25253	! SYSROM1
-ENVERR	DAD	25747	! SYSROM1
-PUTCAL	DAD	26024	! SYSROM1
-MOVENV	DAD	26026	! SYSROM1
-CLNCAL	DAD	26127	! SYSROM1
-DALLAL	DAD	26223	! SYSROM1
-DALLOC	DAD	26334	! SYSROM1
-SKIPL 	DAD	26724	! SYSROM1
-ASCNAM	DAD	27040	! SYSROM1
-ASCNM1	DAD	27051	! SYSROM1
-ALINI 	DAD	27071	! SYSROM1
-GETINT	DAD	27157	! SYSROM1
-BCDINT	DAD	27167	! SYSROM1
-GETNXT	DAD	27205	! SYSROM1
-GTNXT1	DAD	27245	! SYSROM1
-NXTLIN	DAD	27262	! SYSROM1
-SKPCON	DAD	27312	! SYSROM1
-BININT	DAD	27332	! SYSROM1
-FRMNAM	DAD	27340	! SYSROM1
-FRMNA#	DAD	27343	! SYSROM1
-CALCSZ	DAD	27377	! SYSROM1
-DECOPR	DAD	27506	! SYSROM1
-DECOM 	DAD	27515	! SYSROM1
-SCNST 	DAD	30117	! SYSROM1
-MVWRD 	DAD	30240	! SYSROM1
-GETNM 	DAD	30463	! SYSROM1
-DCLIN#	DAD	31250	! SYSROM1
-UNSTAK	DAD	31324	! SYSROM1
-SUBSCR	DAD	31632	! SYSROM1
-PU=   	DAD	31720	! SYSROM1
-SISFUN	DAD	32045	! SYSROM1
-QMARK 	DAD	32252	! SYSROM1
-EXTRJM	DAD	32566	! SYSROM1
-VERMN1	DAD	32612	! SYSROM1
-BATS  	DAD	32614	! SYSROM1
-SKIP# 	DAD	32742	! SYSROM1
-ACMND 	DAD	32762	! SYSROM1
-ANOTE 	DAD	33007	! SYSROM1
-LN20  	DAD	33052	! SYSROM1
-LN38  	DAD	33124	! SYSROM1
-LN30  	DAD	33150	! SYSROM1
-LN77  	DAD	33166	! SYSROM1
-LN5   	DAD	33462	! SYSROM1
-DIV77 	DAD	33504	! SYSROM1
-DIV2  	DAD	33553	! SYSROM1
-DIV10 	DAD	33556	! SYSROM1
-DIV14 	DAD	33561	! SYSROM1
-DIV20 	DAD	33606	! SYSROM1
-SHF10 	DAD	33611	! SYSROM1
-LOGT5 	DAD	33632	! SYSROM1
-CEIL10	DAD	33650	! SYSROM1
-CHSROI	DAD	33660	! SYSROM1
-SUBROI	DAD	33712	! SYSROM1
-ADDROI	DAD	33724	! SYSROM1
-ADD9  	DAD	34004	! SYSROM1
-ADD15 	DAD	34012	! SYSROM1
-ADD20 	DAD	34017	! SYSROM1
-EXP5  	DAD	34153	! SYSROM1
-SQR5  	DAD	34220	! SYSROM1
-SQR30 	DAD	34245	! SYSROM1
-MPY28 	DAD	34342	! SYSROM1
-MPY30 	DAD	34345	! SYSROM1
-MPYROI	DAD	34475	! SYSROM1
-INTMUL	DAD	34516	! SYSROM1
-YTX5  	DAD	34564	! SYSROM1
-SGN5  	DAD	34574	! SYSROM1
-LOGCOM	DAD	34632	! SYSROM1
-SEC10 	DAD	34652	! SYSROM1
-CSEC10	DAD	34672	! SYSROM1
-INF10 	DAD	34713	! SYSROM1
-CSEC11	DAD	34721	! SYSROM1
-COT10 	DAD	34725	! SYSROM1
-SIN10 	DAD	34735	! SYSROM1
-COS10 	DAD	34745	! SYSROM1
-TAN10 	DAD	34755	! SYSROM1
-PI10  	DAD	34766	! SYSROM1
-RAD10.	DAD	35050	! SYSROM1
-ABS5  	DAD	35103	! SYSROM1
-ABS5- 	DAD	35106	! SYSROM1
-INFR3 	DAD	35116	! SYSROM1
-INFR4 	DAD	35121	! SYSROM1
-INT5  	DAD	35150	! SYSROM1
-INTDIV	DAD	35157	! SYSROM1: 
-INFR2 	DAD	35174	! SYSROM1
-INFR9 	DAD	35220	! SYSROM1
-FP5   	DAD	35241	! SYSROM1
-SHRONF	DAD	35244	! SYSROM1
-RONF  	DAD	35247	! SYSROM1
-NFR   	DAD	35252	! SYSROM1
-EPS10 	DAD	35276	! SYSROM1
-DEG10 	DAD	35312	! SYSROM1
-DEGCNV	DAD	35330	! SYSROM1
-IP5   	DAD	35350	! SYSROM1
-FTR12 	DAD	35407	! SYSROM1
-FTR13 	DAD	35415	! SYSROM1
-FTR53 	DAD	35744	! SYSROM1
-FTR88 	DAD	36143	! SYSROM1
-TRC7  	DAD	36225	! SYSROM1
-TRC01 	DAD	36237	! SYSROM1
-RNDINI	DAD	36251	! SYSROM1
-RNDIZ.	DAD	36262	! SYSROM1
-ROU10 	DAD	36270	! SYSROM1
-SEP20 	DAD	36310	! SYSROM1
-SEP15 	DAD	36337	! SYSROM1
-SEP10 	DAD	36343	! SYSROM1
-TWOR  	DAD	36402	! SYSROM1
-UT210 	DAD	36413	! SYSROM1
-PQO10 	DAD	36426	! SYSROM1
-MIN10 	DAD	36445	! SYSROM1
-MAX10 	DAD	36464	! SYSROM1
-EXP20 	DAD	36523	! SYSROM1
-EXP17 	DAD	36550	! SYSROM1
-DCON1 	DAD	37003	! SYSROM1
-TBL3  	DAD	37123	! SYSROM1
-ONEB  	DAD	37213	! SYSROM1: get ONE Binary number
-ONEI  	DAD	37254	! SYSROM1: get ONE Integer number
-TWOB  	DAD	37276	! SYSROM1: get TWO Binary numbers
-ONER  	DAD	37315	! SYSROM1: get ONE Real
-ONER- 	DAD	37320	! SYSROM1
-ONEROI	DAD	37336	! SYSROM1: get ONE Real Or Integer
-ONERI 	DAD	37341	! SYSROM1
-TWOROI	DAD	37351	! SYSROM1
-INTORL	DAD	37426	! SYSROM1
-TMEFAC	DAD	37473	! SYSROM1
-MVBYTS	DAD	37503	! SYSROM1
-OFFTMR	DAD	37520	! SYSROM1
-ONTMR 	DAD	37527	! SYSROM1
-TMRON.	DAD	37573	! SYSROM1
-TM#GET	DAD	37734	! SYSROM1
-TMRRLV	DAD	37776	! SYSROM1
-*     	   	     	
-ROM#2 	DAD	40000	! SYSROM2: start
-ADJTMR	DAD	40011	! SYSROM2
-TMRDNE	DAD	40040	! SYSROM2 
-TMROPN	DAD	40057	! SYSROM2
-TMROF.	DAD	40111	! SYSROM2
-TMRKIL	DAD	40177	! SYSROM2
-TMRSS 	DAD	40216	! SYSROM2
-TMRCLR	DAD	40236	! SYSROM2
-TMTRIG	DAD	40243	! SYSROM2
-BLIMP 	DAD	40400	! SYSROM2
-NULOLD	DAD	40410	! SYSROM2
-GETTEM	DAD	40420	! SYSROM2
-GETTER	DAD	40456	! SYSROM2
-GETREP	DAD	40530	! SYSROM2
-GET.IN	DAD	40555	! SYSROM2
-EROUT-	DAD	40567	! SYSROM2
-KEYTRM	DAD	40625	! SYSROM2
-KEYDSP	DAD	40632	! SYSROM2
-INPUT.	DAD	41166	! SYSROM2
-CHKEOL	DAD	41364	! SYSROM2
-INPUN.	DAD	41411	! SYSROM2
-ER43  	DAD	41500	! SYSROM2
-INPU$.	DAD	41563	! SYSROM2
-BCKSTO	DAD	41675	! SYSROM2
-RESTRT	DAD	41706	! SYSROM2
-ISETUP	DAD	41725	! SYSROM2
-ITAIL.	DAD	41737	! SYSROM2
-ANNUNS	DAD	41740	! SYSROM2
-ANN.B+	DAD	41744	! SYSROM2
-ANN.B-	DAD	41751	! SYSROM2
-ANN.E+	DAD	41756	! SYSROM2
-ANN.E-	DAD	41763	! SYSROM2
-PGMANN	DAD	41773	! SYSROM2
-ANN.P+	DAD	42000	! SYSROM2
-ANN.P-	DAD	42005	! SYSROM2
-ANN.A+	DAD	42012	! SYSROM2
-ANN.A-	DAD	42025	! SYSROM2
-FETCH.	DAD	42131	! SYSROM2
-EDLIN#	DAD	42202	! SYSROM2
-EDLIN-	DAD	42206	! SYSROM2
-LINEDR	DAD	42357	! SYSROM2
-EOL14?	DAD	42534	! SYSROM2: 
-CREOL?	DAD	42535	! SYSROM2
-PRNTCH	DAD	42565	! SYSROM2: 
-PR.EOL	DAD	42626	! SYSROM2
-DSPSET	DAD	42677	! SYSROM2
-PILREP	DAD	42745	! SYSROM2
-LADDEV	DAD	42776	! SYSROM2
-SPY   	DAD	43027	! SYSROM2
-SVCCHK	DAD	43053	! SYSROM2
-MELJSB	DAD	43141	! SYSROM2
-SYSJSB	DAD	43155	! SYSROM2: 
-ROMJSB	DAD	43224	! SYSROM2: 
-RMERR.	DAD	43434	! SYSROM2
-ROM:GO	DAD	43441	! SYSROM2
-SAVEME	DAD	43501	! SYSROM2
-RUNROM	DAD	43524	! SYSROM2
-GETRM2	DAD	43536	! SYSROM2
-GETROM	DAD	43541	! SYSROM2
-NXTKWF	DAD	43603	! SYSROM2
-NXTROM	DAD	43654	! SYSROM2
-UNROM 	DAD	43742	! SYSROM2
-ROMSET	DAD	43755	! SYSROM2
-ROMRTN	DAD	44035	! SYSROM2
-CYCLE 	DAD	44110	! SYSROM2
-TRFLO.	DAD	44207	! SYSROM2
-TROFF.	DAD	44214	! SYSROM2
-TRVAR.	DAD	44220	! SYSROM2
-TRCVBL	DAD	44234	! SYSROM2
-TRCLP 	DAD	44335	! SYSROM2
-TRCFP 	DAD	44345	! SYSROM2
-RNLST?	DAD	44437	! SYSROM2
-TRJUMP	DAD	44446	! SYSROM2
-OUTERB	DAD	44512	! SYSROM2
-TRCHED	DAD	44527	! SYSROM2
-APPT. 	DAD	44623	! SYSROM2
-KEYS. 	DAD	44637	! SYSROM2
-CARD. 	DAD	44673	! SYSROM2
-EDIT  	DAD	44712	! SYSROM2
-ASNPAR	DAD	44717	! SYSROM2
-FLTOFL	DAD	44776	! SYSROM2
-PUSH1F	DAD	45033	! SYSROM2
-FILNM+	DAD	45042	! SYSROM2
-FILNM?	DAD	45050	! SYSROM2
-FILNM!	DAD	45074	! SYSROM2
-FLORD 	DAD	45105	! SYSROM2
-FLORDT	DAD	45107	! SYSROM2
-GETNAM	DAD	45167	! SYSROM2
-GETFST	DAD	45373	! SYSROM2
-FLCHR?	DAD	45461	! SYSROM2
-ANYER?	DAD	45472	! SYSROM2
-ERRREP	DAD	45501	! SYSROM2
-REPORT	DAD	45512	! SYSROM2
-REPRT+	DAD	45524	! SYSROM2
-CLRERR	DAD	45702	! SYSROM2
-BLEBUF	DAD	45712	! SYSROM2
-WARN  	DAD	45723	! SYSROM2
-WARN.R	DAD	46064	! SYSROM2
-ERR.R2	DAD	46105	! SYSROM2
-ERRORR	DAD	46214	! SYSROM2
-ERROR 	DAD	46221	! SYSROM2
-ERROR+	DAD	46231	! SYSROM2: 
-ERR1  	DAD	46244	! SYSROM2: 
-ERR1+ 	DAD	46254	! SYSROM2: 
-REP.1 	DAD	46407	! SYSROM2
-REPRT-	DAD	46435	! SYSROM2
-ERRMSG	DAD	46560	! SYSROM2
-SETUP$	DAD	46612	! SYSROM2
-SETCOM	DAD	46626	! SYSROM2
-CMPSTR	DAD	46652	! SYSROM2
-UNEQ$.	DAD	46675	! SYSROM2
-LEQ$. 	DAD	46704	! SYSROM2
-GEQ$. 	DAD	46715	! SYSROM2
-LT$.  	DAD	46726	! SYSROM2
-EQ$.  	DAD	46737	! SYSROM2
-GR$.  	DAD	46746	! SYSROM2
-EQ.   	DAD	46757	! SYSROM2
-UNEQ. 	DAD	46772	! SYSROM2
-LEQ.  	DAD	47013	! SYSROM2
-GEQ.  	DAD	47034	! SYSROM2
-GR.   	DAD	47045	! SYSROM2
-LT.   	DAD	47074	! SYSROM2
-OR.   	DAD	47113	! SYSROM2
-EXOR. 	DAD	47126	! SYSROM2
-NOT.  	DAD	47141	! SYSROM2
-AND.  	DAD	47152	! SYSROM2
-DEFKEY	DAD	47216	! SYSROM2
-KYOPEN	DAD	47247	! SYSROM2
-KEYNAM	DAD	47255	! SYSROM2
-DEFKY.	DAD	47313	! SYSROM2
-FETK. 	DAD	47473	! SYSROM2
-SAVENV	DAD	47704	! SYSROM2
-RESTEN	DAD	47766	! SYSROM2
-VCREST	DAD	47774	! SYSROM2
-RECOVR	DAD	50005	! SYSROM2
-ENDEN?	DAD	50070	! SYSROM2
-POPENV	DAD	50100	! SYSROM2
-CLRENV	DAD	50236	! SYSROM2
-RUN.  	DAD	50254	! SYSROM2
-RUNKEE	DAD	50271	! SYSROM2
-RUNIT 	DAD	50347	! SYSROM2
-SYCALL	DAD	50354	! SYSROM2
-CALL  	DAD	50356	! SYSROM2
-VCCALL	DAD	50401	! SYSROM2
-CALL. 	DAD	50517	! SYSROM2
-DOSTEP	DAD	50552	! SYSROM2
-STOP. 	DAD	50671	! SYSROM2
-STALLS	DAD	50672	! SYSROM2
-STALL 	DAD	50703	! SYSROM2
-STALL+	DAD	50710	! SYSROM2
-CONTI.	DAD	50714	! SYSROM2
-REMDAC	DAD	50761	! SYSROM2
-END.  	DAD	51004	! SYSROM2
-SETCL#	DAD	51052	! SYSROM2
-TEXT. 	DAD	51076	! SYSROM2
-BASIC.	DAD	51105	! SYSROM2
-LIF1. 	DAD	51115	! SYSROM2
-NAME. 	DAD	51123	! SYSROM2
-EDIT. 	DAD	51132	! SYSROM2
-DFNAME	DAD	51140	! SYSROM2
-EDITIT	DAD	51223	! SYSROM2
-SETED 	DAD	51410	! SYSROM2
-MERGE.	DAD	51471	! SYSROM2
-SAFE! 	DAD	51635	! SYSROM2
-INENV?	DAD	51756	! SYSROM2
-CALEN?	DAD	52017	! SYSROM2
-VERMN2	DAD	52027	! SYSROM2
-HANDI 	DAD	52031	! SYSROM2
-HANDIR	DAD	52034	! SYSROM2
-HANDI0	DAD	52114	! SYSROM2
-FTSVL 	DAD	52236	! SYSROM2
-SVVAL3	DAD	52244	! SYSROM2
-SVADR+	DAD	52251	! SYSROM2
-SVADR 	DAD	52252	! SYSROM2
-FTSTL 	DAD	52261	! SYSROM2
-FTSTLS	DAD	52272	! SYSROM2
-ICONST	DAD	52316	! SYSROM2
-SCONST	DAD	52325	! SYSROM2
-STOSTM	DAD	52344	! SYSROM2
-STOST 	DAD	52345	! SYSROM2
-STOSVM	DAD	52627	! SYSROM2
-STOSV 	DAD	52630	! SYSROM2
-AVADR1	DAD	53146	! SYSROM2
-AVADR2	DAD	53153	! SYSROM2
-AVVAL1	DAD	53176	! SYSROM2
-AVVAL2	DAD	53203	! SYSROM2
-GORTN 	DAD	53216	! SYSROM2
-FTADR 	DAD	53254	! SYSROM2
-FNCAL$	DAD	53314	! SYSROM2
-INTCON	DAD	53727	! SYSROM2
-I#PUSH	DAD	53732	! SYSROM2
-SUBST1	DAD	53742	! SYSROM2
-SVADCK	DAD	54012	! SYSROM2
-SUBST2	DAD	54041	! SYSROM2
-FNLET.	DAD	54071	! SYSROM2
-FNRTN.	DAD	54133	! SYSROM2
-FNRET.	DAD	54221	! SYSROM2
-CAT.  	DAD	54332	! SYSROM2
-CATLIN	DAD	54353	! SYSROM2
-CATAL.	DAD	54415	! SYSROM2
-UPENT 	DAD	54423	! SYSROM2
-DNENT 	DAD	54431	! SYSROM2
-CAT$. 	DAD	54473	! SYSROM2
-ROUND 	DAD	54501	! SYSROM2
-EFORM 	DAD	54572	! SYSROM2
-LCDOUT	DAD	54673	! SYSROM2
-PUTWIN	DAD	55326	! SYSROM2
-CH2LCD	DAD	55375	! SYSROM2
-G1$OR*	DAD	55577	! SYSROM2
-G01$/*	DAD	55607	! SYSROM2
-STR?*?	DAD	55631	! SYSROM0: 
-DSPIS.	DAD	55656	! SYSROM2
-PRINS.	DAD	55667	! SYSROM2
-STAR? 	DAD	55703	! SYSROM2
-CONFIG	DAD	55727	! SYSROM2
-TAB   	DAD	55733	! SYSROM2
-CLEAN-	DAD	55762	! SYSROM2
-DONE  	DAD	55774	! SYSROM2
-CHANGE	DAD	56002	! SYSROM2
-GETPAD	DAD	56560	! SYSROM2
-GET#1 	DAD	56624	! SYSROM2
-GET#2+	DAD	56632	! SYSROM2
-LSTIO.	DAD	56653	! SYSROM2
-REST. 	DAD	56731	! SYSROM2
-OFFIO.	DAD	57006	! SYSROM2
-OFFUNL	DAD	57011	! SYSROM2
-SETOFF	DAD	57021	! SYSROM2
-CLROFF	DAD	57026	! SYSROM2
-LPOFF 	DAD	57040	! SYSROM2
-LPON  	DAD	57050	! SYSROM2
-SETIT 	DAD	57060	! SYSROM2
-CLRTMT	DAD	57070	! SYSROM2: 
-CLOOP.	DAD	57106	! SYSROM2
-CLDEV.	DAD	57117	! SYSROM2
-THERE?	DAD	57164	! SYSROM2
-THERE!	DAD	57175	! SYSROM2
-SKPCHK	DAD	57212	! SYSROM2
-CHKEND	DAD	57215	! SYSROM2
-MOVEIT	DAD	57246	! SYSROM2
-EVIL  	DAD	57360	! SYSROM2
-PRSTR.	DAD	57437	! SYSROM2
-PRNUM.	DAD	57546	! SYSROM2
-OUTNUM	DAD	57554	! SYSROM2
-RESFIL	DAD	57646	! SYSROM2
-BLKFIL	DAD	57656	! SYSROM2
-ON/OFF	DAD	57727	! SYSROM2
-ONOFF2	DAD	57735	! SYSROM2
-ONTOK.	DAD	57766	! SYSROM2
-OFTOK.	DAD	57774	! SYSROM2
+ROM#0   DAD       0   ! SYSROM0:
+CLRVA.   DAD      77   ! SYSROM0: 
+CALNAM   DAD     104   ! SYSROM0: 
+UPSET    DAD     134   ! SYSROM0: 
+SETCAL   DAD     147   ! SYSROM0: 
+EXEC     DAD     212   ! SYSROM0: 
+CRUNCH   DAD     235   ! SYSROM0: 
+INTRP    DAD     276   ! SYSROM0: 
+ENDIT    DAD     314   ! SYSROM0: 
+SETR12   DAD     341   ! SYSROM0: 
+SETALN   DAD     346   ! SYSROM0: 
+! INITBL   DAD     365   ! SYSROM0: 
+DOCMD    DAD     441   ! SYSROM0: 
+OTHER    DAD     515   ! SYSROM0: 
+HANB     DAD     552   ! SYSROM0: 
+CONBIN   DAD     612   ! SYSROM0: 
+UNAUTO   DAD     763   ! SYSROM0: 
+OUTLIN   DAD    1053   ! SYSROM0: 
+REPORP   DAD    1141   ! SYSROM0: 
+REPRP#   DAD    1142   ! SYSROM0: 
+KEYSRV   DAD    1167   ! SYSROM0: 
+CRDSIZ   DAD    1212   ! SYSROM0: 
+TRKEY    DAD    1246   ! SYSROM0: 
+CMPSRV   DAD    2012   ! SYSROM0: 
+NOATTN   DAD    2113   ! SYSROM0: 
+CMAJST   DAD    2271   ! SYSROM0: 
+CMPENA   DAD    2352   ! SYSROM0: 
+CMPDSA   DAD    2367   ! SYSROM0: 
+CMPENT   DAD    2401   ! SYSROM0: 
+CMPCHK   DAD    2454   ! SYSROM0: 
+CMPSET   DAD    2665   ! SYSROM0: 
+CMPLD    DAD    2677   ! SYSROM0: 
+PWRSRV   DAD    2756   ! SYSROM0: 
+STOP?    DAD    3046   ! SYSROM0: 
+PWROK?   DAD    3053   ! SYSROM0: 
+SVCSET   DAD    3064   ! SYSROM0: 
+SVCCLR   DAD    3077   ! SYSROM0: 
+B.INIT   DAD    3114   ! SYSROM0: 
+VERMN0   DAD    3234   ! SYSROM0: 
+BRT835   DAD    3237   ! SYSROM0: 
+BRT840   DAD    3241   ! SYSROM0: 
+MAKEIT   DAD    3250   ! SYSROM0: 
+LIT?     DAD    3263   ! SYSROM0: 
+CURSE+   DAD    3277   ! SYSROM0: 
+CURSE-   DAD    3304   ! SYSROM0: 
+SETLN    DAD    3311   ! SYSROM0: 
+SETLN+   DAD    3351   ! SYSROM0: 
+SETLIN   DAD    3404   ! SYSROM0: 
+SETCHR   DAD    3520   ! SYSROM0: 
+WAITKY   DAD    3525   ! SYSROM0: 
+LETBD    DAD    3632   ! SYSROM0: 
+DEQUE    DAD    3643   ! SYSROM0: 
+PUT.     DAD    3660   ! SYSROM0: 
+PUTKEY   DAD    3701   ! SYSROM0: 
+HLFOUT   DAD    3726   ! SYSROM0: 
+MSSOUT   DAD    3743   ! SYSROM0: 
+OUTSTR   DAD    3752   ! SYSROM0: 
+HLFLIN   DAD    3761   ! SYSROM0: 
+OUTCHR   DAD    4014   ! SYSROM0: 
+OUTC40   DAD    4024   ! SYSROM0: 
+OUTESC   DAD    4031   ! SYSROM0: 
+OUT1CH   DAD    4035   ! SYSROM0: 
+OUTEOL   DAD    4054   ! SYSROM0: 
+EDLND    DAD    4065   ! SYSROM0: 
+ATTN?    DAD    4113   ! SYSROM0: 
+KEY?     DAD    4124   ! SYSROM0: 
+BOUND    DAD    4142   ! SYSROM0: 
+CHECK    DAD    4172   ! SYSROM0: 
+BYE.     DAD    4211   ! SYSROM0: 
+ZZZZZZ   DAD    4231   ! SYSROM0: 
+AWAKE!   DAD    4711   ! SYSROM0: 
+SETPSB   DAD    4715   ! SYSROM0: 
+PAR1     DAD    4727   ! SYSROM0: 
+PAR1     DAD    4727   ! SYSROM0: 
+RETURN   DAD    4746   ! SYSROM0: 
+IOFILE   DAD    4747   ! SYSROM0: 
+APFIL0   DAD    4757   ! SYSROM0: 
+APFILE   DAD    4767   ! SYSROM0: 
+BLANKS   DAD    4773   ! SYSROM0: 
+NULERT   DAD    5003   ! SYSROM0: 
+SEARCH   DAD    5005   ! SYSROM0: 
+LOOKUP   DAD    5046   ! SYSROM0: 
+DTAB-1   DAD    5113   ! SYSROM0: 
+DTAB0    DAD    5114   ! SYSROM0: 
+DAYSEC   DAD    5126   ! SYSROM0: 
+KOPY     DAD    5137   ! SYSROM0: 
+NUMCHK   DAD    5151   ! SYSROM0: 
+TOASC2   DAD    5221   ! SYSROM0: 
+TOBCD2   DAD    5236   ! SYSROM0: 
+TOBCD8   DAD    5270   ! SYSROM0: 
+TOBIN2   DAD    5314   ! SYSROM0: 
+TOBIN8   DAD    5333   ! SYSROM0: 
+INIPRS   DAD    5402   ! SYSROM0: 
+INIPR-   DAD    5406   ! SYSROM0: 
+PARSER   DAD    5416   ! SYSROM0: 
+PARSIT   DAD    5647   ! SYSROM0: 
+PARSE!   DAD    5652   ! SYSROM0: 
+LINMED   DAD    6025   ! SYSROM0: 
+EOL      DAD    6174   ! SYSROM0: 
+SFSCAN   DAD    6232   ! SYSROM0: 
+SCAN+    DAD    6240   ! SYSROM0: 
+SCAN     DAD    6243   ! SYSROM0: 
+INTEBR   DAD    6426   ! SYSROM0: 
+NUMBER   DAD    6500   ! SYSROM0: 
+SCHAR    DAD    6753   ! SYSROM0: 
+SCHAR0   DAD    6755   ! SYSROM0: 
+ALFA     DAD    7002   ! SYSROM0: 
+ALFA#    DAD    7003   ! SYSROM0: 
+DIGIT    DAD    7034   ! SYSROM0: 
+BACK10   DAD    7053   ! SYSROM0: 
+SAVRES   DAD    7063   ! SYSROM0: 
+SAVRS+   DAD    7071   ! SYSROM0: 
+RSTREG   DAD    7121   ! SYSROM0: 
+NUMVA+   DAD    7155   ! SYSROM0: 
+NUMVAL   DAD    7160   ! SYSROM0: 
+FUN1     DAD    7701   ! SYSROM0: 
+ERR89    DAD   10116   ! SYSROM0: 
+ARRAY    DAD   10133   ! SYSROM0: 
+SETCMA   DAD   10146   ! SYSROM0: 
+SETCM?   DAD   10153   ! SYSROM0: 
+ISCMA!   DAD   10165   ! SYSROM0: 
+CRCOM?   DAD   10177   ! SYSROM0: 
+SBSCR    DAD   10207   ! SYSROM0: 
+SMLINT   DAD   10243   ! SYSROM0: 
+NUMREP   DAD   10266   ! SYSROM0: 
+SBSCR    DAD   10267   ! SYSROM0: 
+STREX+   DAD   10372   ! SYSROM0: 
+STREXP   DAD   10375   ! SYSROM0: 
+STRREF   DAD   10526   ! SYSROM0: 
+STRCN+   DAD   10623   ! SYSROM0: 
+REM      DAD   10656   ! SYSROM0: 
+UNQUOT   DAD   11022   ! SYSROM0: 
+P1ANC!   DAD   11054   ! SYSROM0: 
+PUSH1A   DAD   11057   ! SYSROM0: 
+SCANE1   DAD   11062   ! SYSROM0: 
+PUSH45   DAD   11067   ! SYSROM0: 
+PUSH32   DAD   11100   ! SYSROM0: 
+PU368C   DAD   11110   ! SYSROM0: 
+S01$     DAD   11120   ! SYSROM0: 
+GET2N    DAD   11130   ! SYSROM0: 
+GET2N    DAD   11130   ! SYSROM0: 
+GETPA?   DAD   11135   ! SYSROM0: 
+GET1N    DAD   11141   ! SYSROM0: 
+SET1N    DAD   11141   ! SYSROM0: 
+GETPAR   DAD   11144   ! SYSROM0: 
+GETPAR   DAD   11144   ! SYSROM0: 
+SXX3     DAD   11211   ! SYSROM0: 
+GET1$    DAD   11216   ! SYSROM0: 
+GETSTP   DAD   11226   ! SYSROM0: 
+STREX!   DAD   11231   ! SYSROM0: 
+STRX-!   DAD   11234   ! SYSROM0: 
+S01N$    DAD   11271   ! SYSROM0: 
+S$012N   DAD   11306   ! SYSROM0: 
+G$!012   DAD   11320   ! SYSROM0: 
+S01N     DAD   11327   ! SYSROM0: 
+S012N    DAD   11334   ! SYSROM0: 
+S0TO4N   DAD   11341   ! SYSROM0: 
+S1TO2N   DAD   11363   ! SYSROM0: 
+TRY1N    DAD   11374   ! SYSROM0: 
+ASSIGN   DAD   11403   ! SYSROM0: 
+OPTION   DAD   11437   ! SYSROM0: 
+ONERRO   DAD   11500   ! SYSROM0: 
+PARSE!   DAD   11503   ! SYSROM0: 
+DIM      DAD   11530   ! SYSROM0: 
+DMNDCR   DAD   11545   ! SYSROM0: 
+DMDCR-   DAD   11552   ! SYSROM0: 
+DINITE   DAD   11563   ! SYSROM0: 
+TYPSTM   DAD   11707   ! SYSROM0: 
+DEF      DAD   11741   ! SYSROM0: 
+FNEND    DAD   12157   ! SYSROM0: 
+INPUT    DAD   12527   ! SYSROM0: 
+DATA     DAD   12634   ! SYSROM0: 
+RESTOR   DAD   12725   ! SYSROM0: 
+RETLIN   DAD   12735   ! SYSROM0: 
+READ#    DAD   12745   ! SYSROM0: 
+READ     DAD   12763   ! SYSROM0: 
+FORMAR   DAD   13033   ! SYSROM0: 
+ILET     DAD   13104   ! SYSROM0: 
+LET      DAD   13111   ! SYSROM0: 
+FNLET    DAD   13226   ! SYSROM0: 
+REFNUM   DAD   13274   ! SYSROM0: 
+IF       DAD   13325   ! SYSROM0: 
+ITHEN    DAD   13337   ! SYSROM0: 
+FOR      DAD   13540   ! SYSROM0: 
+NEXT     DAD   13605   ! SYSROM0: 
+ON       DAD   13626   ! SYSROM0: 
+GOTOPR   DAD   13673   ! SYSROM0: 
+GOTOSU   DAD   13676   ! SYSROM0: 
+SEQNO    DAD   13730   ! SYSROM0: 
+SEQ#     DAD   13747   ! SYSROM0: 
+NOCLC!   DAD   13774   ! SYSROM0: 
+QUIP?    DAD   14007   ! SYSROM0: 
+SALT     DAD   14016   ! SYSROM0: 
+SETRUN   DAD   14252   ! SYSROM0: 
+PRINT    DAD   14276   ! SYSROM0: 
+PRINT+   DAD   14301   ! SYSROM0: 
+PRINT#   DAD   14345   ! SYSROM0: 
+PRNT#+   DAD   14350   ! SYSROM0: 
+PLIST    DAD   14406   ! SYSROM0: 
+PURGE.   DAD   14576   ! SYSROM0: 
+EDPURG   DAD   14606   ! SYSROM0: 
+RENAM.   DAD   14651   ! SYSROM0: 
+FILHAN   DAD   14671   ! SYSROM0: 
+FLDDTH   DAD   14677   ! SYSROM0: 
+COPY.    DAD   15103   ! SYSROM0: 
+CDPC?    DAD   15410   ! SYSROM0: 
+UPRC#    DAD   15465   ! SYSROM0: 
+PLIST.   DAD   15501   ! SYSROM0: 
+LIST.    DAD   15510   ! SYSROM0: 
+HALT?    DAD   15611   ! SYSROM0: 
+GF2LN#   DAD   15673   ! SYSROM0: 
+GRANGE   DAD   15730   ! SYSROM0: 
+DELET.   DAD   16001   ! SYSROM0: 
+RENUM.   DAD   16056   ! SYSROM0: 
+FRENUM   DAD   16137   ! SYSROM0: 
+RTDIN    DAD   16352   ! SYSROM0: 
+CONINT   DAD   16467   ! SYSROM0: 
+FETSVA   DAD   16646   ! SYSROM0: 
+FETAV    DAD   16655   ! SYSROM0: 
+FETSV    DAD   16662   ! SYSROM0: 
+FETNUM   DAD   16665   ! SYSROM0: 
+FETIND   DAD   16670   ! SYSROM0: 
+FETBET   DAD   16703   ! SYSROM0: 
+FETCHA   DAD   16706   ! SYSROM0: 
+FETRVA   DAD   16720   ! SYSROM0: 
+FNUM     DAD   16770   ! SYSROM0: 
+FETAVA   DAD   17103   ! SYSROM0: 
+FETST    DAD   17337   ! SYSROM0: 
+STRIND   DAD   17370   ! SYSROM0: 
+PUTREL   DAD   17406   ! SYSROM0: 
+PUTADR   DAD   17407   ! SYSROM0: 
+GETADR   DAD   17421   ! SYSROM0: 
+GETAD#   DAD   17422   ! SYSROM0: 
+GETAD+   DAD   17424   ! SYSROM0: 
+FLINIT   DAD   17433   ! SYSROM0: 
+RSETEN   DAD   17455   ! SYSROM0: 
+ONR12?   DAD   17472   ! SYSROM0: 
+SETRN    DAD   17507   ! SYSROM0: 
+SETPR    DAD   17534   ! SYSROM0: 
+ROOM?    DAD   17555   ! SYSROM0: 
+UROOM!   DAD   17605   ! SYSROM0: 
+ROOM!    DAD   17612   ! SYSROM0: 
+ALCALL   DAD   17623   ! SYSROM0: 
+ALLDC    DAD   17637   ! SYSROM0: 
+DELETE   DAD   17663   ! SYSROM0: 
+FPURGE   DAD   17726   ! SYSROM0: 
+INSERT   DAD   17774   ! SYSROM0: 
+! ***************************                      
+ROM#1    DAD   20000   ! SYSROM1: start
+FCRALO   DAD   20021   ! SYSROM1:
+FCREAT   DAD   20155   ! SYSROM1:
+FCRNUL   DAD   20170   ! SYSROM1:
+BASEND   DAD   20232   ! SYSROM1
+FEMPT?   DAD   20245   ! SYSROM1
+FRENAM   DAD   20304   ! SYSROM1
+FCOPY    DAD   20404   ! SYSROM1
+FCOPYG   DAD   20424   ! SYSROM1
+FNDLPR   DAD   20500   ! SYSROM1
+FNDLRN   DAD   20506   ! SYSROM1
+FNDLED   DAD   20514   ! SYSROM1
+FSEEK    DAD   20524   ! SYSROM1
+PFNDPR   DAD   20544   ! SYSROM1
+PREFND   DAD   20552   ! SYSROM1
+SKPLN    DAD   20605   ! SYSROM1
+SKPLN#   DAD   20607   ! SYSROM1
+IOOPEN   DAD   20616   ! SYSROM1
+IZOPEN   DAD   20631   ! SYSROM1
+FSREPL   DAD   20644   ! SYSROM1
+REPLIN   DAD   20647   ! SYSROM1
+LINLEN   DAD   20745   ! SYSROM1
+DELLIN   DAD   20763   ! SYSROM1
+PTALO?   DAD   21007   ! SYSROM1
+FLOPEN   DAD   21022   ! SYSROM1
+MOVEUP   DAD   21030   ! SYSROM1
+FDELLN   DAD   21037   ! SYSROM1
+DELLNS   DAD   21055   ! SYSROM1
+FREPLS   DAD   21114   ! SYSROM1
+FREPLN   DAD   21131   ! SYSROM1
+MOVE     DAD   21160   ! SYSROM1
+COPY     DAD   21347   ! SYSROM1
+ADJUST   DAD   21477   ! SYSROM1
+INSRTM   DAD   21716   ! SYSROM1
+REPLAC   DAD   21753   ! SYSROM1
+RESCON   DAD   22030   ! SYSROM1: 
+RSMEM-   DAD   22037   ! SYSROM1: 
+RSMEM=   DAD   22040   ! SYSROM1
+RELMEM   DAD   22123   ! SYSROM1
+TYPOK?   DAD   22170   ! SYSROM1
+FOPAC?   DAD   22177   ! SYSROM1
+FOPEN!   DAD   22222   ! SYSROM1
+GOPEN!   DAD   22227   ! SYSROM1
+FOPEN    DAD   22240   ! SYSROM1
+FOPENG   DAD   22244   ! SYSROM1
+GOPEN    DAD   22314   ! SYSROM1
+ROPEN    DAD   22321   ! SYSROM1
+GETRID   DAD   22370   ! SYSROM1
+SIGNIF   DAD   22373   ! SYSROM1
+SIGNF-   DAD   22376   ! SYSROM1
+ROMCLA   DAD   22564   ! SYSROM1
+ROMCL-   DAD   22573   ! SYSROM1
+PTRALO   DAD   22603   ! SYSROM1
+FRET     DAD   23241   ! SYSROM1
+ENTSIZ   DAD   23511   ! SYSROM1
+ROMCPY   DAD   23575   ! SYSROM1
+ROMVPA   DAD   23607   ! SYSROM1
+VSRCH    DAD   23640   ! SYSROM1
+SKPVR    DAD   23702   ! SYSROM1
+VSTOR    DAD   23742   ! SYSROM1
+ALOSNV   DAD   23771   ! SYSROM1
+AVCALL   DAD   24003   ! SYSROM1
+ALVENT   DAD   24350   ! SYSROM1
+TSTRM    DAD   24431   ! SYSROM1
+TSTEND   DAD   24445   ! SYSROM1
+Z36.56   DAD   25147   ! SYSROM1
+ZROMEM   DAD   25154   ! SYSROM1
+ZROM1-   DAD   25171   ! SYSROM1
+FNDVPA   DAD   25234   ! SYSROM1
+ENVALO   DAD   25253   ! SYSROM1
+ENVERR   DAD   25747   ! SYSROM1
+PUTCAL   DAD   26024   ! SYSROM1
+MOVENV   DAD   26026   ! SYSROM1
+CLNCAL   DAD   26127   ! SYSROM1
+DALLAL   DAD   26223   ! SYSROM1
+DALLOC   DAD   26334   ! SYSROM1
+SKIPL    DAD   26724   ! SYSROM1
+ASCNAM   DAD   27040   ! SYSROM1
+ASCNM1   DAD   27051   ! SYSROM1
+ALINI    DAD   27071   ! SYSROM1
+GETINT   DAD   27157   ! SYSROM1
+BCDINT   DAD   27167   ! SYSROM1
+GETNXT   DAD   27205   ! SYSROM1
+GTNXT1   DAD   27245   ! SYSROM1
+NXTLIN   DAD   27262   ! SYSROM1
+SKPCON   DAD   27312   ! SYSROM1
+BININT   DAD   27332   ! SYSROM1
+FRMNAM   DAD   27340   ! SYSROM1
+FRMNA#   DAD   27343   ! SYSROM1
+CALCSZ   DAD   27377   ! SYSROM1
+DECOPR   DAD   27506   ! SYSROM1
+DECOM    DAD   27515   ! SYSROM1
+SCNST    DAD   30117   ! SYSROM1
+MVWRD    DAD   30240   ! SYSROM1
+GETNM    DAD   30463   ! SYSROM1
+DCLIN#   DAD   31250   ! SYSROM1
+UNSTAK   DAD   31324   ! SYSROM1
+SUBSCR   DAD   31632   ! SYSROM1
+PU=      DAD   31720   ! SYSROM1
+SISFUN   DAD   32045   ! SYSROM1
+QMARK    DAD   32252   ! SYSROM1
+EXTRJM   DAD   32566   ! SYSROM1
+VERMN1   DAD   32612   ! SYSROM1
+BATS     DAD   32614   ! SYSROM1
+SKIP#    DAD   32742   ! SYSROM1
+ACMND    DAD   32762   ! SYSROM1
+ANOTE    DAD   33007   ! SYSROM1
+LN20     DAD   33052   ! SYSROM1
+LN38     DAD   33124   ! SYSROM1
+LN30     DAD   33150   ! SYSROM1
+LN77     DAD   33166   ! SYSROM1
+LN5      DAD   33462   ! SYSROM1
+DIV77    DAD   33504   ! SYSROM1
+DIV2     DAD   33553   ! SYSROM1
+DIV10    DAD   33556   ! SYSROM1
+DIV14    DAD   33561   ! SYSROM1
+DIV20    DAD   33606   ! SYSROM1
+SHF10    DAD   33611   ! SYSROM1
+LOGT5    DAD   33632   ! SYSROM1
+CEIL10   DAD   33650   ! SYSROM1
+CHSROI   DAD   33660   ! SYSROM1
+SUBROI   DAD   33712   ! SYSROM1
+ADDROI   DAD   33724   ! SYSROM1
+ADD9     DAD   34004   ! SYSROM1
+ADD15    DAD   34012   ! SYSROM1
+ADD20    DAD   34017   ! SYSROM1
+EXP5     DAD   34153   ! SYSROM1
+SQR5     DAD   34220   ! SYSROM1
+SQR30    DAD   34245   ! SYSROM1
+MPY28    DAD   34342   ! SYSROM1
+MPY30    DAD   34345   ! SYSROM1
+MPYROI   DAD   34475   ! SYSROM1
+INTMUL   DAD   34516   ! SYSROM1
+YTX5     DAD   34564   ! SYSROM1
+SGN5     DAD   34574   ! SYSROM1
+LOGCOM   DAD   34632   ! SYSROM1
+SEC10    DAD   34652   ! SYSROM1
+CSEC10   DAD   34672   ! SYSROM1
+INF10    DAD   34713   ! SYSROM1
+CSEC11   DAD   34721   ! SYSROM1
+COT10    DAD   34725   ! SYSROM1
+SIN10    DAD   34735   ! SYSROM1
+COS10    DAD   34745   ! SYSROM1
+TAN10    DAD   34755   ! SYSROM1
+PI10     DAD   34766   ! SYSROM1
+RAD10.   DAD   35050   ! SYSROM1
+ABS5     DAD   35103   ! SYSROM1
+ABS5-    DAD   35106   ! SYSROM1
+INFR3    DAD   35116   ! SYSROM1
+INFR4    DAD   35121   ! SYSROM1
+INT5     DAD   35150   ! SYSROM1
+INTDIV   DAD   35157   ! SYSROM1: 
+INFR2    DAD   35174   ! SYSROM1
+INFR9    DAD   35220   ! SYSROM1
+FP5      DAD   35241   ! SYSROM1
+SHRONF   DAD   35244   ! SYSROM1
+RONF     DAD   35247   ! SYSROM1
+NFR      DAD   35252   ! SYSROM1
+EPS10    DAD   35276   ! SYSROM1
+DEG10    DAD   35312   ! SYSROM1
+DEGCNV   DAD   35330   ! SYSROM1
+IP5      DAD   35350   ! SYSROM1
+FTR12    DAD   35407   ! SYSROM1
+FTR13    DAD   35415   ! SYSROM1
+FTR53    DAD   35744   ! SYSROM1
+FTR88    DAD   36143   ! SYSROM1
+TRC7     DAD   36225   ! SYSROM1
+TRC01    DAD   36237   ! SYSROM1
+RNDINI   DAD   36251   ! SYSROM1
+RNDIZ.   DAD   36262   ! SYSROM1
+ROU10    DAD   36270   ! SYSROM1
+SEP20    DAD   36310   ! SYSROM1
+SEP15    DAD   36337   ! SYSROM1
+SEP10    DAD   36343   ! SYSROM1
+TWOR     DAD   36402   ! SYSROM1
+UT210    DAD   36413   ! SYSROM1
+PQO10    DAD   36426   ! SYSROM1
+MIN10    DAD   36445   ! SYSROM1
+MAX10    DAD   36464   ! SYSROM1
+EXP20    DAD   36523   ! SYSROM1
+EXP17    DAD   36550   ! SYSROM1
+DCON1    DAD   37003   ! SYSROM1
+TBL3     DAD   37123   ! SYSROM1
+ONEB     DAD   37213   ! SYSROM1: get ONE Binary number
+ONEI     DAD   37254   ! SYSROM1: get ONE Integer number
+TWOB     DAD   37276   ! SYSROM1: get TWO Binary numbers
+ONER     DAD   37315   ! SYSROM1: get ONE Real
+ONER-    DAD   37320   ! SYSROM1
+ONEROI   DAD   37336   ! SYSROM1: get ONE Real Or Integer
+ONERI    DAD   37341   ! SYSROM1
+TWOROI   DAD   37351   ! SYSROM1
+INTORL   DAD   37426   ! SYSROM1
+TMEFAC   DAD   37473   ! SYSROM1
+MVBYTS   DAD   37503   ! SYSROM1
+OFFTMR   DAD   37520   ! SYSROM1
+ONTMR    DAD   37527   ! SYSROM1
+TMRON.   DAD   37573   ! SYSROM1
+TM#GET   DAD   37734   ! SYSROM1
+TMRRLV   DAD   37776   ! SYSROM1
+*                      
+ROM#2    DAD   40000   ! SYSROM2: start
+ADJTMR   DAD   40011   ! SYSROM2
+TMRDNE   DAD   40040   ! SYSROM2 
+TMROPN   DAD   40057   ! SYSROM2
+TMROF.   DAD   40111   ! SYSROM2
+TMRKIL   DAD   40177   ! SYSROM2
+TMRSS    DAD   40216   ! SYSROM2
+TMRCLR   DAD   40236   ! SYSROM2
+TMTRIG   DAD   40243   ! SYSROM2
+BLIMP    DAD   40400   ! SYSROM2
+NULOLD   DAD   40410   ! SYSROM2
+GETTEM   DAD   40420   ! SYSROM2
+GETTER   DAD   40456   ! SYSROM2
+GETREP   DAD   40530   ! SYSROM2
+GET.IN   DAD   40555   ! SYSROM2
+EROUT-   DAD   40567   ! SYSROM2
+KEYTRM   DAD   40625   ! SYSROM2
+KEYDSP   DAD   40632   ! SYSROM2
+INPUT.   DAD   41166   ! SYSROM2
+CHKEOL   DAD   41364   ! SYSROM2
+INPUN.   DAD   41411   ! SYSROM2
+ER43     DAD   41500   ! SYSROM2
+INPU$.   DAD   41563   ! SYSROM2
+BCKSTO   DAD   41675   ! SYSROM2
+RESTRT   DAD   41706   ! SYSROM2
+ISETUP   DAD   41725   ! SYSROM2
+ITAIL.   DAD   41737   ! SYSROM2
+ANNUNS   DAD   41740   ! SYSROM2
+ANN.B+   DAD   41744   ! SYSROM2
+ANN.B-   DAD   41751   ! SYSROM2
+ANN.E+   DAD   41756   ! SYSROM2
+ANN.E-   DAD   41763   ! SYSROM2
+PGMANN   DAD   41773   ! SYSROM2
+ANN.P+   DAD   42000   ! SYSROM2
+ANN.P-   DAD   42005   ! SYSROM2
+ANN.A+   DAD   42012   ! SYSROM2
+ANN.A-   DAD   42025   ! SYSROM2
+FETCH.   DAD   42131   ! SYSROM2
+EDLIN#   DAD   42202   ! SYSROM2
+EDLIN-   DAD   42206   ! SYSROM2
+LINEDR   DAD   42357   ! SYSROM2
+EOL14?   DAD   42534   ! SYSROM2: 
+CREOL?   DAD   42535   ! SYSROM2
+PRNTCH   DAD   42565   ! SYSROM2: 
+PR.EOL   DAD   42626   ! SYSROM2
+DSPSET   DAD   42677   ! SYSROM2
+PILREP   DAD   42745   ! SYSROM2
+LADDEV   DAD   42776   ! SYSROM2
+SPY      DAD   43027   ! SYSROM2
+SVCCHK   DAD   43053   ! SYSROM2
+MELJSB   DAD   43141   ! SYSROM2
+SYSJSB   DAD   43155   ! SYSROM2: 
+ROMJSB   DAD   43224   ! SYSROM2: 
+RMERR.   DAD   43434   ! SYSROM2
+ROM:GO   DAD   43441   ! SYSROM2
+SAVEME   DAD   43501   ! SYSROM2
+RUNROM   DAD   43524   ! SYSROM2
+GETRM2   DAD   43536   ! SYSROM2
+GETROM   DAD   43541   ! SYSROM2
+NXTKWF   DAD   43603   ! SYSROM2
+NXTROM   DAD   43654   ! SYSROM2
+UNROM    DAD   43742   ! SYSROM2
+ROMSET   DAD   43755   ! SYSROM2
+ROMRTN   DAD   44035   ! SYSROM2
+CYCLE    DAD   44110   ! SYSROM2
+TRFLO.   DAD   44207   ! SYSROM2
+TROFF.   DAD   44214   ! SYSROM2
+TRVAR.   DAD   44220   ! SYSROM2
+TRCVBL   DAD   44234   ! SYSROM2
+TRCLP    DAD   44335   ! SYSROM2
+TRCFP    DAD   44345   ! SYSROM2
+RNLST?   DAD   44437   ! SYSROM2
+TRJUMP   DAD   44446   ! SYSROM2
+OUTERB   DAD   44512   ! SYSROM2
+TRCHED   DAD   44527   ! SYSROM2
+APPT.    DAD   44623   ! SYSROM2
+KEYS.    DAD   44637   ! SYSROM2
+CARD.    DAD   44673   ! SYSROM2
+EDIT     DAD   44712   ! SYSROM2
+ASNPAR   DAD   44717   ! SYSROM2
+FLTOFL   DAD   44776   ! SYSROM2
+PUSH1F   DAD   45033   ! SYSROM2
+FILNM+   DAD   45042   ! SYSROM2
+FILNM?   DAD   45050   ! SYSROM2
+FILNM!   DAD   45074   ! SYSROM2
+FLORD    DAD   45105   ! SYSROM2
+FLORDT   DAD   45107   ! SYSROM2
+GETNAM   DAD   45167   ! SYSROM2
+GETFST   DAD   45373   ! SYSROM2
+FLCHR?   DAD   45461   ! SYSROM2
+ANYER?   DAD   45472   ! SYSROM2
+ERRREP   DAD   45501   ! SYSROM2
+REPORT   DAD   45512   ! SYSROM2
+REPRT+   DAD   45524   ! SYSROM2
+CLRERR   DAD   45702   ! SYSROM2
+BLEBUF   DAD   45712   ! SYSROM2
+WARN     DAD   45723   ! SYSROM2
+WARN.R   DAD   46064   ! SYSROM2
+ERR.R2   DAD   46105   ! SYSROM2
+ERRORR   DAD   46214   ! SYSROM2
+ERROR    DAD   46221   ! SYSROM2
+ERROR+   DAD   46231   ! SYSROM2: 
+ERR1     DAD   46244   ! SYSROM2: 
+ERR1+    DAD   46254   ! SYSROM2: 
+REP.1    DAD   46407   ! SYSROM2
+REPRT-   DAD   46435   ! SYSROM2
+ERRMSG   DAD   46560   ! SYSROM2
+SETUP$   DAD   46612   ! SYSROM2
+SETCOM   DAD   46626   ! SYSROM2
+CMPSTR   DAD   46652   ! SYSROM2
+UNEQ$.   DAD   46675   ! SYSROM2
+LEQ$.    DAD   46704   ! SYSROM2
+GEQ$.    DAD   46715   ! SYSROM2
+LT$.     DAD   46726   ! SYSROM2
+EQ$.     DAD   46737   ! SYSROM2
+GR$.     DAD   46746   ! SYSROM2
+EQ.      DAD   46757   ! SYSROM2
+UNEQ.    DAD   46772   ! SYSROM2
+LEQ.     DAD   47013   ! SYSROM2
+GEQ.     DAD   47034   ! SYSROM2
+GR.      DAD   47045   ! SYSROM2
+LT.      DAD   47074   ! SYSROM2
+OR.      DAD   47113   ! SYSROM2
+EXOR.    DAD   47126   ! SYSROM2
+NOT.     DAD   47141   ! SYSROM2
+AND.     DAD   47152   ! SYSROM2
+DEFKEY   DAD   47216   ! SYSROM2
+KYOPEN   DAD   47247   ! SYSROM2
+KEYNAM   DAD   47255   ! SYSROM2
+DEFKY.   DAD   47313   ! SYSROM2
+FETK.    DAD   47473   ! SYSROM2
+SAVENV   DAD   47704   ! SYSROM2
+RESTEN   DAD   47766   ! SYSROM2
+VCREST   DAD   47774   ! SYSROM2
+RECOVR   DAD   50005   ! SYSROM2
+ENDEN?   DAD   50070   ! SYSROM2
+POPENV   DAD   50100   ! SYSROM2
+CLRENV   DAD   50236   ! SYSROM2
+RUN.     DAD   50254   ! SYSROM2
+RUNKEE   DAD   50271   ! SYSROM2
+RUNIT    DAD   50347   ! SYSROM2
+SYCALL   DAD   50354   ! SYSROM2
+CALL     DAD   50356   ! SYSROM2
+VCCALL   DAD   50401   ! SYSROM2
+CALL.    DAD   50517   ! SYSROM2
+DOSTEP   DAD   50552   ! SYSROM2
+STOP.    DAD   50671   ! SYSROM2
+STALLS   DAD   50672   ! SYSROM2
+STALL    DAD   50703   ! SYSROM2
+STALL+   DAD   50710   ! SYSROM2
+CONTI.   DAD   50714   ! SYSROM2
+REMDAC   DAD   50761   ! SYSROM2
+END.     DAD   51004   ! SYSROM2
+SETCL#   DAD   51052   ! SYSROM2
+TEXT.    DAD   51076   ! SYSROM2
+BASIC.   DAD   51105   ! SYSROM2
+LIF1.    DAD   51115   ! SYSROM2
+NAME.    DAD   51123   ! SYSROM2
+EDIT.    DAD   51132   ! SYSROM2
+DFNAME   DAD   51140   ! SYSROM2
+EDITIT   DAD   51223   ! SYSROM2
+SETED    DAD   51410   ! SYSROM2
+MERGE.   DAD   51471   ! SYSROM2
+SAFE!    DAD   51635   ! SYSROM2
+INENV?   DAD   51756   ! SYSROM2
+CALEN?   DAD   52017   ! SYSROM2
+VERMN2   DAD   52027   ! SYSROM2
+HANDI    DAD   52031   ! SYSROM2
+HANDIR   DAD   52034   ! SYSROM2
+HANDI0   DAD   52114   ! SYSROM2
+FTSVL    DAD   52236   ! SYSROM2
+SVVAL3   DAD   52244   ! SYSROM2
+SVADR+   DAD   52251   ! SYSROM2
+SVADR    DAD   52252   ! SYSROM2
+FTSTL    DAD   52261   ! SYSROM2
+FTSTLS   DAD   52272   ! SYSROM2
+ICONST   DAD   52316   ! SYSROM2
+SCONST   DAD   52325   ! SYSROM2
+STOSTM   DAD   52344   ! SYSROM2
+STOST    DAD   52345   ! SYSROM2
+STOSVM   DAD   52627   ! SYSROM2
+STOSV    DAD   52630   ! SYSROM2
+AVADR1   DAD   53146   ! SYSROM2
+AVADR2   DAD   53153   ! SYSROM2
+AVVAL1   DAD   53176   ! SYSROM2
+AVVAL2   DAD   53203   ! SYSROM2
+GORTN    DAD   53216   ! SYSROM2
+FTADR    DAD   53254   ! SYSROM2
+FNCAL$   DAD   53314   ! SYSROM2
+INTCON   DAD   53727   ! SYSROM2
+I#PUSH   DAD   53732   ! SYSROM2
+SUBST1   DAD   53742   ! SYSROM2
+SVADCK   DAD   54012   ! SYSROM2
+SUBST2   DAD   54041   ! SYSROM2
+FNLET.   DAD   54071   ! SYSROM2
+FNRTN.   DAD   54133   ! SYSROM2
+FNRET.   DAD   54221   ! SYSROM2
+CAT.     DAD   54332   ! SYSROM2
+CATLIN   DAD   54353   ! SYSROM2
+CATAL.   DAD   54415   ! SYSROM2
+UPENT    DAD   54423   ! SYSROM2
+DNENT    DAD   54431   ! SYSROM2
+CAT$.    DAD   54473   ! SYSROM2
+ROUND    DAD   54501   ! SYSROM2
+EFORM    DAD   54572   ! SYSROM2
+LCDOUT   DAD   54673   ! SYSROM2
+PUTWIN   DAD   55326   ! SYSROM2
+CH2LCD   DAD   55375   ! SYSROM2
+G1$OR*   DAD   55577   ! SYSROM2
+G01$/*   DAD   55607   ! SYSROM2
+STR?*?   DAD   55631   ! SYSROM0: 
+DSPIS.   DAD   55656   ! SYSROM2
+PRINS.   DAD   55667   ! SYSROM2
+STAR?    DAD   55703   ! SYSROM2
+CONFIG   DAD   55727   ! SYSROM2
+TAB      DAD   55733   ! SYSROM2
+CLEAN-   DAD   55762   ! SYSROM2
+DONE     DAD   55774   ! SYSROM2
+CHANGE   DAD   56002   ! SYSROM2
+GETPAD   DAD   56560   ! SYSROM2
+GET#1    DAD   56624   ! SYSROM2
+GET#2+   DAD   56632   ! SYSROM2
+LSTIO.   DAD   56653   ! SYSROM2
+REST.    DAD   56731   ! SYSROM2
+OFFIO.   DAD   57006   ! SYSROM2
+OFFUNL   DAD   57011   ! SYSROM2
+SETOFF   DAD   57021   ! SYSROM2
+CLROFF   DAD   57026   ! SYSROM2
+LPOFF    DAD   57040   ! SYSROM2
+LPON     DAD   57050   ! SYSROM2
+SETIT    DAD   57060   ! SYSROM2
+CLRTMT   DAD   57070   ! SYSROM2: 
+CLOOP.   DAD   57106   ! SYSROM2
+CLDEV.   DAD   57117   ! SYSROM2
+THERE?   DAD   57164   ! SYSROM2
+THERE!   DAD   57175   ! SYSROM2
+SKPCHK   DAD   57212   ! SYSROM2
+CHKEND   DAD   57215   ! SYSROM2
+MOVEIT   DAD   57246   ! SYSROM2
+EVIL     DAD   57360   ! SYSROM2
+PRSTR.   DAD   57437   ! SYSROM2
+PRNUM.   DAD   57546   ! SYSROM2
+OUTNUM   DAD   57554   ! SYSROM2
+RESFIL   DAD   57646   ! SYSROM2
+BLKFIL   DAD   57656   ! SYSROM2
+ON/OFF   DAD   57727   ! SYSROM2
+ONOFF2   DAD   57735   ! SYSROM2
+ONTOK.   DAD   57766   ! SYSROM2
+OFTOK.   DAD   57774   ! SYSROM2
 ! ***************************
-ALTROM	DAD	60000	! ALTROM: start
-ASCIIS	DAD	60151	! ALTROM: 
-APINFO	DAD	61541	! ALTROM
-APTDEL	DAD	61762	! ALTROM
-APDEL'	DAD	62001	! ALTROM
-APTDSP	DAD	62033	! ALTROM
-APTERR	DAD	62054	! ALTROM
-APTFND	DAD	62112	! ALTROM
-APFND'	DAD	62116	! ALTROM
-APTGET	DAD	62154	! ALTROM
-APTINS	DAD	62202	! ALTROM
-APTR+ 	DAD	62244	! ALTROM
-APTR- 	DAD	62262	! ALTROM
-GETLNX	DAD	62307	! ALTROM
-RSTBUF	DAD	62331	! ALTROM
-SAVBUF	DAD	62342	! ALTROM
-TIMDIV	DAD	62355	! ALTROM
-TTMPLT	DAD	62407	! ALTROM
-ATMPLT	DAD	62415	! ALTROM
-APMSKE	DAD	62467	! ALTROM
-APMSKY	DAD	62474	! ALTROM
-STMMSK	DAD	62505	! ALTROM
-TIMMSK	DAD	62512	! ALTROM
-APPTTM	DAD	62522	! ALTROM
-YEARTM	DAD	62637	! ALTROM
-REPTTM	DAD	62676	! ALTROM
-APPTMD	DAD	62744	! ALTROM
-APEXIT	DAD	63212	! ALTROM
-TIMEMD	DAD	63472	! ALTROM
-CSTRIG	DAD	63556	! ALTROM
-CKTRIG	DAD	63562	! ALTROM
-AINCHK	DAD	63660	! ALTROM
-RINCHK	DAD	63767	! ALTROM
-UPDISP	DAD	63777	! ALTROM
-STDATE	DAD	64021	! ALTROM
-TICK  	DAD	64104	! ALTROM
-APTCHK	DAD	64144	! ALTROM
-DCCLOK	DAD	64460	! ALTROM
-ENCLOK	DAD	65052	! ALTROM
-FINDTD	DAD	65370	! ALTROM
-MAXDAT	DAD	65373	! ALTROM
-FNDTD'	DAD	65453	! ALTROM
-FXAPPT	DAD	66111	! ALTROM
-ALMCHK	DAD	66327	! ALTROM
-DATCHK	DAD	66410	! ALTROM
-DATCK'	DAD	66447	! ALTROM
-DAYTAB	DAD	67016	! ALTROM
-DAYOK 	DAD	67043	! ALTROM
-DCDAY 	DAD	67077	! ALTROM
-DUPCHK	DAD	67173	! ALTROM
-FLDCHK	DAD	67302	! ALTROM
-FXALRM	DAD	67330	! ALTROM
-FXDATE	DAD	67363	! ALTROM
-FXDAY 	DAD	67447	! ALTROM
-FXTIME	DAD	67467	! ALTROM
-FXYEAR	DAD	67557	! ALTROM
-LEAPYR	DAD	67624	! ALTROM
-MINYY 	DAD	67646	! ALTROM
-MINMM 	DAD	67650	! ALTROM
-MINDD 	DAD	67653	! ALTROM
-MINHH 	DAD	67656	! ALTROM
-MINMN 	DAD	67660	! ALTROM
-NUNPCK	DAD	67665	! ALTROM
-RPTADJ	DAD	67750	! ALTROM
-RPTINP	DAD	70362	! ALTROM
-RPTPRS	DAD	70405	! ALTROM
-TIMCHK	DAD	70647	! ALTROM
-VERMN3	DAD	71016	! ALTROM
-ACREAT	DAD	71020	! ALTROM
-AOPEN 	DAD	71040	! ALTROM
-AOPEN'	DAD	71044	! ALTROM
-APPTRS	DAD	71051	! ALTROM
-ALBEEP	DAD	71063	! ALTROM
-APPROC	DAD	71274	! ALTROM
-APSTAT	DAD	71400	! ALTROM
-APTACK	DAD	71430	! ALTROM
-APTMRG	DAD	71535	! ALTROM
-APTRIG	DAD	71663	! ALTROM
-STALRM	DAD	72000	! ALTROM
-ALARM.	DAD	72060	! ALTROM
-OFALRM	DAD	72104	! ALTROM
-CNTRIG	DAD	72110	! ALTROM
-GETTD 	DAD	72154	! ALTROM
-MULT60	DAD	72163	! ALTROM
-NXTAPT	DAD	72175	! ALTROM
-PRNOTE	DAD	72222	! ALTROM
-CRTMDT	DAD	72450	! ALTROM
-DTECNV	DAD	72507	! ALTROM
-TMECMD	DAD	72572	! ALTROM
-TCKTGL	DAD	72720	! ALTROM
-TMESET	DAD	73262	! ALTROM
-STRTME	DAD	74401	! ALTROM
-UPRCSE	DAD	74611	! ALTROM
-LOCK. 	DAD	74666	! ALTROM
-LOCK? 	DAD	74713	! ALTROM
-CLRINT	DAD	75005	! ALTROM
-START?	DAD	75016	! ALTROM
-START 	DAD	75040	! ALTROM
-SYSINI	DAD	75055	! ALTROM
-CHEDIT	DAD	75344	! ALTROM
-I/ROFF	DAD	76346	! ALTROM
-SETI/R	DAD	76350	! ALTROM
-DEL   	DAD	76477	! ALTROM
-LA    	DAD	76737	! ALTROM
-RA    	DAD	77015	! ALTROM
-SHELD?	DAD	77317	! ALTROM
-SHLA  	DAD	77506	! ALTROM
-SHRA  	DAD	77530	! ALTROM
-MARGN.	DAD	77547	! ALTROM
-SHFET 	DAD	77557	! ALTROM
-MPYR' 	DAD	77632	! ALTROM
+ALTROM   DAD   60000   ! ALTROM: start
+ASCIIS   DAD   60151   ! ALTROM: 
+APINFO   DAD   61541   ! ALTROM
+APTDEL   DAD   61762   ! ALTROM
+APDEL'   DAD   62001   ! ALTROM
+APTDSP   DAD   62033   ! ALTROM
+APTERR   DAD   62054   ! ALTROM
+APTFND   DAD   62112   ! ALTROM
+APFND'   DAD   62116   ! ALTROM
+APTGET   DAD   62154   ! ALTROM
+APTINS   DAD   62202   ! ALTROM
+APTR+    DAD   62244   ! ALTROM
+APTR-    DAD   62262   ! ALTROM
+GETLNX   DAD   62307   ! ALTROM
+RSTBUF   DAD   62331   ! ALTROM
+SAVBUF   DAD   62342   ! ALTROM
+TIMDIV   DAD   62355   ! ALTROM
+TTMPLT   DAD   62407   ! ALTROM
+ATMPLT   DAD   62415   ! ALTROM
+APMSKE   DAD   62467   ! ALTROM
+APMSKY   DAD   62474   ! ALTROM
+STMMSK   DAD   62505   ! ALTROM
+TIMMSK   DAD   62512   ! ALTROM
+APPTTM   DAD   62522   ! ALTROM
+YEARTM   DAD   62637   ! ALTROM
+REPTTM   DAD   62676   ! ALTROM
+APPTMD   DAD   62744   ! ALTROM
+APEXIT   DAD   63212   ! ALTROM
+TIMEMD   DAD   63472   ! ALTROM
+CSTRIG   DAD   63556   ! ALTROM
+CKTRIG   DAD   63562   ! ALTROM
+AINCHK   DAD   63660   ! ALTROM
+RINCHK   DAD   63767   ! ALTROM
+UPDISP   DAD   63777   ! ALTROM
+STDATE   DAD   64021   ! ALTROM
+TICK     DAD   64104   ! ALTROM
+APTCHK   DAD   64144   ! ALTROM
+DCCLOK   DAD   64460   ! ALTROM
+ENCLOK   DAD   65052   ! ALTROM
+FINDTD   DAD   65370   ! ALTROM
+MAXDAT   DAD   65373   ! ALTROM
+FNDTD'   DAD   65453   ! ALTROM
+FXAPPT   DAD   66111   ! ALTROM
+ALMCHK   DAD   66327   ! ALTROM
+DATCHK   DAD   66410   ! ALTROM
+DATCK'   DAD   66447   ! ALTROM
+DAYTAB   DAD   67016   ! ALTROM
+DAYOK    DAD   67043   ! ALTROM
+DCDAY    DAD   67077   ! ALTROM
+DUPCHK   DAD   67173   ! ALTROM
+FLDCHK   DAD   67302   ! ALTROM
+FXALRM   DAD   67330   ! ALTROM
+FXDATE   DAD   67363   ! ALTROM
+FXDAY    DAD   67447   ! ALTROM
+FXTIME   DAD   67467   ! ALTROM
+FXYEAR   DAD   67557   ! ALTROM
+LEAPYR   DAD   67624   ! ALTROM
+MINYY    DAD   67646   ! ALTROM
+MINMM    DAD   67650   ! ALTROM
+MINDD    DAD   67653   ! ALTROM
+MINHH    DAD   67656   ! ALTROM
+MINMN    DAD   67660   ! ALTROM
+NUNPCK   DAD   67665   ! ALTROM
+RPTADJ   DAD   67750   ! ALTROM
+RPTINP   DAD   70362   ! ALTROM
+RPTPRS   DAD   70405   ! ALTROM
+TIMCHK   DAD   70647   ! ALTROM
+VERMN3   DAD   71016   ! ALTROM
+ACREAT   DAD   71020   ! ALTROM
+AOPEN    DAD   71040   ! ALTROM
+AOPEN'   DAD   71044   ! ALTROM
+APPTRS   DAD   71051   ! ALTROM
+ALBEEP   DAD   71063   ! ALTROM
+APPROC   DAD   71274   ! ALTROM
+APSTAT   DAD   71400   ! ALTROM
+APTACK   DAD   71430   ! ALTROM
+APTMRG   DAD   71535   ! ALTROM
+APTRIG   DAD   71663   ! ALTROM
+STALRM   DAD   72000   ! ALTROM
+ALARM.   DAD   72060   ! ALTROM
+OFALRM   DAD   72104   ! ALTROM
+CNTRIG   DAD   72110   ! ALTROM
+GETTD    DAD   72154   ! ALTROM
+MULT60   DAD   72163   ! ALTROM
+NXTAPT   DAD   72175   ! ALTROM
+PRNOTE   DAD   72222   ! ALTROM
+CRTMDT   DAD   72450   ! ALTROM
+DTECNV   DAD   72507   ! ALTROM
+TMECMD   DAD   72572   ! ALTROM
+TCKTGL   DAD   72720   ! ALTROM
+TMESET   DAD   73262   ! ALTROM
+STRTME   DAD   74401   ! ALTROM
+UPRCSE   DAD   74611   ! ALTROM
+LOCK.    DAD   74666   ! ALTROM
+LOCK?    DAD   74713   ! ALTROM
+CLRINT   DAD   75005   ! ALTROM
+START?   DAD   75016   ! ALTROM
+START    DAD   75040   ! ALTROM
+SYSINI   DAD   75055   ! ALTROM
+CHEDIT   DAD   75344   ! ALTROM
+I/ROFF   DAD   76346   ! ALTROM
+SETI/R   DAD   76350   ! ALTROM
+DEL      DAD   76477   ! ALTROM
+LA       DAD   76737   ! ALTROM
+RA       DAD   77015   ! ALTROM
+SHELD?   DAD   77317   ! ALTROM
+SHLA     DAD   77506   ! ALTROM
+SHRA     DAD   77530   ! ALTROM
+MARGN.   DAD   77547   ! ALTROM
+SHFET    DAD   77557   ! ALTROM
+MPYR'    DAD   77632   ! ALTROM
 ! **************************
-FILDRV	DAD	60026	! MELROM
-FLCAT 	DAD	60337	! MELROM
-FLPURG	DAD	61014	! MELROM
-FLPUR-	DAD	61045	! MELROM
-FLCOPY	DAD	61057	! MELROM
-FLPUR!	DAD	61622	! MELROM
-FLTTOT	DAD	61665	! MELROM
-FLSWCH	DAD	61754	! MELROM
-FLR36 	DAD	61757	! MELROM
-FLFTOF	DAD	61773	! MELROM
-FLRENA	DAD	62263	! MELROM
-PACK. 	DAD	62346	! MELROM
-ASINIT	DAD	63114	! MELROM
-INIT. 	DAD	63153	! MELROM
-INISIZ	DAD	63535	! MELROM
-VFRWK+	DAD	63636	! MELROM
-VLAD+ 	DAD	63643	! MELROM
-VFHI+ 	DAD	63650	! MELROM
-VFDIR+	DAD	63655	! MELROM
-DDLRP+	DAD	63662	! MELROM
-DATRP+	DAD	63667	! MELROM
-RDYSD+	DAD	63674	! MELROM
-VFBSY+	DAD	63701	! MELROM
-VFNXE+	DAD	63706	! MELROM
-VFLTY+	DAD	63710	! MELROM
-VFLTY+	DAD	63713	! MELROM
-VFRWO+	DAD	63720	! MELROM
-VFTAD+	DAD	63725	! MELROM
-VFUTL+	DAD	63732	! MELROM
-FL80F+	DAD	63743	! MELROM
-FLFIN+	DAD	63750	! MELROM
-FLFIND	DAD	63753	! MELROM
-FL80FE	DAD	64011	! MELROM
-FLCAF+	DAD	64024	! MELROM
-FLSET1	DAD	64031	! MELROM
-FLSTFN	DAD	64043	! MELROM
-FLSTAK	DAD	64072	! MELROM
-FLVFO?	DAD	64137	! MELROM
-FLSDON	DAD	64206	! MELROM
-FLNEW 	DAD	64250	! MELROM
-FLSAM?	DAD	65011	! MELROM
-VFHI  	DAD	65017	! MELROM
-VFSET 	DAD	65104	! MELROM
-CLRCOD	DAD	65223	! MELROM
-VFMM? 	DAD	65232	! MELROM
-BADDEV	DAD	65333	! MELROM
-VERB  	DAD	65507	! MELROM
-FIX65 	DAD	65555	! MELROM
-VFADDR	DAD	65600	! MELROM
-VFRWSK	DAD	65650	! MELROM
-VFRWSO	DAD	65662	! MELROM
-VFRSWB	DAD	65740	! MELROM
-VFRWRD	DAD	65763	! MELROM
-VFWACH	DAD	66057	! MELROM
-VFWAC2	DAD	66075	! MELROM
-VFRREC	DAD	66200	! MELROM
-VFWOOP	DAD	66212	! MELROM
-VFRWWR	DAD	66222	! MELROM
-VFWR  	DAD	66250	! MELROM
-VFWREC	DAD	66266	! MELROM
-VFDDL2	DAD	66276	! MELROM
-VFWRDK	DAD	66303	! MELROM
-VFADCL	DAD	66350	! MELROM
-VFCLCH	DAD	66355	! MELROM
-VFWRCL	DAD	66370	! MELROM
-VFLTBY	DAD	66377	! MELROM
-VFDSY 	DAD	66406	! MELROM
-VFSTAT	DAD	66417	! MELROM
-VFERR 	DAD	66510	! MELROM
-VFRCEX	DAD	66566	! MELROM
-VFRWUO	DAD	66577	! MELROM
-VFCDEP	DAD	66606	! MELROM
-VFCD46	DAD	66614	! MELROM
-VFCDCO	DAD	66627	! MELROM
-VFTERM	DAD	66642	! MELROM
-VFBYE 	DAD	66655	! MELROM
-VFDIR 	DAD	66674	! MELROM
-VFNXDE	DAD	66715	! MELROM
-VFNXD-	DAD	66730	! MELROM
-VFDECL	DAD	66737	! MELROM
-VFWRDE	DAD	66750	! MELROM
-VFWRD1	DAD	66755	! MELROM
-VFWRD-	DAD	66760	! MELROM
-VFEOD?	DAD	66767	! MELROM
-VFPED?	DAD	66774	! MELROM
-VFLED?	DAD	67011	! MELROM
-VFSLOC	DAD	67031	! MELROM
-VFMFP?	DAD	67045	! MELROM
-VFRENA	DAD	67053	! MELROM
-VFMOVE	DAD	67070	! MELROM
-VFMOVE	DAD	67073	! MELROM
-VFEXCH	DAD	67172	! MELROM
-VFBUO 	DAD	67204	! MELROM
-VFROO?	DAD	67220	! MELROM
-VFLIF?	DAD	67263	! MELROM
-VFRLF?	DAD	67272	! MELROM
-VFRVDE	DAD	67303	! MELROM
-VFMSS 	DAD	67331	! MELROM
-VFSKFL	DAD	67343	! MELROM
-VFDUDE	DAD	67356	! MELROM
-VFTRNL	DAD	67417	! MELROM
-VERMN5	DAD	67504	! MELROM
-VFTIME	DAD	67506	! MELROM
-VFRDE 	DAD	67550	! MELROM
-VF1TO2	DAD	67730	! MELROM
-VFSECT	DAD	67743	! MELROM
-DDLREP	DAD	67774	! MELROM
-DDTREP	DAD	70001	! MELROM
-DATSND	DAD	70010	! MELROM
-DATSD-	DAD	70012	! MELROM
-UNTUNL	DAD	70046	! MELROM
-JSBCRT	DAD	70055	! MELROM
-REVBYT	DAD	70063	! MELROM
-REVPSH	DAD	70075	! MELROM
-TENRIT	DAD	70107	! MELROM
-TRNSLP	DAD	70126	! MELROM
-CLIF  	DAD	70606	! MELROM
-NOTRSH	DAD	70755	! MELROM
-LBL4  	DAD	71140	! MELROM
-TRFRM.	DAD	71422	! MELROM
-THERE1	DAD	71514	! MELROM
-MYSTPR	DAD	72022	! MELROM
-MYSETN	DAD	72030	! MELROM
-ASTBCD	DAD	72055	! MELROM
-MBLIMP	DAD	72100	! MELROM
-MBLIM-	DAD	72106	! MELROM
-PUTCHR	DAD	72121	! MELROM
-SETL30	DAD	72133	! MELROM
-PCR.  	DAD	72145	! MELROM
-ER16+ 	DAD	72162	! MELROM
-RECON!	DAD	72203	! MELROM
-EDITFI	DAD	72257	! MELROM
-MALLOC	DAD	72334	! MELROM
-MYSET2	DAD	72350	! MELROM
-ATN2. 	DAD	72364	! MELROM
-ATN2.+	DAD	72401	! MELROM
-ISIN. 	DAD	72455	! MELROM
-ICOS. 	DAD	72465	! MELROM
-ITAN. 	DAD	72475	! MELROM
-BRT5  	DAD	72501	! MELROM
-BRT10 	DAD	72511	! MELROM
-WAKEUP	DAD	73146	! MELROM
-WAKEUP	DAD	73146	! MELROM
-REM10.	DAD	73377	! MELROM
-MOD10.	DAD	73405	! MELROM
-RNDIZ 	DAD	73536	! MELROM
-YTX5' 	DAD	73613	! MELROM
-RND10.	DAD	73764	! MELROM
-DEVOK 	DAD	74060	! MELROM
-ERMSS 	DAD	74175	! MELROM
-DEG.  	DAD	74773	! MELROM
-RAD.  	DAD	74777	! MELROM
-TIME$.	DAD	76155	! MELROM
-DATE$.	DAD	76164	! MELROM
-DATE. 	DAD	76263	! MELROM
-TIME. 	DAD	76372	! MELROM
-STBEP'	DAD	76524	! MELROM
-BEEP.'	DAD	76554	! MELROM
-BEEPR'	DAD	76673	! MELROM
-ONE7+B	DAD	76756	! MELROM
-SETWDB	DAD	77125	! MELROM
-WAITCK	DAD	77144	! MELROM
-CAT$  	DAD	77200	! MELROM
-CATALL	DAD	77353	! MELROM
-CATTMP	DAD	77536	! MELROM
-CATBUF	DAD	77542	! MELROM
-CATHED	DAD	77670	! MELROM
-FLVFO+	DAD	77727	! MELROM
+FILDRV   DAD   60026   ! MELROM
+FLCAT    DAD   60337   ! MELROM
+FLPURG   DAD   61014   ! MELROM
+FLPUR-   DAD   61045   ! MELROM
+FLCOPY   DAD   61057   ! MELROM
+FLPUR!   DAD   61622   ! MELROM
+FLTTOT   DAD   61665   ! MELROM
+FLSWCH   DAD   61754   ! MELROM
+FLR36    DAD   61757   ! MELROM
+FLFTOF   DAD   61773   ! MELROM
+FLRENA   DAD   62263   ! MELROM
+PACK.    DAD   62346   ! MELROM
+ASINIT   DAD   63114   ! MELROM
+INIT.    DAD   63153   ! MELROM
+INISIZ   DAD   63535   ! MELROM
+VFRWK+   DAD   63636   ! MELROM
+VLAD+    DAD   63643   ! MELROM
+VFHI+    DAD   63650   ! MELROM
+VFDIR+   DAD   63655   ! MELROM
+DDLRP+   DAD   63662   ! MELROM
+DATRP+   DAD   63667   ! MELROM
+RDYSD+   DAD   63674   ! MELROM
+VFBSY+   DAD   63701   ! MELROM
+VFNXE+   DAD   63706   ! MELROM
+VFLTY+   DAD   63710   ! MELROM
+VFLTY+   DAD   63713   ! MELROM
+VFRWO+   DAD   63720   ! MELROM
+VFTAD+   DAD   63725   ! MELROM
+VFUTL+   DAD   63732   ! MELROM
+FL80F+   DAD   63743   ! MELROM
+FLFIN+   DAD   63750   ! MELROM
+FLFIND   DAD   63753   ! MELROM
+FL80FE   DAD   64011   ! MELROM
+FLCAF+   DAD   64024   ! MELROM
+FLSET1   DAD   64031   ! MELROM
+FLSTFN   DAD   64043   ! MELROM
+FLSTAK   DAD   64072   ! MELROM
+FLVFO?   DAD   64137   ! MELROM
+FLSDON   DAD   64206   ! MELROM
+FLNEW    DAD   64250   ! MELROM
+FLSAM?   DAD   65011   ! MELROM
+VFHI     DAD   65017   ! MELROM
+VFSET    DAD   65104   ! MELROM
+CLRCOD   DAD   65223   ! MELROM
+VFMM?    DAD   65232   ! MELROM
+BADDEV   DAD   65333   ! MELROM
+VERB     DAD   65507   ! MELROM
+FIX65    DAD   65555   ! MELROM
+VFADDR   DAD   65600   ! MELROM
+VFRWSK   DAD   65650   ! MELROM
+VFRWSO   DAD   65662   ! MELROM
+VFRSWB   DAD   65740   ! MELROM
+VFRWRD   DAD   65763   ! MELROM
+VFWACH   DAD   66057   ! MELROM
+VFWAC2   DAD   66075   ! MELROM
+VFRREC   DAD   66200   ! MELROM
+VFWOOP   DAD   66212   ! MELROM
+VFRWWR   DAD   66222   ! MELROM
+VFWR     DAD   66250   ! MELROM
+VFWREC   DAD   66266   ! MELROM
+VFDDL2   DAD   66276   ! MELROM
+VFWRDK   DAD   66303   ! MELROM
+VFADCL   DAD   66350   ! MELROM
+VFCLCH   DAD   66355   ! MELROM
+VFWRCL   DAD   66370   ! MELROM
+VFLTBY   DAD   66377   ! MELROM
+VFDSY    DAD   66406   ! MELROM
+VFSTAT   DAD   66417   ! MELROM
+VFERR    DAD   66510   ! MELROM
+VFRCEX   DAD   66566   ! MELROM
+VFRWUO   DAD   66577   ! MELROM
+VFCDEP   DAD   66606   ! MELROM
+VFCD46   DAD   66614   ! MELROM
+VFCDCO   DAD   66627   ! MELROM
+VFTERM   DAD   66642   ! MELROM
+VFBYE    DAD   66655   ! MELROM
+VFDIR    DAD   66674   ! MELROM
+VFNXDE   DAD   66715   ! MELROM
+VFNXD-   DAD   66730   ! MELROM
+VFDECL   DAD   66737   ! MELROM
+VFWRDE   DAD   66750   ! MELROM
+VFWRD1   DAD   66755   ! MELROM
+VFWRD-   DAD   66760   ! MELROM
+VFEOD?   DAD   66767   ! MELROM
+VFPED?   DAD   66774   ! MELROM
+VFLED?   DAD   67011   ! MELROM
+VFSLOC   DAD   67031   ! MELROM
+VFMFP?   DAD   67045   ! MELROM
+VFRENA   DAD   67053   ! MELROM
+VFMOVE   DAD   67070   ! MELROM
+VFMOVE   DAD   67073   ! MELROM
+VFEXCH   DAD   67172   ! MELROM
+VFBUO    DAD   67204   ! MELROM
+VFROO?   DAD   67220   ! MELROM
+VFLIF?   DAD   67263   ! MELROM
+VFRLF?   DAD   67272   ! MELROM
+VFRVDE   DAD   67303   ! MELROM
+VFMSS    DAD   67331   ! MELROM
+VFSKFL   DAD   67343   ! MELROM
+VFDUDE   DAD   67356   ! MELROM
+VFTRNL   DAD   67417   ! MELROM
+VERMN5   DAD   67504   ! MELROM
+VFTIME   DAD   67506   ! MELROM
+VFRDE    DAD   67550   ! MELROM
+VF1TO2   DAD   67730   ! MELROM
+VFSECT   DAD   67743   ! MELROM
+DDLREP   DAD   67774   ! MELROM
+DDTREP   DAD   70001   ! MELROM
+DATSND   DAD   70010   ! MELROM
+DATSD-   DAD   70012   ! MELROM
+UNTUNL   DAD   70046   ! MELROM
+JSBCRT   DAD   70055   ! MELROM
+REVBYT   DAD   70063   ! MELROM
+REVPSH   DAD   70075   ! MELROM
+TENRIT   DAD   70107   ! MELROM
+TRNSLP   DAD   70126   ! MELROM
+CLIF     DAD   70606   ! MELROM
+NOTRSH   DAD   70755   ! MELROM
+LBL4     DAD   71140   ! MELROM
+TRFRM.   DAD   71422   ! MELROM
+THERE1   DAD   71514   ! MELROM
+MYSTPR   DAD   72022   ! MELROM
+MYSETN   DAD   72030   ! MELROM
+ASTBCD   DAD   72055   ! MELROM
+MBLIMP   DAD   72100   ! MELROM
+MBLIM-   DAD   72106   ! MELROM
+PUTCHR   DAD   72121   ! MELROM
+SETL30   DAD   72133   ! MELROM
+PCR.     DAD   72145   ! MELROM
+ER16+    DAD   72162   ! MELROM
+RECON!   DAD   72203   ! MELROM
+EDITFI   DAD   72257   ! MELROM
+MALLOC   DAD   72334   ! MELROM
+MYSET2   DAD   72350   ! MELROM
+ATN2.    DAD   72364   ! MELROM
+ATN2.+   DAD   72401   ! MELROM
+ISIN.    DAD   72455   ! MELROM
+ICOS.    DAD   72465   ! MELROM
+ITAN.    DAD   72475   ! MELROM
+BRT5     DAD   72501   ! MELROM
+BRT10    DAD   72511   ! MELROM
+WAKEUP   DAD   73146   ! MELROM
+WAKEUP   DAD   73146   ! MELROM
+REM10.   DAD   73377   ! MELROM
+MOD10.   DAD   73405   ! MELROM
+RNDIZ    DAD   73536   ! MELROM
+YTX5'    DAD   73613   ! MELROM
+RND10.   DAD   73764   ! MELROM
+DEVOK    DAD   74060   ! MELROM
+ERMSS    DAD   74175   ! MELROM
+DEG.     DAD   74773   ! MELROM
+RAD.     DAD   74777   ! MELROM
+TIME$.   DAD   76155   ! MELROM
+DATE$.   DAD   76164   ! MELROM
+DATE.    DAD   76263   ! MELROM
+TIME.    DAD   76372   ! MELROM
+STBEP'   DAD   76524   ! MELROM
+BEEP.'   DAD   76554   ! MELROM
+BEEPR'   DAD   76673   ! MELROM
+ONE7+B   DAD   76756   ! MELROM
+SETWDB   DAD   77125   ! MELROM
+WAITCK   DAD   77144   ! MELROM
+CAT$     DAD   77200   ! MELROM
+CATALL   DAD   77353   ! MELROM
+CATTMP   DAD   77536   ! MELROM
+CATBUF   DAD   77542   ! MELROM
+CATHED   DAD   77670   ! MELROM
+FLVFO+   DAD   77727   ! MELROM
 !***************************
 TOPROM    DAD       160000     ! start of BASROM
 BASLOC    DAD       160002     ! BASROM

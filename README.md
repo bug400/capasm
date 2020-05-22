@@ -9,7 +9,9 @@ Index
 * [Features](#features)
 * [Compatibility](#compatibility)
 * [Installation](#installation)
-* [Example of Use](#use)
+* [Basic usage](#basic-usage)
+* [Command line parameters](#command-line-parameters)
+* [Create Lex files for the HP-75](#create-lex-files-for-the-hp-75)
 * [License](#license)
 * [Acknowledgements](#acknowledgements)
 
@@ -37,8 +39,8 @@ exceptions:
   string must be expressed as a double quote, e.g. ""","" MISSING".
 * The pseudo ops LST and UNL are silently ignored.
 * The assembler provides built in symbol tables for the HP-85, HP-87 and
-  HP-75. The "-m" option specifies which table to use. Default is to use
-  the table for the HP-75.
+  HP-75. The "-m" option specifies which table to use. This makes an
+  ORG pseudo op redundant. The global symbol table for the HP-85 is the default.
 * The assembler provides a symbol cross reference listing which is activated
   with the "-r 2" option.
 * Line numbers in the assembler source file are optional
@@ -49,6 +51,7 @@ You can get the manual for the HP-83/85 ROM Assembler from the
 CAPDIS is a two pass assembler which resolves all symbols in the second pass.
 The HP-83/85 ROM Assembler is a single pass assembler which backpatches the
 generated object file as soon as a symbol is resolved. 
+
 This may result in a different behavior if global symbols are redefined by 
 local symbols.  Unless you are programming ROM code it is highly recommended 
 to use the "-c" option to treat each redefinition of global symbols as an error.
@@ -64,8 +67,77 @@ Installation
 
 See the [Installation Instructions](https://github.com/bug400/capasm/blob/master/INSTALL.md) for details.
 
-Example of Use
---------------
+
+Basic usage
+-----------
+
+The "hp85" subdirectory of this repository contains the sample HP-85 Lex file ftoc.asm from the HP-83/85 Assembler ROM manual. To assemble this file type:
+
+        capasm ftoc.asm
+
+This assembles the file and creates a binary object file "ftoc.bin". Any error messages are printed to the terminal.
+
+To get a list file type:
+
+        capasm ftoc.asm -l ftoc.lst
+
+This creates a list file with the default symbol table. To get a symbol table
+with a cross reference use the "-r" option:
+
+        capasm ftoc.asm -l ftoc.lst -r 2
+
+If not specified, the name of the binar object file is the name of the source file with the extension ".bin". You can an other binary object file name with the "-b" option:
+
+        capasm ftoc.asm -l ftoc.lst -b result.bin -r 2
+
+
+Command line parameters
+-----------------------
+
+You get a description of the command line parameters if you type:
+
+        capasm ftoc.asm -h
+
+```
+Usage: capasm [-h] [-b BINFILE] [-l LISTFILE] [-r {0,1,2}] [-p PAGESIZE]
+              [-w WIDTH] [-m {75,85,87}] [-c] [-s {6,7,8,9,10}]
+              sourcefile
+
+positional arguments:
+  sourcefile            source code file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b BINFILE, --binfile BINFILE
+                        binary object code file
+  -l LISTFILE, --listfile LISTFILE
+                        list file
+  -r {0,1,2}, --reference {0,1,2}
+                        symbol reference 0:none, 1:short, 2:full
+  -p PAGESIZE, --pagesize PAGESIZE
+                        lines per page
+  -w WIDTH, --width WIDTH
+                        page width
+  -m {75,85,87}, --machine {75,85,87}
+                        Machine type
+  -c, --check           activate additional checks
+  -s {6,7,8,9,10}, --labelsize {6,7,8,9,10}
+
+```
+
+CAPASM provides built in repositories of the global symbols for the HP-83/85, HP86/87 or HP-75 computers. The repository is selected with the "-m" parameter.
+
+If additional checks are enabled with the "-c" option then it is invalid to
+invalid:
+
+* redefine global symbols as local labels or constants
+* use R# as data register operand in literal immediate mode, if the value of
+  the drp is unknown, e.g.: `LABELA   ADM R#,1,2,3,4`
+
+
+
+Create Lex files for the HP-75
+------------------------------
 
 The "lex75" subdirectory of this repository contains the sample assembler 
 source file "phyconst.asm". To create a lex file for the HP-75 type:
@@ -90,6 +162,7 @@ this creates a lex file phyconst.lex with a proper LIF header.
 For a full description of the command line parameters invoke the programs with
 the "-h" option.
   
+
 License
 -------
 

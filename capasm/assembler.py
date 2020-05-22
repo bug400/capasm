@@ -4,28 +4,6 @@
 # This module contains the assembler for the capricorn cpu. 
 # (c) 2020 Joachim Siebold
 #
-# This assembler should be compatible with the HP-85 ROM assembler
-# with the following exceptions:
-#
-# The GLO, LNK and all conditional pseudo ops are not supported and
-# throw an error. The ABS pseudo op is only supported in the format:
-# ABS <octal rom address>.
-#
-# The pseudo op ASC and ASP only support quoted strings as operand. You
-# may use "" to include a " in the string.
-# The pseudo ops LST and UNL are silently ignored.
-#
-# The assembler provides the global symbol tables as distributed by the
-# "capdis" disassembler. The "-m" option specifies which table is used.
-# Default is to use the table for the HP-85.
-#
-# For a description how to invoke this program run "capasm" without
-# parameters.
-#
-# The source file may contain line numbers, they must be valid integers.
-#
-# If you use the "-r2" option the assembler generates a cross reference listing.
-#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -45,14 +23,32 @@
 # Changelog
 # 18.05.2020 jsi
 # - start changelog
+# 19.05.2020 jsi
+# - changed number parsing to static methods
+# 21.05.2020 jsi
+# - renamed parseLiteralOp to parseLiteralDataList
+# 22.05.2020 jsi
+# - raise custom exception on fatal error
+# - fixed output of short symbol table
+# - allow comment text to follow immediately the comment sign "!"
+# - development version 0.9.1
+#
 
 import argparse,sys,os,datetime,importlib
 from pathlib import Path
 #
 # Program Constants -----------------------------------------------------
 #
-CAPASM_VERSION="Version 0.9.0"
+CAPASM_VERSION="Version 0.9.1"
 CAPASM_VERSION_DATE="May 2020"
+#
+# CAPASM custom exception -----------------------------------------------
+# The assembler raises this exception, if a fatal error occurred
+#
+class capasmError(Exception):
+   def __init__(self,msg):
+      super().__init__()
+      self.msg= msg
 #
 # Static classes below only contain read only data
 #
@@ -329,12 +325,66 @@ class ERROR(object):
    def getMsg(msgno):
       return ERROR.messages[msgno]
 #
-# Fatal error handler (I/O errors etc.). Terminate program with exit status 1
+# Fatal error handler (I/O errors etc.). Raise custom exception
 #
    @staticmethod
    def fatalError(msg):
-     print(msg+" -- Assembler terminated")
-     sys.exit(1)
+     raise capasmError(msg)
+
+#
+# Static class for number parsing -----------------------------------------
+#
+class numParse(object):
+#
+#  Parse decimal number (without D at the end, e.g. line numbers)
+#
+   @staticmethod
+   def parseDecimal(string):
+      retVal=0
+      for c in string:
+         if "0123456789".find(c)>=0:
+            retVal=retVal*10 + ord(c)-ord("0")
+         else:
+            return None
+      return retVal
+#
+#  Parse octal number
+#
+   @staticmethod
+   def parseOctal(string):
+         retVal=0
+         for c in string:
+            if "01234567".find(c)>=0:
+               retVal=retVal*8 + ord(c)-ord("0")
+            else:
+               return None
+         return retVal
+#
+#  Parse BCD number (with a C at the end)
+#
+   @staticmethod
+   def parseBCD(string):
+      retVal=0
+      for c in string:
+         if "0123456789".find(c)>=0:
+            retVal=(retVal<<4) | ord(c)-ord("0")
+         else:
+            return None
+      return retVal
+#
+#  Parse a number, guess the type from the type attribute character at the end
+#  
+   @staticmethod
+   def parseNumber(string):
+      retval=0
+      if string[-1]=="D" or string[-1]=="d":
+         return numParse.parseDecimal(string[:-1])
+      elif string[-1]=="C" or string[-1]=="c":
+         return numParse.parseBCD(string[:-1])
+      elif "01234567".find(string[-1])>=0:
+         return numParse.parseOctal(string)
+      else:
+         return None
 #
 # Non static classes
 # 
@@ -608,7 +658,7 @@ class clsLineScanner(object):
 #
 #        Comment 
 #
-         if tok.string=="!":
+         if tok.string[0]=="!":
             break
 #
 #        Comma, continue loop
@@ -625,18 +675,29 @@ class clsLineScanner(object):
 #
 class clsParsedOperand(object):
 #
-#  Parsed Operad Types
+#  Parsed Operand Types
 #
-   OP_ILLEGAL=0
+   OP_INVALID=0
    OP_REGISTER=1
    OP_LABEL=2
    OP_NUMBER=3
 
-   def __init__(self,typ=OP_ILLEGAL):
+   def __init__(self,typ=OP_INVALID):
       self.typ=typ
 
    def __repr__(self): # pragma: no cover
-      return("clsParsedOperand (Illegal)")
+      return("clsParsedOperand (generic)")
+#
+#  Invalid operand, operand that had issues during parsing
+#
+class clsInvalidOperand(clsParsedOperand):
+   
+   def __init__(self):
+      super().__init__(clsParsedOperand.OP_INVALID)
+
+   def __repr__(self): # pragma: no cover
+      return("clsParsedOperand (invalid)")
+
 #
 #  Valid number operand (syntax checked)
 #
@@ -774,52 +835,6 @@ class clsParser(object):
       self.__globVar__.errorCount+=1
       return
 #
-#  Parse decimal number (without D at the end, e.g. line numbers)
-#
-   def parseDecimal(self,string):
-      retVal=0
-      for c in string:
-         if "0123456789".find(c)>=0:
-            retVal=retVal*10 + ord(c)-ord("0")
-         else:
-            return(clsParserInfo.ILL_NUMBER)
-      return retVal
-#
-#  Parse octal number
-#
-   def parseOctal(self,string):
-      retVal=0
-      for c in string:
-         if "01234567".find(c)>=0:
-            retVal=retVal*8 + ord(c)-ord("0")
-         else:
-            return(clsParserInfo.ILL_NUMBER)
-      return retVal
-#
-#  Parse BCD number (with a C at the end)
-#
-   def parseBCD(self,string):
-      retVal=0
-      for c in string:
-         if "0123456789".find(c)>=0:
-            retVal=(retVal<<4) | ord(c)-ord("0")
-         else:
-            return(clsParserInfo.ILL_NUMBER)
-      return retVal
-#
-#  Parse a number, guess the type from the type attribute character at the end
-#
-   def parseNumber(self,string):
-      retval=0
-      if string[-1]=="D":
-         return self.parseDecimal(string[:-1])
-      elif string[-1]=="C":
-         return self.parseBCD(string[:-1])
-      elif "01234567".find(string[-1])>=0:
-         return self.parseOctal(string)
-      else:
-         return clsParserInfo.ILL_NUMBER
-#
 #  Parse register [+|-] [R|Z] [OctalNumber | # | *]
 #  returns object of class clsParsedRegister
 #  If signRequired is True, then a missing sign throws an error
@@ -833,11 +848,11 @@ class clsParser(object):
          i+=1
          if not signRequired:
             self.addError(ERROR.E_REGISTERSIGN)
-            return clsParsedOperand()
+            return clsInvalidOperand()
       typ="R"
       if signRequired and sign=="":
          self.addError(ERROR.E_SIGNEDREGISTER)
-         return clsParsedOperand()
+         return clsInvalidOperand()
       if string[i]=="R" or string[i]=="X":
          typ=string[i]
          i+=1
@@ -845,10 +860,10 @@ class clsParser(object):
             return clsParsedRegister(sign, typ, 1)
          elif string[i]=="#":
             return clsParsedRegister(sign, typ, clsParsedRegister.R_HASH)
-      number=self.parseOctal(string[i:])
-      if number== clsParserInfo.ILL_NUMBER or number > 0o77 or number==1:
+      number=numParse.parseOctal(string[i:])
+      if number is None or number > 0o77 or number==1:
          self.addError(ERROR.E_ILL_REGISTER)
-         return clsParsedOperand()
+         return clsInvalidOperand()
       else:
          return clsParsedRegister(sign, typ, number)
 #
@@ -890,7 +905,7 @@ class clsParser(object):
 #
    def parseDr(self):
       dRegister=self.parseRegister(self.__scannedOperand__[0],False)
-      if dRegister.typ != clsParsedOperand.OP_ILLEGAL:
+      if dRegister.typ != clsParsedOperand.OP_INVALID:
          if dRegister.registerNumber!= clsParsedRegister.R_HASH and \
                self.__globVar__.drpReg!= dRegister.registerNumber:
             self.__needsDrp__= dRegister.registerNumber
@@ -903,7 +918,7 @@ class clsParser(object):
 #
    def parseAr(self,signRequired=False):
       aRegister=self.parseRegister(self.__scannedOperand__[1],signRequired)
-      if aRegister.typ!= clsParsedOperand.OP_ILLEGAL:
+      if aRegister.typ!= clsParsedOperand.OP_INVALID:
          if aRegister.registerNumber!= clsParsedRegister.R_HASH  \
             and self.__globVar__.arpReg!= aRegister.registerNumber:
             self.__needsArp__= aRegister.registerNumber
@@ -915,9 +930,9 @@ class clsParser(object):
 #
    def parseXr(self,index):
       xRegister=self.parseRegister(self.__scannedOperand__[index],False)
-      if xRegister.typ != clsParsedOperand.OP_ILLEGAL:
+      if xRegister.typ != clsParsedOperand.OP_INVALID:
          if xRegister.registerTyp != "X":
-            xRegister.typ= clsParsedOperand.OP_ILLEGAL
+            xRegister.typ= clsParsedOperand.OP_INVALID
             self.addError(ERROR.E_XREGEXPECTED)
          if xRegister.registerNumber!= clsParsedRegister.R_HASH  \
             and self.__globVar__.arpReg!= xRegister.registerNumber:
@@ -940,13 +955,13 @@ class clsParser(object):
          self.addError(ERROR.E_ILL_LABELOP)
          err=True
       if err:
-         return clsParsedOperand()
+         return clsInvalidOperand()
       else:
          return clsParsedLabel(label)
 #
-#  Parse literal as operand
+#  Parse literal data lists
 #
-   def parseLiteralOp(self):
+   def parseLiteralDataList(self):
       err=False
       opIndex=1
       parsedOp=[ ]
@@ -957,13 +972,13 @@ class clsParser(object):
             opString= opString[1:]
          if opString == "":
              self.addError(ERROR.E_ILL_LITOPERAND)
-             parsedOp.append(clsParsedOperand())
+             parsedOp.append(clsInvalidOperand())
          else:
             if "0123456789".find(opString[0]) >=0:
-               number=self.parseNumber(opString)
-               if number == clsParserInfo.ILL_NUMBER:
+               number=numParse.parseNumber(opString)
+               if number is None:
                   self.addError(ERROR.E_ILLNUMBER)
-                  parsedOp.append(clsParsedOperand())
+                  parsedOp.append(clsInvalidOperand())
                else:
                   parsedOp.append(clsParsedNumber(number))
                opLen+=1
@@ -971,7 +986,7 @@ class clsParser(object):
                label=opString
                if len(label)> self.__globVar__.labelLen or not label[0].isalpha():
                   self.addError(ERROR.E_ILL_LABELOP)
-                  parsedOp.append(clsParsedOperand())
+                  parsedOp.append(clsInvalidOperand())
                else:
                   parsedOp.append(clsParsedLabel(label))
                opLen+=2
@@ -984,12 +999,13 @@ class clsParser(object):
 #  Parse an address
 #
    def parseAddress(self,idx):
-      address=self.parseNumber(self.__scannedOperand__[idx].string)
-      if address==clsParserInfo.ILL_NUMBER:
+      address=numParse.parseNumber(self.__scannedOperand__[idx].string)
+      if address is None:
          self.addError(ERROR.E_ILLNUMBER)
-      if address > 0xFFFF:
+         address=clsParserInfo.ILL_NUMBER
+      elif address > 0xFFFF:
          self.addError(ERROR.E_NUMBERTOOLARGE)
-         address=0
+         address=clsParserInfo.ILL_NUMBER
       return address
 #
 #  Now the opcode specific parsing methods follow. They are specified
@@ -1025,16 +1041,16 @@ class clsParser(object):
       self.__opcodeLen__=0
       pOperand=[]
       for operand in self.__scannedOperand__:
-         number=self.parseNumber(operand.string)
-         if number == clsParserInfo.ILL_NUMBER or number > 0xFF:
+         number=numParse.parseNumber(operand.string)
+         if number is None or number > 0xFF:
             err=True
-            pOperand.append(clsParsedOperand())
+            pOperand.append(clsInvalidOperand())
          else:
             pOperand.append(clsParsedNumber(number))
             self.__opcodeLen__+=1
       if err:
          self.addError(ERROR.E_ILLNUMBER)
-         pOperand=[clsParsedOperand()]
+         pOperand=[clsInvalidOperand()]
       return pOperand
 #
 #  Parse BSZ
@@ -1199,7 +1215,7 @@ class clsParser(object):
          self.__opcodeLen__+=numBytesToStore
          if len(self.__scannedOperand__)!=1:
             self.addError(ERROR.E_ILL_NUMOPERANDS)
-            parsedOperand.append(clsParsedOperand())
+            parsedOperand.append(clsInvalidOperand())
          else:
             parsedOperand.append(self.parseLabelOp(0))
       else:
@@ -1230,7 +1246,7 @@ class clsParser(object):
 #     parse AR (signed!)
 #
       aRegister=self.parseAr(True)
-      if aRegister.typ != clsParsedOperand.OP_ILLEGAL:
+      if aRegister.typ != clsParsedOperand.OP_INVALID:
          if aRegister.registerSign=="+":
             self.__addressMode__= clsParserInfo.STACK_INCREMENT
          else:
@@ -1250,7 +1266,7 @@ class clsParser(object):
 #     bytes to store for literals or labels
 #
       dRegister=self.parseDr()
-      if dRegister.typ== clsParsedOperand.OP_ILLEGAL:
+      if dRegister.typ== clsParsedOperand.OP_INVALID:
          self.__opcodeLen__=1
          return [dRegister]
 #
@@ -1260,14 +1276,14 @@ class clsParser(object):
       if len(self.__opcode__)==3:       # ADB, ADM, SBB, SBM, CMB, CMM, ANM
          if self.__scannedOperand__[1].string[0]== "=":
             self.__addressMode__=clsParserInfo.AM_LITERAL_IMMEDIATE
-            ret=self.parseLiteralOp()
+            ret=self.parseLiteralDataList()
             if byteMode== clsParserInfo.BM_SINGLEBYTE:
                self.__opcodeLen__+= 1
             else:
                numberOfBytesToStore= \
                   BYTESTOSTORE.numBytes(dRegister.registerNumber)
                if numberOfBytesToStore == BYTESTOSTORE.UNKNOWN_BYTESTOSTORE:
-                  self.__opcodeLen__+= ret[0]
+                  self.__opcodeLen__+= ret[0] # WEAK!
                   if not self.__globVar__.allowHashRLiteral:
                      self.addError(ERROR.E_RHASH_LITERAL)
                else:
@@ -1311,7 +1327,7 @@ class clsParser(object):
 #     bytes to store for literals or labels
 #
       dRegister=self.parseDr()
-      if dRegister.typ== clsParsedOperand.OP_ILLEGAL:
+      if dRegister.typ== clsParsedOperand.OP_INVALID:
          self.__opcodeLen__=1
          return [dRegister]
 #
@@ -1322,16 +1338,16 @@ class clsParser(object):
 
          if self.__scannedOperand__[1].string[0]== "=":
             self.__addressMode__=clsParserInfo.AM_LITERAL_IMMEDIATE
-            ret=self.parseLiteralOp()
+            ret=self.parseLiteralDataList()
             if byteMode== clsParserInfo.BM_SINGLEBYTE:
                self.__opcodeLen__+= 1
             else:
                numberOfBytesToStore= \
                   BYTESTOSTORE.numBytes(dRegister.registerNumber)
                if numberOfBytesToStore == BYTESTOSTORE.UNKNOWN_BYTESTOSTORE:
+                  self.__opcodeLen__+= ret[0]   # Weak !
                   if not self.__globVar__.allowHashRLiteral:
                      self.addError(ERROR.E_RHASH_LITERAL)
-                  self.__opcodeLen__+= ret[0]
                else:
                   self.__opcodeLen__+=numberOfBytesToStore
             parsedOperand.extend(ret[1])
@@ -1406,7 +1422,7 @@ class clsParser(object):
       self.__opcodeLen__=1
       dRegister=self.parseDr()
       aRegister=self.parseAr()
-      if dRegister.typ== clsParsedOperand.OP_ILLEGAL or aRegister.typ== clsParsedOperand.OP_ILLEGAL:
+      if dRegister.typ== clsParsedOperand.OP_INVALID or aRegister.typ== clsParsedOperand.OP_INVALID:
          self.__opcodeLen__=1
       return [dRegister,aRegister]
 #
@@ -1425,7 +1441,7 @@ class clsParser(object):
    def p1reg(self):
       self.__opcodeLen__=1
       dRegister=self.parseDr()
-      if dRegister.typ == clsParsedOperand.OP_ILLEGAL:
+      if dRegister.typ == clsParsedOperand.OP_INVALID:
          self.__opcodeLen__=1
       return [dRegister]
 #
@@ -1433,7 +1449,7 @@ class clsParser(object):
 #
    def pArp(self):
       dRegister=self.parseRegister(self.__scannedOperand__[0],False)
-      if dRegister.typ!= clsParsedOperand.OP_ILLEGAL:
+      if dRegister.typ!= clsParsedOperand.OP_INVALID:
          self.__globVar__.arpReg= dRegister.registerNumber
       self.__opcodeLen__=1
       return [dRegister]
@@ -1442,7 +1458,7 @@ class clsParser(object):
 #
    def pDrp(self):
       dRegister=self.parseRegister(self.__scannedOperand__[0],False)
-      if dRegister.typ != clsParsedOperand.OP_ILLEGAL:
+      if dRegister.typ != clsParsedOperand.OP_INVALID:
          self.__globVar__.drpReg= dRegister.registerNumber
       self.__opcodeLen__=1
       return [dRegister]
@@ -1467,8 +1483,10 @@ class clsParser(object):
 #
 #     Parse lineNumber, we always have one (may be not a valid integer)
 #
-      self.__lineNumber__=self.parseDecimal(self.__scannedLineNumber__.string)
-      if self.__lineNumber__ == clsParserInfo.ILL_NUMBER:
+      self.__lineNumber__=numParse.parseDecimal( \
+                    self.__scannedLineNumber__.string)
+      if self.__lineNumber__ == None:
+         self.__lineNumber__= clsParserInfo.ILL_NUMBER
          self.addError(ERROR.E_ILL_LINENUMBER)
 #
 #     If we have a label field, parse it and enter label into symbol table
@@ -1824,7 +1842,7 @@ class clsCodeGenerator(object):
 #
    def gdarp(self):
       code=self.__opcodeInfo__[2]
-      if self.__parsedOperand__[0].typ!= clsParsedOperand.OP_ILLEGAL:
+      if self.__parsedOperand__[0].typ!= clsParsedOperand.OP_INVALID:
          code|=self.__parsedOperand__[0].registerNumber
       self.__code__.append(code)
       self.__bytesToGenerate__-=1
@@ -2092,24 +2110,22 @@ class clsListWriter(object):
          s=("{:10s} {:s} {:6o}".format(s,clsSymDict.dictSymbolTypes[l[0]],l[1]))
          nSkip=len(s)+7
 #
-#        Generate cross reference table
+#        Output symbol dictionary
+#        first print the line number where the symbol was defined
+#        this value is clsSymDict.LN_GLOBAL for global symbols
+#
+         lineDefined=l[2]
+         if lineDefined==clsSymDict.LN_GLOBAL:
+            s+=" GLOBL"
+         elif lineDefined>=0:
+            s+=" {:4d}D".format(l[2])
+         else:
+            s+="     ?"                          # dead code ??
+         j=0
+#
+#        Now output line references, output a warning if we have none
 #
          if reference==2:
-#
-#           first print the line number where the symbol was defined
-#           this value is clsSymDict.LN_GLOBAL for global symbols
-#
-            lineDefined=l[2]
-            if lineDefined==clsSymDict.LN_GLOBAL:
-               s+=" GLOBL"
-            elif lineDefined>=0:
-               s+=" {:4d}D".format(l[2])
-            else:
-               s+="     ?"                          # dead code ??
-            j=0
-#
-#           Now output line references, output a warning if we have none
-#
             lineRefs=l[3]
             if len(lineRefs)==0:
                s+=" ** Not referenced!"
@@ -2129,6 +2145,8 @@ class clsListWriter(object):
                      j=0
             if j!=0:
                self.wrL(s)
+         else:
+            self.wrL(s)
       return
 #
 #  Write statistics: source code lines, generated code, number of errors
@@ -2374,11 +2392,15 @@ def capasm():             # pragma: no cover
 #  Create assembler object and run it
 #
    capasm= clsAssembler()
-   capasm.assemble(args.sourcefile,listFileName=args.listfile,\
+   try:
+      capasm.assemble(args.sourcefile,listFileName=args.listfile,\
            binFileName=args.binfile, referenceOpt=args.reference, \
            pageSize=args.pagesize,pageWidth=args.width, \
            machine=args.machine,extendedChecks=args.check, \
            labelSize=args.labelsize)
+   except capasmError as e:
+      print(e.msg+"-- Assembler terminated")
+      sys.exit(1)
 #
 #  Run the capasm procedure, if this file is called as top level script
 #
