@@ -1,0 +1,36 @@
+
+Processing file globals75.txt
+Line: 1134: ARY2TK   EQU   266      ! 2 DIM ARRAY A(,)
+symbol redefined, first definition was at line: 1107 opcode: EQU value: 206
+Line: 1263: DNAME   EQU   3      ! entry for device name
+symbol redefined, first definition was at line: 437 opcode: DAD value: 102154
+Line: 1511: CRDSIZ   DAD    1212   ! SYSROM0: 
+symbol redefined, first definition was at line: 418 opcode: EQU value: 650d
+Line: 1563: PAR1     DAD    4727   ! SYSROM0: 
+symbol redefined, first definition was at line: 1562 opcode: DAD value: 4727
+Line: 1588: EOL      DAD    6174   ! SYSROM0: 
+symbol redefined, first definition was at line: 210 opcode: DAD value: 101301
+Line: 1615: SBSCR    DAD   10267   ! SYSROM0: 
+symbol redefined, first definition was at line: 1612 opcode: DAD value: 10207
+Line: 1630: GET2N    DAD   11130   ! SYSROM0: 
+symbol redefined, first definition was at line: 1629 opcode: DAD value: 11130
+Line: 1635: GETPAR   DAD   11144   ! SYSROM0: 
+symbol redefined, first definition was at line: 1634 opcode: DAD value: 11144
+Line: 1652: PARSE!   DAD   11503   ! SYSROM0: 
+symbol redefined, first definition was at line: 1586 opcode: DAD value: 5652
+Line: 2188: ALTROM   DAD   60000   ! ALTROM: start
+symbol redefined, first definition was at line: 616 opcode: DAD value: 1
+Line: 2325: VFLTY+   DAD   63713   ! MELROM
+symbol redefined, first definition was at line: 2324 opcode: DAD value: 63710
+Line: 2390: VFMOVE   DAD   67073   ! MELROM
+symbol redefined, first definition was at line: 2389 opcode: DAD value: 67070
+Line: 2441: WAKEUP   DAD   73146   ! MELROM
+symbol redefined, first definition was at line: 1463 opcode: EQU value: 277
+Line: 2442: WAKEUP   DAD   73146   ! MELROM
+symbol redefined, first definition was at line: 1463 opcode: EQU value: 277
+Line: 2507: S30-77    DAD       164030     ! BASROM
+symbol redefined, first definition was at line: 1334 opcode: DAD value: 154077
+Line: 2577: ADDR      DAD       170102     ! BASROM
+symbol redefined, first definition was at line: 2573 opcode: DAD value: 170044
+Errors 0, duplicate entries 16 
+

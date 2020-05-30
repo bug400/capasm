@@ -6,17 +6,18 @@ Index
 
 * [General](#general)
 * [Installation with the ANACONDA platform](#installation-with-the-anaconda-platform)
+* [Installation without the ANACONDA platform](#installation-without-the-anaconda-platform)
 * [Installation of development versions from the GitHub Repository](#installation-of-development-versions-from-the-GitHub-Repository)
 
 General
 -------
 
-CAPASM requires a Python interpreter version 3.6 or higher. The CAPASM
-software is in an early development status. Therefore no releases are 
-available in the releases section of this repository so far.
+CAPASM requires a Python interpreter version 3.6 or higher. 
 
 It is recommended to use the [ANACONDA platform](https://www.continuum.io) 
 to install CAPASM and the required Python software and keep them up to date.
+
+Note: dependent on the operating systems the python version 3 interpreter may becalled either *python* or *python3*.
 
 
 Installation with the ANACONDA platform
@@ -40,7 +41,7 @@ Note: CAPASM is available for Python 3.7 and Python 3.8 for the Anaconda/Minicon
 Python 3.8 if that version becomes default of the Anaconda/Miniconda installer.
 
 **Note for Windows**: Due to recent changes in the Anaconda installation
-environment it is strongly encouraged to do a clean reinstall of the
+environment it is strongly encouraged to do a clean reinstall of an older
 Anaconda/Miniconda environment.
 
 Download the Python 3.x version of [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and follow the [Installation Instructions](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and install Miniconda first.
@@ -67,19 +68,43 @@ To update CAPASM and the Python runtime type:
 
 in a terminal window (Linux and mac OS) or Anaconda Prompt (Windows).
 
-To start CAPASM type:
+To start the *capasm* assembler type:
 
      capasm -h
 
 in a terminal window (Linux and mac OS) or Anaconda Prompt (Windows). This
 shows a help screen with a description of the necessary command line parameters
-to run the program.
+to run the program. That way the other programs of the CAPASM software suite like *caplif* are invoked.
 
 You should issue occasionally:
 
      conda clean --all
 
 to clean the conda package cache and save disk space.
+
+
+Installation without the ANACONDA platform
+------------------------------------------
+
+The requirements specified above must be available on the system.
+
+On Debian based Linux systems you can install the CAPASM Debian package.
+
+On all other systems unzip the CAPASM source code in an arbitrary
+location. You get the CAPASM directory capasm-x.y.z, where x.y.z is
+the version number.
+
+Now you can start the assembler with:
+
+      python <Path to the CAPASM directory>/start.py capasm (parameters)
+
+or the *caplif* tool with:
+
+      python <Path to the CAPASM directory>/startup.py caplif (parameters)
+
+If you get the error message "This script requires Python 3.6 or newer!" use python3 instead.
+
+You can call the Python script *start.py* from everywhere in the file system. Because this scripts must not be moved out of the CAPASM directory it is recommended to create short shell- (Linux, Mac os) or CMD- (Windows) helper scripts and put them into a directory which is specified in your search path.
 
 
 Installation of development versions from the GitHub Repository
@@ -89,20 +114,11 @@ To use development versions of CAPASM download the capasm-master.zip file from G
 
 Unzip the downloaded file to an arbitrary location of your file system.
 
-Now you can start the assembler with:
+The name of the unzipped CAPASM directory is always capasm-master.
 
-      python <Path to the unzipped directory>/capasm.py (parameters)
+Proceed as specified in the section above.
 
-or the mklex75 tool with:
-
-      python <Path to the unzipped directory>/mklex75.py (parameters)
-
-If you get the error message "This script requires Python 3.6 or newer!" use python3 instead.
-
-You can call the Python scripts "capasm.py" and "mklex.py" from everywhere in the file system. Because the scripts must not be moved out of the capasm unzipped directory it is recommended to create short shell- (Linux, Mac os) or CMD- (Windows) helper scripts and put them into a directory which is specified in your search path.
-
-Note:
-* Development versions are work in progress and were tested roughly. They are not testet on all platforms.  They may crash and may ruin your data at worst.
+Note to beta or development versions:
 * Beta versions are tested more thoroughly also all supported platforms. They are intended for public testing but should not be used for production.
 * The beta or development versions do not affect the configuration of an already installed production version because a different naming convention is used for the configuration files.
 

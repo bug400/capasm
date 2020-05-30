@@ -32,6 +32,15 @@
 # - fixed output of short symbol table
 # - allow comment text to follow immediately the comment sign "!"
 # - development version 0.9.1
+# 24.05.2020 jsi
+# - do not invalidate arp, drp conext on EQU or DAD pseudo ops
+# 25.05.2020 jsi
+# - store default bin file in the local directory
+# 26.05.2020 jsi
+# - add return value for assemble method
+# 30.05.2018 jsi
+# - beta version 0.9.5
+# - improved help text
 #
 
 import argparse,sys,os,datetime,importlib
@@ -39,7 +48,7 @@ from pathlib import Path
 #
 # Program Constants -----------------------------------------------------
 #
-CAPASM_VERSION="Version 0.9.1"
+CAPASM_VERSION="Version 0.9.5"
 CAPASM_VERSION_DATE="May 2020"
 #
 # CAPASM custom exception -----------------------------------------------
@@ -478,7 +487,7 @@ class clsGlobVar(object):
       self.allowHashRLiteral=True    # allow LD R#,=Literal
       self.hasAbs=False              # if ABS was used
       self.hasNam=False              # if NAM was used
-      self.labelLen=6                # label length parameter
+      self.symNamLen=6               # symbol name length parameter
       self.isRegressionTest=False    # true to run assembler in regtest mode
       self.isFin=False               # FIN Statement encountered
       self.symDict=None              # Symbol dictionary
@@ -874,31 +883,31 @@ class clsParser(object):
       PC=self.__globVar__.PC
       SymDict=self.__globVar__.symDict
 #
-#     We have a label, invalidate arp, drp context
-#
-      self.__globVar__.arpReg= -1
-      self.__globVar__.drpReg= -1
-#
 #     Valid label?
 #
-      if len(label) > self.__globVar__.labelLen:
+      if len(label) > self.__globVar__.symNamLen:
          self.addError(ERROR.E_ILL_LABEL)
       elif not label[0].isalpha():
          self.addError(ERROR.E_ILL_LABEL)
       else:
 #
-#     Enter label into symbol table (NOT IF EQU OR DAD!!)
-#     but the opcode has not been parsed yet
+#        check if we have a "real" LCL and not an EQU or DAD
 #
-         doEnter=True
+         isLcl=True
          if self.__scannedOpcode__ is not None:
             if self.__scannedOpcode__.string=="EQU" or \
                self.__scannedOpcode__.string=="DAD":
-               doEnter=False
-         if doEnter: 
+               isLcl=False
+#
+#        real label, enter it into symbol table and invalidate
+#        arp, drp context
+#
+         if isLcl: 
             ret=SymDict.enter(label,clsSymDict.SYM_LCL,PC,self.__lineNumber__)
             if ret is not None:
                self.addError(ret)
+            self.__globVar__.arpReg= -1
+            self.__globVar__.drpReg= -1
 
 #
 #  Parse Data register, which is the first operand. Handle drp elimination
@@ -948,7 +957,7 @@ class clsParser(object):
       err=False
       if label[0]=="=":
          label=label[1:]
-      if len(label) > self.__globVar__.labelLen:
+      if len(label) > self.__globVar__.symNamLen:
          self.addError(ERROR.E_ILL_LABELOP)
          err=True
       if not label[0].isalpha():
@@ -984,7 +993,7 @@ class clsParser(object):
                opLen+=1
             else:
                label=opString
-               if len(label)> self.__globVar__.labelLen or not label[0].isalpha():
+               if len(label)> self.__globVar__.symNamLen or not label[0].isalpha():
                   self.addError(ERROR.E_ILL_LABELOP)
                   parsedOp.append(clsInvalidOperand())
                else:
@@ -2080,7 +2089,7 @@ class clsListWriter(object):
             ERROR.getMsg(e))
          self.wrL(s)
       for e in codeInfo.messages:
-         s="**ERROR(P) at {:4d}: {:s}".format(parsedLine.lineNumber, \
+         s="**ERROR(G) at {:4d}: {:s}".format(parsedLine.lineNumber, \
             ERROR.getMsg(e))
          self.wrL(s)
       return
@@ -2225,11 +2234,19 @@ class clsAssembler(object):
 #
 #  Assemble method. The method takes the values of the command line
 #  switches and parameters. This method may be called multiple times
-#  with different parameters
+#  with different parameters.
+#  Returns:
+#     False:  everything o.k.
+#     True:   errors in assembly
+#  Raises capasmError on I/O error
 #     
    def assemble(self,sourceFileName,binFileName="",listFileName="", \
        referenceOpt=1, pageSize=66, pageWidth=80, machine="85", \
-       extendedChecks=False,  labelSize=6):
+       extendedChecks=False,  symNamLen=6):
+#
+#      initialize error condition
+#
+       hasError=False
 #
 #      Create global variables data object
 #
@@ -2239,8 +2256,8 @@ class clsAssembler(object):
 #      Build file name of object file if not specified
 #
        if binFileName=="":
-          binfile=Path(self.__sourceFileName__)
-          self.__binFileName__=binfile.with_suffix(".bin")
+          self.__binFileName__= e= \
+               Path(self.__sourceFileName__).with_suffix(".bin").name
        else:
           self.__binFileName__=binFileName
        self.__listFileName__= listFileName
@@ -2249,7 +2266,7 @@ class clsAssembler(object):
        self.__pageWidth__= pageWidth
        self.__machine__= machine
        self.__extendedChecks__= extendedChecks
-       self.__labelSize__= labelSize
+       self.__symNamLen__= symNamLen
 #
 #      Create symbol table object
 #
@@ -2266,9 +2283,9 @@ class clsAssembler(object):
        if self.__extendedChecks__:
           self.__globVar__.allowHashRLiteral=False
 #
-#      Set label length
+#      Set symbol name length
 #
-       self.__globVar__.labelLen=self.__labelSize__
+       self.__globVar__.symNamLen=self.__symNamLen__
 #
 #      Pass 1: scan and parse lines, accumulate results in the
 #      pass1Info list
@@ -2332,12 +2349,16 @@ class clsAssembler(object):
        listWriter.writeStatistics()
        listWriter=None
 #
-#  delete objectfile if any errors
+#      delete objectfile if any errors
 #
        if self.__globVar__.errorCount>0:
           os.remove(self.__binFileName__)
+          hasError=True
        self.__globVar__=None
-
+#
+#      return error condition
+#
+       return hasError
 #
 # custom arg checks ----------------------------------------------------
 #
@@ -2361,9 +2382,9 @@ class argWidthCheck(argparse.Action): # pragma: no cover
 
 
 #
-# Main program ----------------------------------------------------
+# Entry point capasm ------------------------------------------------------
 # 
-# The main program parses the command line parameters, creates an
+# This entry point parses the command line parameters, creates an
 # assembler object and executes it with the parsed command line parameters
 #
 def capasm():             # pragma: no cover
@@ -2371,21 +2392,31 @@ def capasm():             # pragma: no cover
 #
 #  Command line arguments processing
 #
-   argparser=argparse.ArgumentParser()
-   argparser.add_argument("sourcefile",help="source code file")
-   argparser.add_argument("-b","--binfile",help="binary object code file",default="")
-   argparser.add_argument("-l","--listfile",help="list file",default="")
+   argparser=argparse.ArgumentParser(description=\
+   "An assembler for the Hewlett Packard Capricorn CPU (Series 80 and HP-75)",\
+   epilog=\
+   "See https://github.com/bug400/capasm for details. "+CAPASM_VERSION)
+   
+   
+   argparser.add_argument("sourcefile",help="source code file (required)")
+   argparser.add_argument("-b","--binfile",\
+      help="binary object code file (default: sourcefilename with suffix .bin",\
+      default="")
+   argparser.add_argument("-l","--listfile",\
+      help="list file (default: no list file)",default="")
    argparser.add_argument("-r","--reference",type=int,default=1,\
-      help="symbol reference 0:none, 1:short, 2:full",choices=[0,1,2])
+      help="symbol reference 0:none, 1:short, 2:full (default:1)",\
+      choices=[0,1,2])
    argparser.add_argument("-p","--pagesize",type=int,default=66, \
-      help="lines per page",action=argPageSizeCheck)
+      help="lines per page (default: 66)",action=argPageSizeCheck)
    argparser.add_argument("-w","--width",type=int,default=80, \
-      help="page width",action=argWidthCheck)
+      help="page width (default:80)",action=argWidthCheck)
    argparser.add_argument("-m","--machine",choices=['75','85','87'], \
-      help="Machine type",default='85')
+      help="Machine type (default:85)",default='85')
    argparser.add_argument("-c","--check",help="activate additional checks", \
       action='store_true')
-   argparser.add_argument("-s","--labelsize",help="length of labels", \
+   argparser.add_argument("-s","--symnamelength",\
+                  help="maximum length of symbol names (default:6)", \
       type=int,default=6,choices=[6,7,8,9,10])
    args= argparser.parse_args()
 #
@@ -2393,13 +2424,15 @@ def capasm():             # pragma: no cover
 #
    capasm= clsAssembler()
    try:
-      capasm.assemble(args.sourcefile,listFileName=args.listfile,\
+      ret=capasm.assemble(args.sourcefile,listFileName=args.listfile,\
            binFileName=args.binfile, referenceOpt=args.reference, \
            pageSize=args.pagesize,pageWidth=args.width, \
            machine=args.machine,extendedChecks=args.check, \
-           labelSize=args.labelsize)
+           symNamLen=args.symnamelength)
    except capasmError as e:
       print(e.msg+"-- Assembler terminated")
+      ret=True
+   if ret:
       sys.exit(1)
 #
 #  Run the capasm procedure, if this file is called as top level script
