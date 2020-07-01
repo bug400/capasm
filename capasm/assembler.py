@@ -38,18 +38,24 @@
 # - store default bin file in the local directory
 # 26.05.2020 jsi
 # - add return value for assemble method
-# 30.05.2018 jsi
+# 30.05.2020 jsi
 # - beta version 0.9.5
 # - improved help text
-#
+# 30.06.2020 jsi
+# - beta version 0.9.6
+# - HP86/87 compatible NAM statement
+# - jump relative GTO
+# - bug fixes
+# - conditional assembly support
+# - include and link file support
 
-import argparse,sys,os,datetime,importlib
+import argparse,sys,os,datetime,importlib,re
 from pathlib import Path
 #
 # Program Constants -----------------------------------------------------
 #
-CAPASM_VERSION="Version 0.9.5"
-CAPASM_VERSION_DATE="May 2020"
+CAPASM_VERSION="Version 0.9.6"
+CAPASM_VERSION_DATE="July 2020"
 #
 # CAPASM custom exception -----------------------------------------------
 # The assembler raises this exception, if a fatal error occurred
@@ -248,13 +254,13 @@ class OPCODES(object):
    "JLN"  : ["pJrel","gJrel",0o375,1,1],
    "JRZ"  : ["pJrel","gJrel",0o376,1,1],
    "JRN"  : ["pJrel","gJrel",0o377,1,1],
-   "ABS"  : ["pAbs","gNil",0,1,1],
+   "ABS"  : ["pAbs","gNil",0,1,2],
    "FIN"  : ["pFin","gNil",0,0,0],
    "LST"  : ["pNil","gNil",0,0,0],
    "UNL"  : ["pNil","gNil",0,0,0],
    "ASC"   : ["pAsc","gData",0,1,1],
    "ASP"   : ["pAsc","gData",0,1,1],
-   "NAM"   : ["pNam","gData",0,1,1],
+   "NAM"   : ["pNam","gNam",0,1,2],
    "BSZ"   : ["pBsz","gGenZ",0,1,1],
    "BYT"   : ["pByt","gData",0,1,256],
    "DAD"   : ["pEqu","gNil",0,1,1],
@@ -263,6 +269,13 @@ class OPCODES(object):
    "GTO"   : ["pGto","gGto",0,1,1],
    "VAL"   : ["pDef","gDef",0,1,1],
    "ORG"   : ["pOrg","gNil",0,1,1],
+   "SET"   : ["pCond","gNil",0,1,1],
+   "CLR"   : ["pCond","gNil",0,1,1],
+   "AIF"   : ["pCond","gNil",0,1,1],
+   "EIF"   : ["pCond","gNil",0,0,0],
+   "ELS"   : ["pCond","gNil",0,0,0],
+   "INC"   : ["pInc","gNil",0,1,1],
+   "LNK"   : ["pInc","gNil",0,1,1],
    }
 
    @staticmethod 
@@ -293,13 +306,19 @@ class ERROR(object):
    E_ILL_LABELOP=14
    E_ILL_LINENUMBER=15
    E_NOTALLOWED_HERE=16
-   E_PROGNAME_TOOLONG=17
+   E_ILL_PROGNAME=17
    E_GLOBALSYMBOL_REDEFINED=18
    E_RELJUMP_TOOLARGE=19
    E_ILL_LITOPERAND=20
    E_ILL_LITERALLENGTH=21
    E_RHASH_LITERAL=22
    E_MISSING_LABEL=23
+   E_UNSUPPORTED=24
+   E_FLAGNOTDEFINED=25
+   E_AIFEIFMISMATCH=26
+   E_ILLFLAGNAME=27
+   E_MISSING_FIN=28
+   E_ROM_EXPECTED=29
 
    messages= {
       E_ILL_OPCODE : "Illegal opcode or pseudo opcode",
@@ -319,13 +338,19 @@ class ERROR(object):
       E_ILL_LABELOP: "Illegal label in operand field",
       E_ILL_LINENUMBER: "Illegal line number",
       E_NOTALLOWED_HERE: "Pseudo opcode not allowed here",
-      E_PROGNAME_TOOLONG: "Program name exceeds six characters",
+      E_ILL_PROGNAME: "Illegal program name",
       E_GLOBALSYMBOL_REDEFINED: "Redefinition of a global symbol",
       E_RELJUMP_TOOLARGE: "Relative jump too large",
       E_ILL_LITOPERAND: "Illegal literal operand",
       E_ILL_LITERALLENGTH: "Illegal byte length of literal operand",
       E_RHASH_LITERAL: "Dangerous R#, cannot check section boundary",
       E_MISSING_LABEL: "Missing label in label field",
+      E_UNSUPPORTED: "Not supported for this machine",
+      E_FLAGNOTDEFINED: "Flag not defined",
+      E_AIFEIFMISMATCH: "AIF/EIF mismatch",
+      E_ILLFLAGNAME: "Illegal flag name",
+      E_MISSING_FIN: "Missing FIN statement",
+      E_ROM_EXPECTED: "ROM expected",
    }
 
 #
@@ -341,9 +366,33 @@ class ERROR(object):
      raise capasmError(msg)
 
 #
-# Static class for number parsing -----------------------------------------
+# Static class for number and label parsing ----------------------------------
 #
-class numParse(object):
+class parseFunc(object):
+
+#  Parse quoted string
+#
+   @staticmethod
+   def parseQuotedString(string):
+      if string[0] != "'" and string[0] != '"':
+         return None
+      if string[0]!=string[-1]:
+         return None
+      string=string[1:len(string)-1]
+
+      return string
+#
+#  Parse label
+#
+   @staticmethod
+   def parseLabel(string,length):
+      match=re.fullmatch("[A-Za-z][A-Za-z0-9_$\+\-\.#/?\(\!\&)=:<>\|@*^]{0,"+\
+           str(length)+"}",string)
+      if match:
+         return string
+      else:
+         return None
+      
 #
 #  Parse decimal number (without D at the end, e.g. line numbers)
 #
@@ -351,7 +400,7 @@ class numParse(object):
    def parseDecimal(string):
       retVal=0
       for c in string:
-         if "0123456789".find(c)>=0:
+         if c in "0123456789":
             retVal=retVal*10 + ord(c)-ord("0")
          else:
             return None
@@ -363,7 +412,7 @@ class numParse(object):
    def parseOctal(string):
          retVal=0
          for c in string:
-            if "01234567".find(c)>=0:
+            if c in "01234567":
                retVal=retVal*8 + ord(c)-ord("0")
             else:
                return None
@@ -375,7 +424,7 @@ class numParse(object):
    def parseBCD(string):
       retVal=0
       for c in string:
-         if "0123456789".find(c)>=0:
+         if c in "0123456789":
             retVal=(retVal<<4) | ord(c)-ord("0")
          else:
             return None
@@ -387,11 +436,11 @@ class numParse(object):
    def parseNumber(string):
       retval=0
       if string[-1]=="D" or string[-1]=="d":
-         return numParse.parseDecimal(string[:-1])
+         return parseFunc.parseDecimal(string[:-1])
       elif string[-1]=="C" or string[-1]=="c":
-         return numParse.parseBCD(string[:-1])
-      elif "01234567".find(string[-1])>=0:
-         return numParse.parseOctal(string)
+         return parseFunc.parseBCD(string[:-1])
+      elif string[-1] in "01234567":
+         return parseFunc.parseOctal(string)
       else:
          return None
 #
@@ -408,9 +457,9 @@ class clsSymDict(object):
    SYM_LCL=2
    dictSymbolTypes= { SYM_DAD: "DAD", SYM_EQU: "EQU", SYM_LCL: "LCL" }
 #
-#  Line number that indicates a global symbol
+#  Line Info that idicates a global symbol
 #
-   LN_GLOBAL=100000
+   LN_GLOBAL= None
 
    def __init__(self,machine,extendedChecks):
       super().__init__()
@@ -428,7 +477,7 @@ class clsSymDict(object):
 #  dictionary and this dictionary as well. Returns None if we have no
 #  error or an error number otherwise
 #
-   def enter(self,name,typ,value,lineNumber,firstRefLineNumber=None):
+   def enter(self,name,typ,value,lineInfo):
 #
 #      Check global dict, if redefinition of global symbols is not allowed
 #
@@ -442,34 +491,84 @@ class clsSymDict(object):
        if name in self.__symbols__.keys():
           return ERROR.E_DUP_LABEL
        else:
-          if not firstRefLineNumber:
-             self.__symbols__[name]=[typ,value,lineNumber,[]]
-          else:
-             self.__symbols__[name]=[typ,value,lineNumber,[firstRefLineNumber]]
+          self.__symbols__[name]=[typ,value,lineInfo,[]]
        return None
 #
 #  Get a symbol. We look first in our own symbol dictionary. If the
 #  symbol is not found, try the Globals dictionary. If a symbol was
 #  found in the Globals dictionary the insert it into the local dict.
 #
-   def get(self,name,lineNumber=None):
+   def get(self,name,lineInfo=None):
       try:
          ret=self.__symbols__[name]
-         if lineNumber is not None:
+         if lineInfo is not None:
             lines=ret[3]
-            lines.append(lineNumber)
+            lines.append(lineInfo)
             self.__symbols__[name]=[ret[0],ret[1],ret[2], lines]
          return ret
       except KeyError:
          ret=self.__globalSyms__.globalSymbols.get(name)
          if ret:
-            self.enter(name,ret[0],ret[1],clsSymDict.LN_GLOBAL,lineNumber)
+            self.enter(name,ret[0],ret[1],clsSymDict.LN_GLOBAL)
          return ret
 #
 #  Get a list of all symbols in the local dictionary
 # 
    def getList(self):
       return list(self.__symbols__.keys())
+#
+# Conditional assembling class ---------------------------------------------
+#
+class clsConditionalAssembly(object):
+
+   def __init__(self):
+    
+      super().__init__()
+      self.__stack__= []
+      self.__flags__ = { }
+#
+#  returns True, if we are within a condition
+#
+   def isOpen(self):
+      return len(self.__stack__) > 0
+#
+#  return True, if lines are inactive and must be handeled as comment
+#
+   def isSuppressed(self):
+      if not self.isOpen():
+         return False
+      return self.__stack__[-1]
+#
+#  eif, pop condition from stack
+#
+   def eif(self):
+      self.__stack__.pop()
+   
+#
+#  set flag
+#
+   def set(self,name):
+      self.__flags__[name]= True
+#
+#  clear flag
+#
+   def clr(self,name):
+      self.__flags__[name]= False
+#
+#  aif, push new condition on stack
+#
+   def aif(self,name):
+      try:
+        self.__stack__.append(self.__flags__[name]==False)
+        return True
+      except KeyError:
+        return False
+#
+#  else reverts the status of the topmost condition
+#
+   def els(self):
+      self.__stack__[-1]= not self.__stack__[-1]
+
 #
 # GlobVar data class, global variables of the assembler --------------------
 #
@@ -484,14 +583,20 @@ class clsGlobVar(object):
       self.lastStmtWasJSB= False     # JSB sets this to True
       self.ORG=0                     # ORG value set by ORG
       self.PC=0                      # Program counter
+      self.codeLen=0                 # length of generated code
       self.allowHashRLiteral=True    # allow LD R#,=Literal
       self.hasAbs=False              # if ABS was used
       self.hasNam=False              # if NAM was used
+      self.hasIncludes=False         # if any include files were processed
       self.symNamLen=6               # symbol name length parameter
       self.isRegressionTest=False    # true to run assembler in regtest mode
       self.isFin=False               # FIN Statement encountered
+      self.useHex=False              # output hex instead of oct
       self.symDict=None              # Symbol dictionary
       self.errorCount=0              # Error counter
+      self.machine= "85"             # machine type
+      self.condAssembly= None        # conditional assembly object
+      self.symDict= None             # global symbol dictionary object
 #      
 # Token data class, result of lexical scanner -----------------------------
 #
@@ -549,49 +654,45 @@ class clsLineScanner(object):
       token=""
       position= -1
       termchar= ""
-      inString=False
-      doubleQuote=False
       termString=" "
+      inString=False
       if termSyms is not None:
          termString+=termSyms
-         if termSyms.find(char)>=0:
+         if char in termSyms:
             return clsToken(char, pos, nxtChar)
 #
 #     Loop until end of line, blank or termchar encountered
 #
       while char!="":
-         if not inString and termString.find(char) >=0:
+         if not inString and char in termString:
                termchar= char
                break
 #
 #     String handling
 #
-         if char=="\"":
+         if char=='"' or char=="'":
             if not inString:
+               quote=char
                inString=True
             else:
 #
-#              In string mode and we have a "
+#              In string mode and we have a " or '
 #
-               if not doubleQuote:
+               if char==quote:
                   inString=False
-               if nxtChar=="\"":
-                  doubleQuote= True
 #
 #        Accumulate token
 #
          if len(token)==0:
             position= pos
-         if not doubleQuote:
-            token+=char
-         doubleQuote=False
+         token+=char
          char, pos, nxtChar=self.scanChar()
       return clsToken(token, position, termchar)
 #
 #  Scan input line and return scanned line number, label, opcode and a list
 #  of operands. Missing items are None
 #
-   def scanLine(self,lineCount,line):
+   def scanLine(self,line):
 
       scannedLineNumber=None
       scannedLabel=None
@@ -599,7 +700,6 @@ class clsLineScanner(object):
       scannedOperand=[]
 
       self.__line__= line
-      self.__lineCount__= lineCount
       self.__position__= -1
       self.__gch__= ""
       self.__nxtChar__= ""
@@ -613,24 +713,18 @@ class clsLineScanner(object):
 #
       tok=self.scanTok()
       if tok.string=="":
-         scannedLineNumber=clsToken(str(self.__lineCount__),0,' ')
          return [scannedLineNumber,scannedLabel,scannedOpcode,scannedOperand]
 #
 #     Is the first token a line number?
 #
       lineBegin=0
-      if "0123456789".find(tok.string[0])>=0:
+      if tok.string[0] in "0123456789":
          scannedLineNumber=tok
          lineBegin=len(scannedLineNumber.string)+tok.position
          tok=self.scanTok()
-      else:
-#
-#        We have no source line number, put the line count into token
-#
-         scannedLineNumber=clsToken(str(self.__lineCount__),0,' ')
 #
 #     No next token, leave ...
-
+#
       if tok.string=="":
          return [scannedLineNumber,scannedLabel,scannedOpcode,scannedOperand]
 #
@@ -651,9 +745,10 @@ class clsLineScanner(object):
       if tok.string[0]=="!":
          return [scannedLineNumber,scannedLabel,scannedOpcode,scannedOperand]
 #
-#      Opcode
+#      Opcode, convert it to upper case
 #
       scannedOpcode= tok
+      scannedOpcode.string=scannedOpcode.string.upper()
 #
 #     Operand, if any, scan it as a comma separated list
 #
@@ -675,7 +770,6 @@ class clsLineScanner(object):
          if tok.string!=",":
             scannedOperand.append(tok)
          tok= self.scanTok(",")
- 
       return [scannedLineNumber,scannedLabel,scannedOpcode,scannedOperand]
 #
 # Parsed Operand Data Class --------------------------------------------
@@ -690,6 +784,7 @@ class clsParsedOperand(object):
    OP_REGISTER=1
    OP_LABEL=2
    OP_NUMBER=3
+   OP_STRING=4
 
    def __init__(self,typ=OP_INVALID):
       self.typ=typ
@@ -718,6 +813,18 @@ class clsParsedNumber(clsParsedOperand):
 
    def __repr__(self): # pragma: no cover
       return ("clsParsedNumber number= {:o}".format(self.number))
+#
+# Valid string operand (syntax checked)
+#
+class clsParsedString(clsParsedOperand):
+   
+   def __init__(self,string):
+      super().__init__(clsParsedOperand.OP_NUMBER)
+      self.string=string
+
+   def __repr__(self): # pragma: no cover
+      return ("clsParsedString string= {:s}".format(self.string))
+
 #
 #  Valid label operand (syntax checked)
 #
@@ -790,9 +897,9 @@ class clsParserInfo(object):
 #
    ILL_NUMBER=-1
 
-   def __init__(self,PC,lineNumber,messages,line,opcode="",opcodeLen=0,parsedOperand= [],needsArp=-1,needsDrp=-1,addressMode=AM_REGISTER_IMMEDIATE):
+   def __init__(self,PC,lineInfo,messages,line,opcode="",opcodeLen=0,parsedOperand= [],needsArp=-1,needsDrp=-1,addressMode=AM_REGISTER_IMMEDIATE):
       self.PC=PC                          # program counter
-      self.lineNumber= lineNumber         # line number (parsed or generated)
+      self.lineInfo= lineInfo             # input file name and line number
       self.messages=messages              # list of error messages, an empty
                                           # list means: no errors
       self.line=line                      # the original source code line
@@ -821,9 +928,10 @@ class clsParser(object):
 #
 #  Initialize parser
 #
-   def __init__(self,globVar):
+   def __init__(self,globVar,infile):
       super().__init__()
       self.__globVar__= globVar
+      self.__infile__= infile
       return
 #
 #  check if a scanned opcode is single- or multibyte
@@ -862,14 +970,14 @@ class clsParser(object):
       if signRequired and sign=="":
          self.addError(ERROR.E_SIGNEDREGISTER)
          return clsInvalidOperand()
-      if string[i]=="R" or string[i]=="X":
-         typ=string[i]
+      if string[i] in "rRxX":
+         typ=string[i].upper()
          i+=1
          if string[i]=="*":
             return clsParsedRegister(sign, typ, 1)
          elif string[i]=="#":
             return clsParsedRegister(sign, typ, clsParsedRegister.R_HASH)
-      number=numParse.parseOctal(string[i:])
+      number=parseFunc.parseOctal(string[i:])
       if number is None or number > 0o77 or number==1:
          self.addError(ERROR.E_ILL_REGISTER)
          return clsInvalidOperand()
@@ -885,9 +993,7 @@ class clsParser(object):
 #
 #     Valid label?
 #
-      if len(label) > self.__globVar__.symNamLen:
-         self.addError(ERROR.E_ILL_LABEL)
-      elif not label[0].isalpha():
+      if parseFunc.parseLabel(label,self.__globVar__.symNamLen) is None:
          self.addError(ERROR.E_ILL_LABEL)
       else:
 #
@@ -903,7 +1009,7 @@ class clsParser(object):
 #        arp, drp context
 #
          if isLcl: 
-            ret=SymDict.enter(label,clsSymDict.SYM_LCL,PC,self.__lineNumber__)
+            ret=SymDict.enter(label,clsSymDict.SYM_LCL,PC,self.__lineInfo__)
             if ret is not None:
                self.addError(ret)
             self.__globVar__.arpReg= -1
@@ -954,16 +1060,10 @@ class clsParser(object):
 #
    def parseLabelOp(self,opIndex):
       label=self.__scannedOperand__[opIndex].string
-      err=False
       if label[0]=="=":
          label=label[1:]
-      if len(label) > self.__globVar__.symNamLen:
+      if parseFunc.parseLabel(label,self.__globVar__.symNamLen) is None:
          self.addError(ERROR.E_ILL_LABELOP)
-         err=True
-      if not label[0].isalpha():
-         self.addError(ERROR.E_ILL_LABELOP)
-         err=True
-      if err:
          return clsInvalidOperand()
       else:
          return clsParsedLabel(label)
@@ -983,8 +1083,8 @@ class clsParser(object):
              self.addError(ERROR.E_ILL_LITOPERAND)
              parsedOp.append(clsInvalidOperand())
          else:
-            if "0123456789".find(opString[0]) >=0:
-               number=numParse.parseNumber(opString)
+            if opString[0] in "0123456789":
+               number=parseFunc.parseNumber(opString)
                if number is None:
                   self.addError(ERROR.E_ILLNUMBER)
                   parsedOp.append(clsInvalidOperand())
@@ -993,7 +1093,8 @@ class clsParser(object):
                opLen+=1
             else:
                label=opString
-               if len(label)> self.__globVar__.symNamLen or not label[0].isalpha():
+               if parseFunc.parseLabel(label,self.__globVar__.symNamLen)\
+                   is None:
                   self.addError(ERROR.E_ILL_LABELOP)
                   parsedOp.append(clsInvalidOperand())
                else:
@@ -1008,7 +1109,7 @@ class clsParser(object):
 #  Parse an address
 #
    def parseAddress(self,idx):
-      address=numParse.parseNumber(self.__scannedOperand__[idx].string)
+      address=parseFunc.parseNumber(self.__scannedOperand__[idx].string)
       if address is None:
          self.addError(ERROR.E_ILLNUMBER)
          address=clsParserInfo.ILL_NUMBER
@@ -1016,6 +1117,52 @@ class clsParser(object):
          self.addError(ERROR.E_NUMBERTOOLARGE)
          address=clsParserInfo.ILL_NUMBER
       return address
+#
+#  Include parsing and processing
+#
+   def pInc(self):
+      self.__globVar__.hasIncludes=True
+      fileName=self.__scannedOperand__[0].string
+      if fileName is None:
+         self.addError(ERROR.E_ILLSTRING)
+      else:
+         if self.__scannedOpcode__.string== "INC":
+            self.__infile__.openInclude(fileName)
+         else:
+            self.__infile__.openLink(fileName)
+
+#
+#  Parse the conditinal assembly pseudo ops
+#
+   def pCond(self):
+      cond=self.__globVar__.condAssembly
+      opcode=self.__scannedOpcode__.string
+      if len(self.__scannedOperand__)==1:
+         name=parseFunc.parseLabel(self.__scannedOperand__[0].string, \
+            self.__globVar__.symNamLen)
+         if name is None:
+            self.addError(ERROR.E_ILLFLAGNAME)
+            return
+      if opcode== "SET":
+         cond.set(name)
+      elif opcode== "CLR":
+         cond.clr(name)
+      elif opcode== "AIF":
+         ret=cond.aif(name)
+         if not ret:
+            self.addError(ERROR.E_FLAGNOTDEFINED)
+      elif opcode=="ELS":
+         if not cond.isOpen():
+            self.addError(ERROR.E_AIFEIFMISMATCH)
+         else:
+            cond.els()
+      else:  # EIF
+         if not cond.isOpen():
+            self.addError(ERROR.E_AIFEIFMISMATCH)
+         else:
+            cond.eif()
+
+
 #
 #  Now the opcode specific parsing methods follow. They are specified
 #  in the opcode table.
@@ -1050,7 +1197,7 @@ class clsParser(object):
       self.__opcodeLen__=0
       pOperand=[]
       for operand in self.__scannedOperand__:
-         number=numParse.parseNumber(operand.string)
+         number=parseFunc.parseNumber(operand.string)
          if number is None or number > 0xFF:
             err=True
             pOperand.append(clsInvalidOperand())
@@ -1077,11 +1224,10 @@ class clsParser(object):
 #
    def pAsc(self):
       pOperand=[]
-      string=self.__scannedOperand__[0].string
-      if string[0]!="\"" or string[-1]!="\"":
+      string=parseFunc.parseQuotedString(self.__scannedOperand__[0].string)
+      if string is None:
          self.addError(ERROR.E_ILLSTRING)
          return pOperand
-      string=string[1:len(string)-1]
       i=0
       err=False
       for c in string:
@@ -1107,8 +1253,13 @@ class clsParser(object):
 #  Parse FIN statement
 #
    def pFin(self):
-      self.__opcodeLen__=0
       self.__globVar__.isFin=True
+#
+#     check, if we have any open conditionals
+#
+      if self.__globVar__.condAssembly.isOpen():
+         self.addError(ERROR.E_AIFEIFMISMATCH)
+      self.__opcodeLen__=0
       return []
 #
 #  Parse EQU and DAD pseudoops
@@ -1128,11 +1279,11 @@ class clsParser(object):
       if address!=clsParserInfo.ILL_NUMBER:
          if self.__scannedOpcode__.string=="EQU":
             ret=SymDict.enter(label,clsSymDict.SYM_EQU,address, \
-                   self.__lineNumber__)
+                   self.__lineInfo__)
          else:
             address+=self.__globVar__.ORG
             ret=SymDict.enter(label,clsSymDict.SYM_DAD,address, \
-                   self.__lineNumber__)
+                   self.__lineInfo__)
          if ret is not None:
             self.addError(ret)
       return []
@@ -1147,54 +1298,82 @@ class clsParser(object):
       return []
 #
 #  Parse ABS pseudoop
-#  Syntax is: ABS nnnn 
-# 
+#  Syntax is: ABS {ROM} nnnn
+#  ROM does not matter here
 #
    def pAbs(self):
-      address=self.parseAddress(0)
       self.__globVar__.hasAbs=True
       if self.__globVar__.PC !=0 or self.__globVar__.hasNam:
          self.addError(ERROR.E_NOTALLOWED_HERE)
+      addrIndex=0
+      if len(self.__scannedOperand__)==2:
+         if self.__scannedOperand__[0].string.upper()== "ROM":
+            addrIndex=1
+         else:
+           self.addError(ERROR.E_ROMEXPECTED)
+      address=self.parseAddress(addrIndex)
       if address!=clsParserInfo.ILL_NUMBER:
          self.__globVar__.PC=address 
       return []
 #
 #  Parse NAM pseudoop
-#  Syntax is NAM: UnquotedString
+#  Syntax is NAM unquotedString (HP83/85 only)
+#         or NAM octalNumber, unquotedString (HP86/87 only)
+#  not supported on HP-75
 #
    def pNam(self):
+      pOperand=[ ]
+#
+#     throw error if HP-75
+#
+      if self.__globVar__.machine=="75":
+         self.addError(ERROR.E_UNSUPPORTED)
+         self.__opcodeLen__=0
+         return pOperand
+      if self.__globVar__.hasNam:
+            self.addError(ERROR.E_NOTALLOWED_HERE)
+            return pOperand
       self.__globVar__.hasNam=True
-      if self.__globVar__.PC !=0 or self.__globVar__.hasAbs:
+#
+#     ABS only allowed before, if PC >= 0x100000
+#
+      if self.__globVar__.hasAbs and self.__globVar__.PC<=0o100000:
          self.addError(ERROR.E_NOTALLOWED_HERE)
-      progName= self.__scannedOperand__[0].string
-      if len(progName)>6:
-         self.addError(ERROR.E_PROGNAME_TOOLONG)
+         return pOperand
+#
+#
+#     check if we have two parameters, then decode program number first
+#
+      pnIndex=0
+      progNumber= -1
+      allowedLen=6
+      if len(self.__scannedOperand__)==2:
+         pnIndex=1
+         allowedLen=10
+      if len(self.__scannedOperand__)==2:
+         number=parseFunc.parseNumber(\
+            self.__scannedOperand__[0].string)
+         if number is None or number > 0o377:
+            progNumber=0
+            self.addError(ERROR.E_ILLNUMBER)
+            return pOperand
+         else:
+            progNumber=number   
+#
+#     decode and check program name
+#      
+      progName= self.__scannedOperand__[pnIndex].string
+      match=re.fullmatch("[A-Z][A-Z0-9_$&]{1,6}",progName)
+      if not match or len(progName)>allowedLen  :
+         self.addError(ERROR.E_ILL_PROGNAME)
+         return pOperand
 
       self.__opcodeLen__=26
 #
-#     Now build the program control block
-#
-      progName=progName.ljust(6)
-      pOperand=[ ]
-      err=False
-      for c in progName:
-         n=ord(c)
-         if n > 0o177:
-           err=True
-           n=0
-         pOperand.append(clsParsedNumber(n))
-      if err:
-         self.addError(ERROR.E_ILLSTRING)
-#
-#     BPGM type 2
-#
-      pOperand.append(clsParsedNumber(2))
-#
-#     19 bytess 0 follow
-#
-      for i in range(0,19):
-         pOperand.append(clsParsedNumber(0))
-      return pOperand
+      if progNumber >=0:
+         return [clsParsedString(progName),clsParsedNumber(progNumber)]
+      else:
+         return [clsParsedString(progName)]
 #
 #  Parse JMP relative instructions
 #
@@ -1291,10 +1470,11 @@ class clsParser(object):
             else:
                numberOfBytesToStore= \
                   BYTESTOSTORE.numBytes(dRegister.registerNumber)
+               numberOfBytesToStore = BYTESTOSTORE.UNKNOWN_BYTESTOSTORE
                if numberOfBytesToStore == BYTESTOSTORE.UNKNOWN_BYTESTOSTORE:
                   self.__opcodeLen__+= ret[0] # WEAK!
-                  if not self.__globVar__.allowHashRLiteral:
-                     self.addError(ERROR.E_RHASH_LITERAL)
+#                 if not self.__globVar__.allowHashRLiteral:
+#                    self.addError(ERROR.E_RHASH_LITERAL)
                else:
                   self.__opcodeLen__+=numberOfBytesToStore
             parsedOperand.extend(ret[1])
@@ -1353,10 +1533,11 @@ class clsParser(object):
             else:
                numberOfBytesToStore= \
                   BYTESTOSTORE.numBytes(dRegister.registerNumber)
+               numberOfBytesToStore = BYTESTOSTORE.UNKNOWN_BYTESTOSTORE
                if numberOfBytesToStore == BYTESTOSTORE.UNKNOWN_BYTESTOSTORE:
-                  self.__opcodeLen__+= ret[0]   # Weak !
-                  if not self.__globVar__.allowHashRLiteral:
-                     self.addError(ERROR.E_RHASH_LITERAL)
+                  self.__opcodeLen__+= ret[0]   # WEAK !
+#                 if not self.__globVar__.allowHashRLiteral:
+#                    self.addError(ERROR.E_RHASH_LITERAL)
                else:
                   self.__opcodeLen__+=numberOfBytesToStore
             parsedOperand.extend(ret[1])
@@ -1489,30 +1670,43 @@ class clsParser(object):
       self.__needsDrp__= -1
       self.__addressMode__= clsParserInfo.AM_REGISTER_IMMEDIATE
       PC=self.__globVar__.PC
+      self.__lineInfo__=self.__infile__.getLineInfo()
+
+      condAssemblyIsSuppressed=self.__globVar__.condAssembly.isSuppressed()
 #
-#     Parse lineNumber, we always have one (may be not a valid integer)
+#     Parse lineNumber, if we have one (may be not a valid integer)
 #
-      self.__lineNumber__=numParse.parseDecimal( \
-                    self.__scannedLineNumber__.string)
-      if self.__lineNumber__ == None:
-         self.__lineNumber__= clsParserInfo.ILL_NUMBER
-         self.addError(ERROR.E_ILL_LINENUMBER)
+      if self.__scannedLineNumber__ is not None:
+         if parseFunc.parseDecimal( \
+                    self.__scannedLineNumber__.string) is None:
+            self.addError(ERROR.E_ILL_LINENUMBER)
 #
 #     If we have a label field, parse it and enter label into symbol table
 #
-      if self.__scannedLabel__ is not None:
+      if self.__scannedLabel__ is not None and not condAssemblyIsSuppressed:
          self.parseLabelField()
 #
 #     Return if we have no opcode nor operands
 #
       if self.__scannedOpcode__ is None:
-         return clsParserInfo(PC,self.__lineNumber__,self.__messages__, \
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
                 self.__line__)
+#
+#     We have to check the conditional assembly status,
+#     treat the line as comment if we are in False state
+#     except we have an EIF statement
+#
+      if condAssemblyIsSuppressed and \
+         self.__scannedOpcode__.string !="EIF":
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                self.__line__)
+
+      
 #
 #     Return if we have a comment ! in the opcode field
 #
       if self.__scannedOpcode__.string=="!":
-         return clsParserInfo(PC,self.__lineNumber__,self.__messages__, \
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
                 self.__line__)
 
       self.__opcode__=self.__scannedOpcode__.string
@@ -1536,20 +1730,20 @@ class clsParser(object):
          if len(self.__scannedOperand__)< self.__opcodeInfo__[3] or \
             len(self.__scannedOperand__)> self.__opcodeInfo__[4]:
                self.addError(ERROR.E_ILL_NUMOPERANDS)
-               return clsParserInfo(PC,self.__lineNumber__,self.__messages__, \
+               return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
                               self.__line__)
 #
 #        Call operand parse method
 #
          self.__parsedOperand__= \
                clsParser.__methodDict__[self.__opcodeInfo__[0]](self)
-         return clsParserInfo(PC,self.__lineNumber__,self.__messages__, \
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
                 self.__line__, \
                 self.__opcode__,self.__opcodeLen__, self.__parsedOperand__, \
                 self.__needsArp__,self.__needsDrp__,self.__addressMode__)
       else:
          self.addError(ERROR.E_ILL_OPCODE)
-         return clsParserInfo(PC,self.__lineNumber__,self.__messages__, \
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
                               self.__line__)
 #
 #  Dictionary or parse methods
@@ -1576,6 +1770,8 @@ class clsParser(object):
       "pByt": pByt,
       "pDef": pDef,
       "pGto": pGto,
+      "pCond": pCond,
+      "pInc": pInc,
    }
 #
 # Code Info Data class -------------------------------------------------
@@ -1657,19 +1853,33 @@ class clsCodeGenerator(object):
 #
    def gGto(self):
       SymDict=self.__globVar__.symDict
-      self.__code__.append(0o251)       # LDM
       defCode= [0]* self.__opcodeLen__
       pLabel=self.__parsedOperand__[1]
       if pLabel.typ != clsParsedOperand.OP_LABEL:
          self.__code__.extend(defCode)
          return
-      ret=SymDict.get(pLabel.label,self.__lineNumber__)
+      ret=SymDict.get(pLabel.label,self.__lineInfo__)
       if ret==None:
          self.addError(ERROR.E_LBLNOTFOUND)
          self.__code__.extend(defCode)
       else:
-         value=ret[1]-1
-         self.__code__.extend([value & 0xFF, value >>8])
+#
+#        relative jump, only local labels which are not abs
+#
+         value=ret[1]
+         if ret[0]==clsSymDict.SYM_LCL and not self.__globVar__.hasAbs:
+            self.__code__.append(0o313)       # ADMD
+            offset= value -(self.__pc__+self.__opcodeLen__-1)
+            if offset < 0:
+               offset= 0xFFFF  + offset
+            self.__code__.extend([offset & 0xFF, (offset >>8)&0xFF])
+         else:
+#
+#        absolute jump
+#
+            value-=1
+            self.__code__.append(0o251)       # LDMD
+            self.__code__.extend([value & 0xFF, (value >>8)&0xFF])
       return
 
 #
@@ -1682,7 +1892,7 @@ class clsCodeGenerator(object):
       if pLabel.typ != clsParsedOperand.OP_LABEL:
          self.__code__.extend(defCode)
          return
-      ret=SymDict.get(pLabel.label,self.__lineNumber__)
+      ret=SymDict.get(pLabel.label,self.__lineInfo__)
       if ret==None:
          self.addError(ERROR.E_LBLNOTFOUND)
          self.__code__.extend(defCode)
@@ -1725,7 +1935,7 @@ class clsCodeGenerator(object):
       self.__bytesToGenerate__-=1
       pOperand=self.__parsedOperand__[0]
       if pOperand.typ == clsParsedOperand.OP_LABEL:
-         ret=SymDict.get(pOperand.label,self.__lineNumber__)
+         ret=SymDict.get(pOperand.label,self.__lineInfo__)
          if ret==None:
             self.addError(ERROR.E_LBLNOTFOUND)
             self.__code__.append(0)
@@ -1807,7 +2017,7 @@ class clsCodeGenerator(object):
 #         Process label, 1 or 2 bytes long
 #
           if pOperand.typ== clsParsedOperand.OP_LABEL:
-             ret=SymDict.get(pOperand.label,self.__lineNumber__)
+             ret=SymDict.get(pOperand.label,self.__lineInfo__)
 #
 #            If the value is unknown generate one byte
 #
@@ -1862,7 +2072,69 @@ class clsCodeGenerator(object):
    def gdirect(self):
       self.__code__.append(self.__opcodeInfo__[2])
       self.__bytesToGenerate__-=1
+      return
+#
+#  Generate Control Block
+#
+   def gNam(self):
+      if len(self.__parsedOperand__)==0:
+         return
+      progName=self.__parsedOperand__[0].string
+#
+#     if we have no program number, create HP-85 style control block
+#
+      if len(self.__parsedOperand__)==1:
+         progName=progName.ljust(6)
+#
+#     Prog name (6 characters)
+         for i in range(0,6):
+            self.__code__.append(ord(progName[i]))
+#
+#     Type (always 2)
+#
+         self.__code__.append(2)
+#
+#       19 zeros
+#
+         for i in range(0,19):
+            self.__code__.append(0)
+      else:
 
+#
+#     generate HP-87 style control block
+#
+         progNumber=self.__parsedOperand__[1].number
+         progName=progName.ljust(10)
+#
+#     Prog name (4 characters)
+#
+         for i in range(0,4):
+            self.__code__.append(ord(progName[i]))
+#
+#     Length (2 bytes)
+#
+         self.__code__.append(self.__globVar__.codeLen & 0xFF)
+         self.__code__.append((self.__globVar__.codeLen>>8) & 0xFF)
+#
+#     Type (always 2)
+#
+         self.__code__.append(2)
+#
+#     Program number
+#
+         self.__code__.append(progNumber)
+#
+#     Full ascii name
+#
+         for i in range (0,10):
+            self.__code__.append(ord(progName[i]))
+#
+#     8 zeros
+#
+         for i in range(0,8):
+            self.__code__.append(0)
+
+      return
 #
 #  Generate code, top level method
 #
@@ -1875,7 +2147,7 @@ class clsCodeGenerator(object):
       self.__needsDrp__= parsedLine.needsDrp
       self.__parsedOperand__= parsedLine.parsedOperand
       self.__addressMode__= parsedLine.addressMode
-      self.__lineNumber__= parsedLine.lineNumber
+      self.__lineInfo__= parsedLine.lineInfo
       self.__code__=[]
       self.__messages__=[]
       if self.__opcode__=="":
@@ -1913,6 +2185,7 @@ class clsCodeGenerator(object):
       "gDef": gDef,
       "gGenZ": gGenZ,
       "gGto": gGto,
+      "gNam":gNam,
    }
 #
 #  object code writer class --------------------------------------------
@@ -1925,6 +2198,7 @@ class clsObjWriter(object):
 #
    def __init__(self,objectfilename):
       super().__init__()
+      self.__codeLen__=0
       self.__objectfile__= None
       try:
          self.__objectfile__=open(objectfilename,"wb")
@@ -1940,6 +2214,7 @@ class clsObjWriter(object):
       for c in codeInfo.code:
          try:
             self.__objectfile__.write(c.to_bytes(1,byteorder="big"))
+            self.__codeLen__+=1
          except OSError:
             ERROR.fatalError("Error writing object file")
          except OverflowError:
@@ -1950,6 +2225,10 @@ class clsObjWriter(object):
 #
    def __del__(self):
       if self.__objectfile__ is not None:
+#        fill= 256 - (self.__codeLen__ % 256)
+#        c=0xFF
+#        for i in range(0,fill):
+#           self.__objectfile__.write(c.to_bytes(1,byteorder="big"))
          self.__objectfile__.flush()
          self.__objectfile__.close()
       return
@@ -1974,6 +2253,8 @@ class clsListWriter(object):
       self.__totalBytesOfCode__=0
       self.__pageCount__=1
       self.__noList__=False
+      self.__sourceFileDict__={ }
+      self.__sourceFileCount__=0
       try:
          if listFileName=="":
             self.__listFile__=sys.stdout
@@ -1984,6 +2265,45 @@ class clsListWriter(object):
          ERROR.fatalError("Error opening list file")
       self.writeHeader()
       return
+#
+#  Format program code byte (either 3 digit octal or 2 digit hex)
+#
+   def formatCode(self,b):
+      if self.__globVar__.useHex:
+         if b is None:
+            return "  "
+         else:
+            return "{:02X}".format(b)
+      else:
+         if b is None:
+            return "   "
+         else:
+            return "{:03o}".format(b)
+#
+#  Format address (either 6 digit ocal number of 4 digit hex number)
+#
+   def formatAddress(self,b):
+      if self.__globVar__.useHex:
+         if b is None:
+            return "    "
+         else:
+            return "{:04X}".format(b)
+      else:
+         if b is None:
+            return "      "
+         else:
+            return "{:06o}".format(b)
+#
+# Format symbol line reference
+#
+   def formatLineReference(self,lineInfo):
+      fileName,lineNumber= lineInfo
+      if not fileName in self.__sourceFileDict__:
+         self.__sourceFileCount__+=1
+         self.__sourceFileDict__[fileName]=self.__sourceFileCount__
+      return " {:5d};{:d}".format(lineNumber, \
+             self.__sourceFileDict__[fileName])
+
 #
 #  Write full header. This information is always printed to standard output
 #  and the beginning of the first page of the list file
@@ -2044,38 +2364,40 @@ class clsListWriter(object):
       pc=parsedLine.PC
       line=parsedLine.line
 #
-#     PC 6 digits octal
+#     PC 
 #
-      s="{:06o}".format(pc)+" "
+      s=self.formatAddress(pc)+" "
 #
-#     Bytes of code (max 3) octal
+#     Bytes of code (max 3 octal or 4 hex)
 #
-      for i in range(0,3):
+      if self.__globVar__.useHex:
+         numCode=4
+      else:
+         numCode=3
+      for i in range(0,numCode):
          if i>= codeLen:
-            s+="    "
+            s+=self.formatCode(None)+" "
          else:
-            s+="{:03o}".format(codeInfo.code[i])+" "
+            s+=self.formatCode(codeInfo.code[i])+" "
 #
 #     Source code line
 #
       s+=line
       self.wrL(s)
 #
-#     Continuation line(s) for code, if we have more than 3 bytes of code
+#     Continuation line(s) for code, if we have more than numCode bytes 
+#     of code. i is the index of the current byte
 #
       j=0
-      i=3
+      i=numCode
       s=""
       while i < codeLen:
          if j==0:
-            pc+=3
-            s="{:06o}".format(pc)+" "
-         if i>= codeLen:
-            s+="    "
-         else:
-            s+="{:03o}".format(codeInfo.code[i])+" "
+            pc+=numCode
+            s=self.formatAddress(pc)+" "
+         s+=self.formatCode(codeInfo.code[i])+" "
          j+=1
-         if j==3:
+         if j==numCode:
             self.wrL(s)
             j=0
          i+=1
@@ -2085,12 +2407,12 @@ class clsListWriter(object):
 #     Error messages of parser and code generator, if any
 #
       for e in parsedLine.messages:
-         s="**ERROR(P) at {:4d}: {:s}".format(parsedLine.lineNumber, \
-            ERROR.getMsg(e))
+         s="**ERROR(P) at {:s}({:d}): {:s}".format(parsedLine.lineInfo[0], \
+            parsedLine.lineInfo[1],ERROR.getMsg(e))
          self.wrL(s)
       for e in codeInfo.messages:
-         s="**ERROR(G) at {:4d}: {:s}".format(parsedLine.lineNumber, \
-            ERROR.getMsg(e))
+         s="**ERROR(P) at {:s}({:d}): {:s}".format(parsedLine.lineInfo[0], \
+            parsedLine.lineInfo[1],ERROR.getMsg(e))
          self.wrL(s)
       return
 #
@@ -2116,8 +2438,10 @@ class clsListWriter(object):
 #        Output dictionary entry
 #
          l=SymDict.get(s)
-         s=("{:10s} {:s} {:6o}".format(s,clsSymDict.dictSymbolTypes[l[0]],l[1]))
-         nSkip=len(s)+7
+         symAddr=self.formatAddress(l[1])
+         s=("{:10s} {:s} {:s}".format(s,clsSymDict.dictSymbolTypes[l[0]],\
+             symAddr))
+         nSkip=len(s)
 #
 #        Output symbol dictionary
 #        first print the line number where the symbol was defined
@@ -2126,8 +2450,8 @@ class clsListWriter(object):
          lineDefined=l[2]
          if lineDefined==clsSymDict.LN_GLOBAL:
             s+=" GLOBL"
-         elif lineDefined>=0:
-            s+=" {:4d}D".format(l[2])
+         elif lineDefined[1]>=0:
+            s+=self.formatLineReference(lineDefined)
          else:
             s+="     ?"                          # dead code ??
          j=0
@@ -2141,14 +2465,14 @@ class clsListWriter(object):
                j+=1
             else:
                for ln in lineRefs:
-                  if ln == clsParserInfo.ILL_NUMBER:
+                  if ln[1] == clsParserInfo.ILL_NUMBER:
                      continue                         # dead code ??
                   j+=1
-                  s+=" {:4d} ".format(ln)
+                  s+=self.formatLineReference(ln)
 #
 #                 We need a continuation line
 #
-                  if len(s)+5>= self.__lineWidth__:
+                  if len(s)+8>= self.__lineWidth__:
                      self.wrL(s)
                      s=" "*nSkip
                      j=0
@@ -2156,6 +2480,14 @@ class clsListWriter(object):
                self.wrL(s)
          else:
             self.wrL(s)
+#
+#     output source file dictionary
+#
+      self.wrL("")
+      self.wrL("Index of source files in symbol cross reference:")
+      for filename in self.__sourceFileDict__:
+          self.wrL("{:d}: {:s}".format(self.__sourceFileDict__[filename],\
+              filename))
       return
 #
 #  Write statistics: source code lines, generated code, number of errors
@@ -2195,32 +2527,69 @@ class clsListWriter(object):
 #
 class clsSourceReader(object):
 #
-#  Initialize and open source file
+#  Initialize and open first source file
 #
-   def __init__(self,inputfilename):
+   def __init__(self,inputFileName):
       super().__init__()
-      self.__inputfile__=None
+      self.__inputFiles__= []
+      self.__lineInfos__= []
       try:
-        self.__inputfile__=open(inputfilename,"r")
+        self.__inputFiles__.append(open(inputFileName,"r"))
+        self.__lineInfos__.append([Path(inputFileName).name,0])
       except OSError:
         ERROR.fatalError("Error opening source file")
+#
+#  open include file
+#
+   def openInclude(self,inputFileName):
+      if len(self.__inputFiles__)> 3:
+         ERROR.fatalError("Maximum include depth exceeded")
+      try:
+        self.__inputFiles__.append(open(inputFileName,"r"))
+        self.__lineInfos__.append([Path(inputFileName).name,0])
+      except OSError:
+        ERROR.fatalError("Error opening include or link file "+\
+              inputFileName+" ")
+#
+#  open linked file
+#
+   def openLink(self,inputFileName):
+       self.__inputFiles__[-1].close()
+       self.__inputFiles__.pop()
+       self.__lineInfos__.pop()
+       self.openInclude(inputFileName)
+   
 #
 #  Read a line
 #
    def read(self):
-      try:
-         line=self.__inputfile__.readline()
-      except OSError:
-        ERROR.fatalError("Error reading source file")
-      if not line:
-         return None
-      return line.strip("\r\n")
+      while self.__inputFiles__:
+         try:
+            line=self.__inputFiles__[-1].readline()
+         except OSError:
+            ERROR.fatalError("Error reading source or include file")
+         if line:
+            self.__lineInfos__[-1][1]+=1    
+            return line.strip("\r\n")
 #
-#  Destructor, close file
+#        EOF, fall back to previous file, if none return None
+#
+         self.__inputFiles__[-1].close()
+         self.__inputFiles__.pop()
+         self.__lineInfos__.pop()
+      return None
+#
+# Get current filename and line count
+#
+   def getLineInfo(self):
+      return [self.__lineInfos__[-1][0],self.__lineInfos__[-1][1]]
+         
+#
+#  Destructor, close any open files
 #
    def __del__(self):
-      if self.__inputfile__ is not None:
-         self.__inputfile__.close()
+      for f in self.__inputFiles__:
+         f.close()
       return
 #
 # Assembler class ---------------------------------------------------------
@@ -2242,7 +2611,7 @@ class clsAssembler(object):
 #     
    def assemble(self,sourceFileName,binFileName="",listFileName="", \
        referenceOpt=1, pageSize=66, pageWidth=80, machine="85", \
-       extendedChecks=False,  symNamLen=6):
+       extendedChecks=False,  symNamLen=6,useHex=False):
 #
 #      initialize error condition
 #
@@ -2251,6 +2620,8 @@ class clsAssembler(object):
 #      Create global variables data object
 #
        self.__globVar__=clsGlobVar()
+       self.__globVar__.machine=machine
+       self.__globVar__.useHex=useHex
        self.__sourceFileName__= sourceFileName
 #
 #      Build file name of object file if not specified
@@ -2273,6 +2644,10 @@ class clsAssembler(object):
        self.__globVar__.symDict=clsSymDict(self.__machine__, \
               self.__extendedChecks__)
 #
+#      Create conditional assembly object
+#
+       self.__globVar__.condAssembly=clsConditionalAssembly()
+#
 #      Check if we run in regression test mode
 #
        if os.getenv("CAPASMREGRESSIONTEST"):
@@ -2291,29 +2666,29 @@ class clsAssembler(object):
 #      pass1Info list
 #
        pass1Info=[]
-       lineCount=0
        infile=clsSourceReader(self.__sourceFileName__)
        lineScanner=clsLineScanner()
-       lineParser=clsParser(self.__globVar__)
+       lineParser=clsParser(self.__globVar__,infile)
 
        while not self.__globVar__.isFin:
           line=infile.read()
           if line is None:
+             pass1Info[-1].messages.append(ERROR.E_MISSING_FIN)
              break
 #
 #         Scan line
 #
-          lineCount+=1
-          scannedLine=lineScanner.scanLine(lineCount,line)
+          scannedLine=lineScanner.scanLine(line)
 #
 #         Parse line
 #
           parsedLine=lineParser.parseLine(scannedLine,line)
           pass1Info.append(parsedLine)
 #
-#         Increment PC with length of instructions
+#         Increment PC and codeLen with length of instructions
 #
           self.__globVar__.PC+=parsedLine.opcodeLen
+          self.__globVar__.codeLen+=parsedLine.opcodeLen
 
        infile=None
        lineScanner=None
@@ -2415,6 +2790,8 @@ def capasm():             # pragma: no cover
       help="Machine type (default:85)",default='85')
    argparser.add_argument("-c","--check",help="activate additional checks", \
       action='store_true')
+   argparser.add_argument("-x","--hex",help="use hex output", \
+      action='store_true')
    argparser.add_argument("-s","--symnamelength",\
                   help="maximum length of symbol names (default:6)", \
       type=int,default=6,choices=[6,7,8,9,10])
@@ -2428,7 +2805,7 @@ def capasm():             # pragma: no cover
            binFileName=args.binfile, referenceOpt=args.reference, \
            pageSize=args.pagesize,pageWidth=args.width, \
            machine=args.machine,extendedChecks=args.check, \
-           symNamLen=args.symnamelength)
+           symNamLen=args.symnamelength,useHex=args.hex)
    except capasmError as e:
       print(e.msg+"-- Assembler terminated")
       ret=True

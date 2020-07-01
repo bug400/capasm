@@ -14,6 +14,7 @@ Index
 * [LIF image file creator command line parameters](#lif-image-file-creator-command-line-parameters)
 * [Create Upload LIF images for the HP-75](#create-upload-lif-images-for-the-hp-75)
 * [Add a LEX file header to assembled LEX files](#add-a-lex-file-header-to-assembled-lex-files)
+* [Create ROM image files](#create-rom-image-files)
 * [Known Issues](#known-issues)
 * [License](#license)
 * [Acknowledgements](#acknowledgements)
@@ -25,10 +26,10 @@ assemble ROM or LEX files for the Series 80 desktop or the HP-75 handheld
 computers. 
 
 Essential part of the software suite is the assembler *capasm* which is 
-almost compatible to the assembler of the HP-83/85 Assembler ROM. 
+almost compatible to the assembler of the HP-83/85 Assembler ROM and the HP-86/87 Assembler ROM. 
 
-In addition the CAPASM suite provides utilities to post-process the assembled
-object files to LEX- or LIF image files in order to use the assembled
+In addition the CAPASM suite provides tools to post-process the assembled
+object files to LEX-, LIF image or ROM files in order to use the assembled
 files in emulators or "real" hardware.
 
 The CAPASM software is entirely written in Python3 and was successfully 
@@ -37,27 +38,33 @@ tested on LINUX, mac OS and Windows 10.
 Features
 --------
 
-The *capasm* assembler is compatible to the HP-83/85 ROM Assembler with the following exceptions:
+The *capasm* assembler is compatible to the HP-83/85 ROM Assembler and the HP-86/87 ROM assembler with the following exceptions:
 
-* The GLO, LNK and all conditional pseudo ops are not supported and throw
-  an error
-* The ABS 16 and ABS 32 pseudo ops are not supported. To compile ROM code
-  use ABS nnnn, where nnnn is an octal number of the base address.
-* ASC and ASP only support quoted strings as arguments. A quote within a
-  string must be expressed as a double quote, e.g. ""","" MISSING".
-* The pseudo ops LST and UNL are silently ignored.
+* The GLO pseudo opcode is not supported, use the *-m* option instead (see below).
+* The ABS 16 and ABS 32 pseudo ops of the HP-83/85 ROM Assemblerare not
+  supported. Use *ABS nnnnn* to specify the address of an absoulte binary 
+  program.
+* ASC and ASP only support quoted strings as arguments. Use either " or '
+  to quote a string. 
+* The pseudo opcodes LST and UNL are silently ignored.
+
+The *capasm* assembler provides the following extensions:
+
 * The assembler provides built in symbol tables for the HP-85, HP-87 and
   HP-75. The *-m* option specifies which table to use. This makes an
   ORG pseudo op redundant. Default is to use the global symbol table for the 
   HP-85.
-* The assembler provides a symbol cross reference listing which is activated
-  with the *-r 2* option.
-* The maximum length of symbol names can be adjusted within the range from 6 to
-  12 characters.
+* A symbol cross reference listing which is activated with the *-r 2* option.
+* The maximum length of symbol names can be adjusted within the range from 
+  6 to 12 characters.
+* The pseudo instructions for conditional assembly were extended through an
+  ELS statement and may be nested
+* In addition to the LNK pseudo instruction an INC statement allows 
+  including assembler source files.
 * Line numbers in the assembler source file are optional.
+* The *-x* option outputs addresses and code as hex numbers
 
-You can get the manual for the HP-83/85 ROM Assembler from the 
-[www.series80.org](http://www.series80.org) web site.
+You can get the manuals for the HP-83/85 ROM Assembler and the HP-86/87 ROM Assembler from the [www.series80.org](http://www.series80.org) web site.
 
 
 Installation
@@ -97,7 +104,7 @@ You get a description of the command line parameters if you type:
 
 ```
 Usage: capasm [-h] [-b BINFILE] [-l LISTFILE] [-r {0,1,2}] [-p PAGESIZE]
-              [-w WIDTH] [-m {75,85,87}] [-c] [-s {6,7,8,9,10}]
+              [-w WIDTH] [-m {75,85,87}] [-c] [-x] [-s {6,7,8,9,10}]
               sourcefile
 
 An assembler for the Hewlett Packard Capricorn CPU (Series 80 and HP-75)
@@ -121,6 +128,7 @@ optional arguments:
   -m {75,85,87}, --machine {75,85,87}
                         Machine type (default:85)
   -c, --check           activate additional checks
+  -x, --hex             use hex output
   -s {6,7,8,9,10}, --symnamelength {6,7,8,9,10}
                         maximum length of symbol names (default:6)
 
@@ -217,6 +225,11 @@ The *caplex* utility adds a LEX file header to an assembled Series 80 LEX file.
 If the *-m 75* parameter is specified, a HP-75 RAM file header and a
 LEX file header is put in front of the assembled lex file.
 The program operates the same way as the *caplif* utility.
+
+Create ROM image files
+----------------------
+
+The *caprom* tool converts an assembled binary file to a ROM image file with the required primary and secondary checksums. The size of the ROM image file can be specified. Use *caprom -h* for a description of parameters.
 
 
 Known Issues

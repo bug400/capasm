@@ -1,3 +1,16 @@
+capasm (0.9.6) bionic; urgency=medium
+
+  * added HP-87 compatible NAM statement
+  * added conditional assembly pseudo ops
+  * added relative GTO
+  * added include and link file support
+  * added caprom tool
+  * added hex output of addresses and program code in list file
+  * bug fixes
+  * refactoring
+
+ -- bionic <achim@trillian>  Sat, 06 Jun 2020 17:25:20 +0200
+
 capasm (0.9.5) bionic; urgency=medium
 
   * first beta release

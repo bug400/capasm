@@ -12,11 +12,12 @@ import os
 PYTHON_REQUIRED_MAJOR=3
 PYTHON_REQUIRED_MINOR=6
 
-from capasm import capasm, caplif, caplex, capglo
+from capasm import capasm, caplif, caplex, capglo, caprom
 entryPointDict= { "capasm": capasm,
                   "caplex": caplex,
                   "caplif": caplif,
                   "capglo": capglo,
+                  "caprom": caprom,
                 }
 def usage():
    print("Usage:")

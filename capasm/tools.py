@@ -43,7 +43,7 @@ import sys, argparse,os, codecs,re,contextlib
 from pathlib import Path
 from itertools import groupby
 from datetime import datetime
-from .assembler import clsLineScanner, numParse, capasmError, CAPASM_VERSION
+from .assembler import clsLineScanner, parseFunc, capasmError, CAPASM_VERSION
 
 #
 # silently remove files, continue if they do not exist
@@ -122,13 +122,13 @@ class clsSymClassGenerator(object):
          lineCount+=1
 #
 #        Scan line, we get a list of token:
-#        - lineNumber (inserted, if no linenumber in the source file)
+#        - lineNumber (from source code file, if any, ignored here)
 #        - label
 #        - opcode
 #        - list of operands which should consist only of the symbol value 
 #
-         scannedLine=lineScanner.scanLine(lineCount,line)
-         lineNumber=scannedLine[0].string
+         scannedLine=lineScanner.scanLine(line)
+         lineNumber=str(lineCount)
 #
 #        Empty line
 #
@@ -143,11 +143,7 @@ class clsSymClassGenerator(object):
 #
 #        Check symbol name
 #
-         if len(symbolName) > labelLen:
-            print("illagal symbols at line: ",lineNumber)
-            errors+=1
-            continue
-         if not symbolName[0].isalpha():
+         if parseFunc.parseLabel(symbolName,labelLen) is None:
             print("illagal symbols at line: ",lineNumber)
             errors+=1
             continue
@@ -175,7 +171,7 @@ class clsSymClassGenerator(object):
             errors+=1
             continue
          value=scannedLine[3][0].string
-         intValue=numParse.parseNumber(value)
+         intValue=parseFunc.parseNumber(value)
          if intValue==None:
             print("illegal label value at line: ",lineNumber)
             errors+=1
@@ -641,6 +637,96 @@ class clsLifCreator(object):
 #
       return False
 #
+# ROM file creator class ----------------------------------------
+#
+class clsRomCreator(object):
+
+   def __init__(self):
+      super().__init__()
+#
+#  create LIF import image (lexOnly=False) from binary input file
+#
+#  Returns:
+#     True: everything o.k.
+#  Raises capasmError on i/o error or if the ROM size is too small
+#
+   def create(self,binFileName,romFileName="",romSize=2):
+#
+#     check if we run in regression test mode
+#
+      isRegressionTest=False
+      if os.getenv("CAPASMREGRESSIONTEST"):
+         isRegressionTest=True
+#
+#     build name of file image or lex file if not specified
+#
+      if romFileName=="":
+         romFileName=Path(binFileName).with_suffix(".rom").name
+#
+#     read object file into memory, check rom number and rom size
+#
+      objectFile=clsObjectFile(binFileName)
+      code=bytearray(objectFile.getBytes())
+      if (~code[0]&0xFF)!=code[1]:
+         raise capasmError("Invalid ROM number")
+      romSize=romSize*1024
+      if romSize < len(code)+4:
+         raise capasmError("ROM size too small")
+#
+#     fill code to length of rom - 4
+#
+      fill=romSize-4 - len(code)
+      for i in range(0,fill):
+         code.append(0)
+#
+#     determine secondary checksum, thanks to Philippe (hp80series@groups.io)
+#
+      t=0
+      i=0
+      while(i< len(code)):
+         c1=code[i]
+         i+=1
+         c2=code[i]
+         i+=1
+         w = (c1 & 0xff) + ((c2 & 0xff)<<8)
+         for j in range (0,16):
+            r26 = t & 0xff
+            r27 = t>>8
+            r45 = r27
+            r27 = (r27<<4) & 0xff
+            r26 = ((r26<<1) & 0xff) | (w & 1)
+            w = w>>1
+            r45 = r45 ^ r26
+            r45 = r45 ^ r27
+            if (r45 & 1):
+                r45 = (r45 + 0x80) & 0xff
+            t = ((t<<1) & 0xffff) | (r45 >>7)
+      code.append(t & 0xFF)
+      code.append((t>>8) & 0xFF)
+#
+#     determine primary checksum, thanks to Philippe (hp80series@groups.io)
+#
+      t=0
+      i=0
+      while(i< len(code)):
+         c1=code[i]
+         i+=1
+         c2=code[i]
+         i+=1
+         t = t + (c1 & 0xff) + ((c2 & 0xff)<<8)
+      s = ((t>>16) + (t & 0xffff)) & 0xffff
+      t = s>>8
+      s = s & 0xff
+      code.append(255-s)
+      code.append(255-t)
+      try:
+         romFile=open(romFileName,"wb")
+         romFile.write(code)
+         romFile.close()
+      except OSError:
+         raise capasmError("cannot write rom file")
+      return False
+#
 # entry point caplif ------------------------------------------------------
 # put assembled binary file to an import LIF image file
 #
@@ -724,3 +810,30 @@ def capglo():         # pragma: no cover
          break
    if hasErrors: 
      sys.exit(1)
+#
+# entry point caprom -------------------------------------------------------
+#
+# convert an assembled binary file to a Series 80 ROM file with checksums
+#
+
+def caprom():         # pragma: no cover
+
+   argparser=argparse.ArgumentParser(description=\
+   "Utility to convert an assembled binary file to a Series 80 ROM file",\
+   epilog="See https://github.com/bug400/capasm for details. "+CAPASM_VERSION)
+   argparser.add_argument("binfile",help="binary object code file (required)")
+   argparser.add_argument("-r","--romfilename",help=\
+     "name of the LIF output file (default: objectfile name with suffix .lex)",\
+      default="")
+   argparser.add_argument("-s","--romsize",choices=[2,4,8,16],type=int, \
+      help="ROM size in KB (default:2)",default=2)
+   args= argparser.parse_args()
+
+   l=clsRomCreator()
+   try:
+      l.create(args.binfile,args.romfilename,args.romsize)
+   except capasmError as e:
+      print(e.msg+" -- program terminated")
+      sys.exit(1)
+#
+
