@@ -48,6 +48,10 @@
 # - bug fixes
 # - conditional assembly support
 # - include and link file support
+# 04.07.2020 jsi
+# - allow quoted strings for INC and LNK files
+# - use path of assembler source files for INC and LNK files, if there 
+#   is only a file name specified
 
 import argparse,sys,os,datetime,importlib,re
 from pathlib import Path
@@ -382,6 +386,15 @@ class parseFunc(object):
 
       return string
 #
+#  Parse quoted or unquoted string
+#
+   @staticmethod 
+   def parseAnyString(string):
+      if string[0]=="'" or string[0]=='"':
+         return parseFunc.parseQuotedString(string)
+      else:
+         return string
+#
 #  Parse label
 #
    @staticmethod
@@ -595,6 +608,7 @@ class clsGlobVar(object):
       self.symDict=None              # Symbol dictionary
       self.errorCount=0              # Error counter
       self.machine= "85"             # machine type
+      self.sourceFileDirectory=""    # directory of source file if specified
       self.condAssembly= None        # conditional assembly object
       self.symDict= None             # global symbol dictionary object
 #      
@@ -1122,14 +1136,16 @@ class clsParser(object):
 #
    def pInc(self):
       self.__globVar__.hasIncludes=True
-      fileName=self.__scannedOperand__[0].string
+      fileName=parseFunc.parseAnyString(self.__scannedOperand__[0].string)
       if fileName is None:
          self.addError(ERROR.E_ILLSTRING)
       else:
          if self.__scannedOpcode__.string== "INC":
-            self.__infile__.openInclude(fileName)
+            self.__infile__.openInclude(fileName, \
+              self.__globVar__.sourceFileDirectory)
          else:
-            self.__infile__.openLink(fileName)
+            self.__infile__.openLink(fileName, \
+              self.__globVar__.sourceFileDirectory)
 
 #
 #  Parse the conditinal assembly pseudo ops
@@ -1470,13 +1486,10 @@ class clsParser(object):
             else:
                numberOfBytesToStore= \
                   BYTESTOSTORE.numBytes(dRegister.registerNumber)
-               numberOfBytesToStore = BYTESTOSTORE.UNKNOWN_BYTESTOSTORE
                if numberOfBytesToStore == BYTESTOSTORE.UNKNOWN_BYTESTOSTORE:
-                  self.__opcodeLen__+= ret[0] # WEAK!
-#                 if not self.__globVar__.allowHashRLiteral:
-#                    self.addError(ERROR.E_RHASH_LITERAL)
-               else:
-                  self.__opcodeLen__+=numberOfBytesToStore
+                  if not self.__globVar__.allowHashRLiteral:
+                     self.addError(ERROR.E_RHASH_LITERAL)
+               self.__opcodeLen__+= ret[0] 
             parsedOperand.extend(ret[1])
 
          else:
@@ -1533,13 +1546,10 @@ class clsParser(object):
             else:
                numberOfBytesToStore= \
                   BYTESTOSTORE.numBytes(dRegister.registerNumber)
-               numberOfBytesToStore = BYTESTOSTORE.UNKNOWN_BYTESTOSTORE
                if numberOfBytesToStore == BYTESTOSTORE.UNKNOWN_BYTESTOSTORE:
-                  self.__opcodeLen__+= ret[0]   # WEAK !
-#                 if not self.__globVar__.allowHashRLiteral:
-#                    self.addError(ERROR.E_RHASH_LITERAL)
-               else:
-                  self.__opcodeLen__+=numberOfBytesToStore
+                  if not self.__globVar__.allowHashRLiteral:
+                     self.addError(ERROR.E_RHASH_LITERAL)
+               self.__opcodeLen__+= ret[0] 
             parsedOperand.extend(ret[1])
 
          elif self.__scannedOperand__[1].string[0]=="X":
@@ -2539,13 +2549,28 @@ class clsSourceReader(object):
       except OSError:
         ERROR.fatalError("Error opening source file")
 #
+# build name of include or link file. 
+# If the source assembly file name has a path and
+# the include file name has no path
+# then put the directory of the source assembly file name in front of
+# the include file name
+#
+   def buildFileName(self,inputFileName,sourceFileDirectory):
+      ifPath=Path(inputFileName)
+      if str(ifPath.parent)!=".":
+         return inputFileName
+      if sourceFileDirectory==".":
+         return inputFileName
+      return str(Path(sourceFileDirectory) / ifPath)
+#
 #  open include file
 #
-   def openInclude(self,inputFileName):
+   def openInclude(self,inputFileName,sourceFileDirectory):
       if len(self.__inputFiles__)> 3:
          ERROR.fatalError("Maximum include depth exceeded")
+      fileName=self.buildFileName(inputFileName,sourceFileDirectory)
       try:
-        self.__inputFiles__.append(open(inputFileName,"r"))
+        self.__inputFiles__.append(open(fileName,"r"))
         self.__lineInfos__.append([Path(inputFileName).name,0])
       except OSError:
         ERROR.fatalError("Error opening include or link file "+\
@@ -2553,11 +2578,11 @@ class clsSourceReader(object):
 #
 #  open linked file
 #
-   def openLink(self,inputFileName):
-       self.__inputFiles__[-1].close()
-       self.__inputFiles__.pop()
-       self.__lineInfos__.pop()
-       self.openInclude(inputFileName)
+   def openLink(self,inputFileName,sourceFileDirectory):
+      self.__inputFiles__[-1].close()
+      self.__inputFiles__.pop()
+      self.__lineInfos__.pop()
+      self.openInclude(inputFileName,sourceFileDirectory)
    
 #
 #  Read a line
@@ -2627,7 +2652,7 @@ class clsAssembler(object):
 #      Build file name of object file if not specified
 #
        if binFileName=="":
-          self.__binFileName__= e= \
+          self.__binFileName__= \
                Path(self.__sourceFileName__).with_suffix(".bin").name
        else:
           self.__binFileName__=binFileName
@@ -2652,6 +2677,11 @@ class clsAssembler(object):
 #
        if os.getenv("CAPASMREGRESSIONTEST"):
           self.__globVar__.isRegressionTest=True
+#
+#      get directory of source file
+#
+       self.__globVar__.sourceFileDirectory=\
+          str(Path(self.__sourceFileName__).parent)
 #
 #      Check extended checks mode
 #

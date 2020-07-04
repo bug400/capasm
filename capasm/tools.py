@@ -38,6 +38,10 @@
 # - regression test utilities rewritten
 # - removed mklex75 entry point
 # - added caplex and caplif entry points and the corresponding classes
+# 29.06.2020 jsi
+# - added caprom tool
+# 04.07.2020 jsi
+# - fix rom number checking
 #
 import sys, argparse,os, codecs,re,contextlib
 from pathlib import Path
@@ -667,7 +671,13 @@ class clsRomCreator(object):
 #
       objectFile=clsObjectFile(binFileName)
       code=bytearray(objectFile.getBytes())
-      if (~code[0]&0xFF)!=code[1]:
+      romNo=code[0]
+      checkRomNo= ~ romNo &0xFF
+      if checkRomNo== code[1]:
+         print("creating HP-85 ROM file ",romFileName)
+      elif checkRomNo+1 == code[1]:
+         print("creating HP-87 ROM file ",romFileName)
+      else:
          raise capasmError("Invalid ROM number")
       romSize=romSize*1024
       if romSize < len(code)+4:
