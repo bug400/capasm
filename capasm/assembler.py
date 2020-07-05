@@ -2703,8 +2703,11 @@ class clsAssembler(object):
        while not self.__globVar__.isFin:
           line=infile.read()
           if line is None:
-             pass1Info[-1].messages.append(ERROR.E_MISSING_FIN)
-             break
+             if pass1Info:
+                pass1Info[-1].messages.append(ERROR.E_MISSING_FIN)
+                break
+             else:
+                ERROR.fatalError("Empty source file")
 #
 #         Scan line
 #
