@@ -2824,7 +2824,7 @@ def capasm():             # pragma: no cover
       action='store_true')
    argparser.add_argument("-s","--symnamelength",\
                   help="maximum length of symbol names (default:6)", \
-      type=int,default=6,choices=[6,7,8,9,10])
+      type=int,default=6,choices=[6,7,8,9,10,11,12])
    args= argparser.parse_args()
 #
 #  Create assembler object and run it

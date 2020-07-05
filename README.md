@@ -104,7 +104,7 @@ You get a description of the command line parameters if you type:
 
 ```
 Usage: capasm [-h] [-b BINFILE] [-l LISTFILE] [-r {0,1,2}] [-p PAGESIZE]
-              [-w WIDTH] [-m {75,85,87}] [-c] [-x] [-s {6,7,8,9,10}]
+              [-w WIDTH] [-m {75,85,87}] [-c] [-x] [-s {6,7,8,9,10,11,12}]
               sourcefile
 
 An assembler for the Hewlett Packard Capricorn CPU (Series 80 and HP-75)
@@ -129,7 +129,7 @@ optional arguments:
                         Machine type (default:85)
   -c, --check           activate additional checks
   -x, --hex             use hex output
-  -s {6,7,8,9,10}, --symnamelength {6,7,8,9,10}
+  -s {6,7,8,9,10,11,12}, --symnamelength {6,7,8,9,10}
                         maximum length of symbol names (default:6)
 
 See https://github.com/bug400/capasm for details
