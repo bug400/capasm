@@ -669,66 +669,97 @@ class clsRomCreator(object):
 #
 #     read object file into memory, check rom number and rom size
 #
+      romSize=romSize*1024
+      rom75=False
       objectFile=clsObjectFile(binFileName)
       code=bytearray(objectFile.getBytes())
-      romNo=code[0]
-      checkRomNo= ~ romNo &0xFF
-      if checkRomNo== code[1]:
-         print("creating HP-85 ROM file ",romFileName)
-      elif checkRomNo+1 == code[1]:
-         print("creating HP-87 ROM file ",romFileName)
+#
+#     HP-75 has always ROM number 0xE3 and the HP-85 style complementary no
+#
+      if code[0]==0xE3 and code[1]==0x1C:
+         rom75=True
+         if romSize < len(code)+2:
+            raise capasmError("ROM size too small")
+         print("creating HP-75 ROM file ",romFileName)
+#
+#     determine if we have a HP-85 or HP-87 file
+#
       else:
-         raise capasmError("Invalid ROM number")
-      romSize=romSize*1024
-      if romSize < len(code)+4:
-         raise capasmError("ROM size too small")
+         romNo=code[0]
+         checkRomNo= ~ romNo &0xFF
+         if checkRomNo== code[1]:
+            print("creating HP-85 ROM file ",romFileName)
+         elif checkRomNo+1 == code[1]:
+            print("creating HP-87 ROM file ",romFileName)
+         else:
+            raise capasmError("Invalid ROM number")
+         if romSize < len(code)+4:
+            raise capasmError("ROM size too small")
 #
-#     fill code to length of rom - 4
+#     fill code to length of rom
 #
-      fill=romSize-4 - len(code)
+      fill=romSize - len(code)
       for i in range(0,fill):
          code.append(0)
 #
+#     HP-75 check sum
+#
+      if rom75:
+         c=0
+         i=0
+         while(i<len(code)):
+            c+=code[i]
+            while c> 255:
+               c+=1
+               c-= 256
+            i+=1
+         cInv= ~c &0xFF
+         code[-1]=cInv
+      else:
+#
 #     determine secondary checksum, thanks to Philippe (hp80series@groups.io)
 #
-      t=0
-      i=0
-      while(i< len(code)):
-         c1=code[i]
-         i+=1
-         c2=code[i]
-         i+=1
-         w = (c1 & 0xff) + ((c2 & 0xff)<<8)
-         for j in range (0,16):
-            r26 = t & 0xff
-            r27 = t>>8
-            r45 = r27
-            r27 = (r27<<4) & 0xff
-            r26 = ((r26<<1) & 0xff) | (w & 1)
-            w = w>>1
-            r45 = r45 ^ r26
-            r45 = r45 ^ r27
-            if (r45 & 1):
-                r45 = (r45 + 0x80) & 0xff
-            t = ((t<<1) & 0xffff) | (r45 >>7)
-      code.append(t & 0xFF)
-      code.append((t>>8) & 0xFF)
+         t=0
+         i=0
+         while(i< len(code)-4):
+            c1=code[i]
+            i+=1
+            c2=code[i]
+            i+=1
+            w = (c1 & 0xff) + ((c2 & 0xff)<<8)
+            for j in range (0,16):
+               r26 = t & 0xff
+               r27 = t>>8
+               r45 = r27
+               r27 = (r27<<4) & 0xff
+               r26 = ((r26<<1) & 0xff) | (w & 1)
+               w = w>>1
+               r45 = r45 ^ r26
+               r45 = r45 ^ r27
+               if (r45 & 1):
+                   r45 = (r45 + 0x80) & 0xff
+               t = ((t<<1) & 0xffff) | (r45 >>7)
+         code[-4]=(t & 0xFF)
+         code[-3]=((t>>8) & 0xFF)
 #
 #     determine primary checksum, thanks to Philippe (hp80series@groups.io)
 #
-      t=0
-      i=0
-      while(i< len(code)):
-         c1=code[i]
-         i+=1
-         c2=code[i]
-         i+=1
-         t = t + (c1 & 0xff) + ((c2 & 0xff)<<8)
-      s = ((t>>16) + (t & 0xffff)) & 0xffff
-      t = s>>8
-      s = s & 0xff
-      code.append(255-s)
-      code.append(255-t)
+         t=0
+         i=0
+         while(i< len(code)-2):
+            c1=code[i]
+            i+=1
+            c2=code[i]
+            i+=1
+            t = t + (c1 & 0xff) + ((c2 & 0xff)<<8)
+         s = ((t>>16) + (t & 0xffff)) & 0xffff
+         t = s>>8
+         s = s & 0xff
+         code[-2]=(255-s)
+         code[-1]=(255-t)
+#
+#     write rom file
+#
       try:
          romFile=open(romFileName,"wb")
          romFile.write(code)
@@ -835,7 +866,7 @@ def caprom():         # pragma: no cover
    argparser.add_argument("-r","--romfilename",help=\
      "name of the LIF output file (default: objectfile name with suffix .lex)",\
       default="")
-   argparser.add_argument("-s","--romsize",choices=[2,4,8,16],type=int, \
+   argparser.add_argument("-s","--romsize",choices=[2,4,8,16,32],type=int, \
       help="ROM size in KB (default:2)",default=2)
    args= argparser.parse_args()
 
