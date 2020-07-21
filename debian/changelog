@@ -1,3 +1,13 @@
+capasm (0.9.7) bionic; urgency=medium
+
+  * added HP-75 rom support to caprom
+  * added support for hex and bin constants
+  * added support for non octal register numbers
+  * added LOC and HED pseudo ops
+  * literal data list error fixes 
+
+ -- bionic <achim@trillian>  Tue, 21 Jul 2020 16:04:25 +0200
+
 capasm (0.9.6) bionic; urgency=medium
 
   * added HP-87 compatible NAM statement

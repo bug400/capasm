@@ -77,11 +77,12 @@ def silentRemove(*args):
 #
 class clsSymClassGenerator(object):
 
-   SYM_EQU=0
-   SYM_DAD=1
+   SYM_DAD=0
+   SYM_EQU=1
 
    def __init__(self):
       super().__init__()
+
 #
 #  generate method:
 #  convert file with name inputFileName to a python file with a global
@@ -94,7 +95,7 @@ class clsSymClassGenerator(object):
 #
    def generate(self,inputFileName,outputFileName,labelLen=8):
 
-      lineScanner=clsLineScanner()
+      lineScanner=clsLineScanner("!","!","'"+'"')
       symDict= { }
       duplicates=0
       errors=0
@@ -148,7 +149,7 @@ class clsSymClassGenerator(object):
 #        Check symbol name
 #
          if parseFunc.parseLabel(symbolName,labelLen) is None:
-            print("illagal symbols at line: ",lineNumber)
+            print("illegal symbols at line: ",lineNumber)
             errors+=1
             continue
 #

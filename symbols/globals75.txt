@@ -140,7 +140,7 @@ LWAMEM   DAD   101141   ! LWA user memory
 
 ! ** important filenames
 
-PRNAME   DAD   101143   ! filename parameter for file rou…
+PRNAME   DAD   101143   ! filename parameter for file rou
 EDNAME   DAD   101153   ! the name of the currently edited file
 EDTYPE   DAD   101163   ! the type of the currently edited file
 RNNAME   DAD   101165   ! the name of the currently running program
