@@ -6,7 +6,7 @@ Index
 -----
 
 * [Description](#description)
-* [Features](#features)
+* [Assembler instructions](#assembler-instructions)
 * [Installation](#installation)
 * [Basic use of the assembler](#basic-use-of-the-assembler)
 * [Assembler command line parameters](#assembler-command-line-parameters)
@@ -18,6 +18,7 @@ Index
 * [Known Issues](#known-issues)
 * [License](#license)
 * [Acknowledgements](#acknowledgements)
+
 
 Description
 -----------
@@ -35,11 +36,15 @@ files in emulators or "real" hardware.
 The CAPASM software is entirely written in Python3 and was successfully 
 tested on LINUX, mac OS and Windows 10.
 
-Features
---------
 
-The *capasm* assembler is compatible to the HP-83/85 ROM Assembler and the HP-86/87 ROM assembler with the following exceptions:
+Assembler Instructions
+----------------------
 
+The *capasm* assembler instructions are as far as possible documented in section 4 of the HP-83/85 Assembler ROM manual. The manual is available on the [www.series80.org](http://www.series80.org) web site.
+
+Restrictions to the HP-83/85 Assembler ROM language:
+
+* The use of special characters in symbol names is restricted to "$+-.#/?(!&)=:<>\|@\*%^"
 * The GLO pseudo opcode is not supported, use the *-m* option instead (see below).
 * The ABS 16 and ABS 32 pseudo ops of the HP-83/85 ROM Assemblerare not
   supported. Use *ABS nnnnn* to specify the address of an absoulte binary 
@@ -48,23 +53,32 @@ The *capasm* assembler is compatible to the HP-83/85 ROM Assembler and the HP-86
   to quote a string. 
 * The pseudo opcodes LST and UNL are silently ignored.
 
-The *capasm* assembler provides the following extensions:
+Extensions to the HP-83/85 Assembler ROM language:
 
 * The assembler provides built in symbol tables for the HP-85, HP-87 and
   HP-75. The *-m* option specifies which table to use. This makes an
   ORG pseudo op redundant. Default is to use the global symbol table for the 
   HP-85.
+* If a program number is supplied in a NAM pseudo operation *capasm* generates a HP-87 program header.
 * A symbol cross reference listing which is activated with the *-r 2* option.
 * The maximum length of symbol names can be adjusted within the range from 
   6 to 12 characters.
-* The pseudo instructions for conditional assembly were extended through an
+* The pseudo instructions for conditional assembly were extended by an
   ELS statement and may be nested
 * In addition to the LNK pseudo instruction an INC statement allows 
   including assembler source files.
 * Line numbers in the assembler source file are optional.
 * The *-x* option outputs addresses and code as hex numbers
+* Non octal numbers are supported as register numbers
+* Binary (1001B or 1001b) and hexadecimal (01CH, 01Ch or 01C#) are supported. Note: hexadecimal numbers must always begin with a number!
+* Support for the HED and the LOC statement.
+* Support for empty literal data lists, e.g. LDM R40,=
 
-You can get the manuals for the HP-83/85 ROM Assembler and the HP-86/87 ROM Assembler from the [www.series80.org](http://www.series80.org) web site.
+HED 'Quoted String'<br />
+This pseudo opcode forces a form feed. The quoted string is printed in the header of the page except for the first page.
+
+LOC  numeric constant<br />
+This statement is only supported in absolute programs. It forces the program counter (PC) to the numeric constant by generating an appropriate number of zero bytes. Does nothing, if PC is already the numeric constant. Generates an error, if the PC is greater.
 
 
 Installation
@@ -229,7 +243,9 @@ The program operates the same way as the *caplif* utility.
 Create ROM image files
 ----------------------
 
-The *caprom* tool converts an assembled binary file to a ROM image file with the required primary and secondary checksums. The size of the ROM image file can be specified. Use *caprom -h* for a description of parameters.
+The *caprom* tool converts an assembled binary file to a ROM image. An appropriate ROM header must be present in the assembled binary file. The size of the ROM image file must be specified. *caprom* fills up the assembled binary file to the size of the ROM image and creates the appropriate checksum(s). This is supported for HP-83/85, HP-87 and HP-75 ROM image files. The ROM type is autodetected from the ROM header in the assembled binary file.
+
+Use *caprom -h* for a description of parameters.
 
 
 Known Issues
