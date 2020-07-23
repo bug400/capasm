@@ -16,6 +16,7 @@ Index
 * [Add a LEX file header to assembled LEX files](#add-a-lex-file-header-to-assembled-lex-files)
 * [Create ROM image files](#create-rom-image-files)
 * [Known Issues](#known-issues)
+* [Release Notes](#release-notes)
 * [License](#license)
 * [Acknowledgements](#acknowledgements)
 
@@ -253,7 +254,13 @@ Known Issues
 
 The global symbol file for the HP-75 contains a couple of duplicate entries 
 (see the file *duplicateSymbols.txt* in the *symbols* directory).
-The *capasm* assembler only uses the *last* entry.
+The *capasm* assembler only uses the *last* entry. There are also a couple of symbols which contain the "'" character. They cannot be used with *capasm* because this character is reserved as string delimiter.
+
+
+Release Notes
+-------------
+
+See the [Release Notes](https://github.com/bug400/capasm/blob/master/RELEASE.md) for details.
 
 
 License
