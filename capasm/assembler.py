@@ -425,7 +425,13 @@ class parseFunc(object):
 # ???
 #     match=re.fullmatch("[A-Za-z][A-Za-z0-9_$\+\-\.#/?\(\!\&)=:<>\|@*%^'"+'"'+"]{0,"+\
 #          str(length)+"}",string)
-      match=re.fullmatch("[^0-9][^ \t\n\r\f\v]{0,"+str(length)+"}",string)
+#
+#     check for valid label:
+#     - all characters codes must be in the range 0x20 to 0x7A, 0x7C
+#     - first character must not be a number
+#
+      match=re.fullmatch("[(^0-9)(\x20-\x7A|\|)][\x20-\x7A|\|]{0,"+ \
+         str(length)+"}",string)
       if match:
          return string
       else:
@@ -1564,10 +1570,8 @@ class clsParser(object):
 #     decode and check program name
 #      
       progName= self.__scannedOperand__[pnIndex].string
-# ????
-#     match=re.fullmatch("[A-Z][A-Z0-9_$&]{1,6}",progName)
-#     if not match or len(progName)>allowedLen  :
-      if len(progName) >allowedLen  :
+      match=re.fullmatch("[\x20-\x7A|\|]{1,"+str(allowedLen)+"}",progName)
+      if not match:
          self.addError(ERROR.E_ILL_PROGNAME)
          return pOperand
 
@@ -2550,6 +2554,8 @@ class clsListWriter(object):
 #  Do a page break, write small header with page numbers
 #
    def pageBreak(self):
+      if self.__noList__:
+         return
       self.__listFile__.write("")
       self.__listFile__.write("Page {:4d} {:^60s}\n".format(\
           self.__pageCount__,self.__globVar__.title))
@@ -2577,8 +2583,7 @@ class clsListWriter(object):
 #
 #     check if we have a page break
 #
-      if self.__totalLines__ > 0 and self.__globVar__.doPageBreak and \
-         not self.__noList__:
+      if self.__totalLines__ > 0 and self.__globVar__.doPageBreak:
          self.__lineCount__= self.__maxLines__
       self.__globVar__.doPageBreak= False       
       self.__totalLines__+=1
