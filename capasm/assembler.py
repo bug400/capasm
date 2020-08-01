@@ -361,7 +361,7 @@ class ERROR(object):
       E_OPEXCEEDSSECTION: "Literal or label data exceed section boundary",
       E_SIGNEDREGISTER: "+/- required for address register",
       E_ILLNUMBER: "Illegal number",
-      E_ILLSTRING: "Illagal string",
+      E_ILLSTRING: "Illegal string",
       E_ILL_LABELOP: "Illegal label in operand field",
       E_ILL_LINENUMBER: "Illegal line number",
       E_NOTALLOWED_HERE: "Pseudo opcode not allowed here",
