@@ -42,6 +42,10 @@
 # - added caprom tool
 # 04.07.2020 jsi
 # - fix rom number checking
+# 26.07.2020 jsi
+# - catch I/O errors in caplglo generate method
+# 27.07.2020 jsi
+# - added capconv tool
 #
 import sys, argparse,os, codecs,re,contextlib
 from pathlib import Path
@@ -57,7 +61,249 @@ def silentRemove(*args):
       with contextlib.suppress(FileNotFoundError):
          os.remove(fileName)
    return False
+#
+# AsmSourceFileConverter class -----------------------------------------
+# This class converts a tokenized Series 80 assembler source file 
+# which was for example extracted from a lif image file with "hpdir -extract"
+# or "lifget -r" to an ascii file. The input file format (HP-85 or
+# HP-87 style is auto detected
+#
+class clsAsmSourceFileConverter(object):
 
+   def __init__(self):
+      super().__init__()
+      self.__outFile__=None
+#
+#  output comment
+#
+   def printComment(self,d):
+      self.__outFile__.write("! ")
+      for c in d:
+         self.__outFile__.write(chr(c))
+#
+#  output label or blanks
+#   
+   def printLabel(self,d,labelLength):
+      for i in range(0,labelLength):
+         if d is None:
+            self.__outFile__.write(" ")
+         else:
+            self.__outFile__.write(chr(d[i]))
+      self.__outFile__.write(" ")
+#
+#  process opcode, operands and trailing comment
+#
+   def printOpcodeAndOperand(self,d):
+      operand=""
+      for i in range(0,3):
+         operand+=chr(d[i])
+      d=d[3:]
+      if operand in ["SBB","SBM","CMB","CMM","ANM","ADB","ADM", \
+         "PUB","PUM","POB","POM","LDB","LDM","STB","STM"]:
+         if chr(d[0]) in ["D","I"]:
+            operand+=chr(d[0])
+            d=d[1:]
+         else:
+            operand+=" "
+      else:
+         operand+=" "
+      i=4
+      self.__outFile__.write(operand)
+      self.__outFile__.write(" ")
+      for c in d:
+         if c== 0xFE:
+            for j in range(i,20):
+                self.__outFile__.write(" ")
+            self.__outFile__.write(" ! ")
+            continue
+         if c==0xFF:
+            continue
+         self.__outFile__.write(chr(c))
+         i+=1
+
+#
+   def convert(self,inputFileName,outputFileName):
+      print("")
+      print("Converting file "+inputFileName+" to "+outputFileName)
+      try: 
+         infile=open(inputFileName,"rb")
+         asmBytes=infile.read()
+         infile.close()
+      except OSError:
+         raise capasmError("cannot open/read input file")
+     
+      try: 
+         self.__outFile__=open(outputFileName,"w")
+      except OSError:
+         raise capasmError("cannot create output file")
+#
+#     detect file type and skip header
+#
+      k=len(asmBytes)
+      count=0
+      if asmBytes[6]==0x20:
+         is85=True
+         i=24
+      elif asmBytes[6]==0x10 or asmBytes[6]==0x50:
+         is85=False
+         i=32
+      else:
+         raise capasmError("Illegal input file")
+#
+#     process records
+#   
+      try:
+         while i < k:
+#
+#        line number, HP87 has one more digit
+#
+            if not is85:
+               labelLength=8
+               h=asmBytes[i]
+               if h==10:
+                  break
+               lineNumber="{:1x}{:02x}{:02x} ".format(asmBytes[i],\
+                  asmBytes[i+1],asmBytes[i+2])
+               i+=1
+            else:
+               labelLength=6
+               if asmBytes[i]==0x99 and asmBytes[i+1]==0xA9:
+                  break
+               lineNumber="{:02x}{:02x} ".format(asmBytes[i+1],asmBytes[i])
+            i+=2
+            count+=1
+#
+#        store tokenized assembler statement in d
+#
+            l=asmBytes[i]
+            i+=1
+            d=bytearray(0)
+            self.__outFile__.write(lineNumber)
+            for j in range (0,l):
+               d.append(asmBytes[i])
+               i+=1
+            if d[-1]!=0x0E:
+               raise capasmError("Illegal End byte detected")
+            d=d[0:-1]
+#
+#        comment line
+#
+            if d[0]==0xFE:
+               self.printComment(d[1:-1])
+               self.__outFile__.write("\n")
+               continue
+#
+#        label
+#
+            if d[0]==0xFF:
+               d=d[1:]
+               self.printLabel(d,labelLength)
+               d=d[labelLength:]
+            else:
+               self.printLabel(None,labelLength)
+#
+#        opcode, operands and trailing comment
+#
+            self.printOpcodeAndOperand(d)
+            self.__outFile__.write("\n")
+         self.__outFile__.close()
+      except OSError:
+         raise capasmError("cannot write to output file")
+      print("{:d} assembler source lines written to file {:s}".format(count,\
+            outputFileName))
+      return False
+
+#
+# SymbolFileConverter class ---------------------------------------------
+# This class converts a Series 80 binary global symbols file 
+# which was for example extracted from a lif image file with "hpdir -extract"
+# or "lifget -r" to an ascii file
+#
+class clsSymbolFileConverter(object):
+
+   def __init__(self):
+      super().__init__()
+#
+#  conversion method
+#  The binary input file has a fixed record length of 256 bytes. Each
+#  global symbol has an entry of 11 bytes length. An entry may span
+#  a record boundary. A zero length record marks end of file.
+#
+   def convert(self,inputFileName,outputFileName):
+
+      tdict= {0: "EQU", 1: "DAD", 2:"DAD"}
+      print("")
+      print("Converting file "+inputFileName+" to "+outputFileName)
+      try: 
+         infile=open(inputFileName,"rb")
+         gloBytes=infile.read()
+         infile.close()
+      except OSError:
+         raise capasmError("cannot open/read input file")
+     
+      try: 
+         outfile=open(outputFileName,"w")
+      except OSError:
+         raise capasmError("cannot create output file")
+
+      i=0
+      count=0
+      try:
+         while True:
+            header=gloBytes[i]
+#
+#           check header byte 0xDF: normal entry, 0xCF: entry spans two records
+#
+            if not header in [0xDF, 0xCF]:
+               raise capasmError("illegal input file")
+            i+=1
+#
+#           get length, if zero length then exit loop
+#
+            length=gloBytes[i]
+            if (length==0):
+               break
+            i+=1
+#
+#           extract bytes of entry
+#
+            d=bytearray(0)
+#
+#           if the entry spans two records, skip the header at the
+#           beginning of the second line
+#
+            for j in range (0,length):
+               d.append(gloBytes[i])
+               i+=1
+               if i % 256 == 0:
+                  i+=3
+#
+#           get type of symbol
+#
+            typ=gloBytes[i]
+#
+#           extract symbol name
+#
+            symName=""
+            ci=length-3
+            while d[ci]!=0:
+               symName+=chr(d[ci])
+               ci-=1
+#
+#           get symbol value
+#
+            symValue=d[-2]*256+d[-1]
+            d=None
+            outfile.write("{:8s} {:3s} {:o}\n".format(symName,tdict[typ],\
+              symValue))
+            i+=1
+            count+=1
+         outfile.close()
+      except OSError:
+         raise capasmError("cannot write to output file")
+      print("{:d} symbols generated in file {:s}".format(count,outputFileName))
+      return False
+#
 #
 # SymCassGenerator class -------------------------------------------------
 #
@@ -95,36 +341,44 @@ class clsSymClassGenerator(object):
 #
    def generate(self,inputFileName,outputFileName,labelLen=8):
 
-      lineScanner=clsLineScanner("!","!","'"+'"')
+      lineScanner=clsLineScanner("!","!",'"')
       symDict= { }
       duplicates=0
       errors=0
       hasErrors=False
       print("")
       print("Processing file "+inputFileName)
-      infile=codecs.open(inputFileName,"r",encoding="ISO-8859-1",errors="ignore")
+      try: 
+         infile=codecs.open(inputFileName,"r",encoding="ISO-8859-1",\
+           errors="ignore")
+      except OSError:
+         raise capasmError("cannot open input file")
      
-      outfile=open(outputFileName,"w")
+      try: 
+         outfile=open(outputFileName,"w")
+      except OSError:
+         raise capasmError("cannot create output file")
 #
-#     Write global symbol class definition
+#        Write global symbol class definition
 #
-      outfile.write("#!/usr/bin/python3\n# -*- coding: utf-8 -*-\n")
-      outfile.write("#\n# Global symbols from file "+inputFileName+"\n")
-      outfile.write("# Autogenerated file, do not modify!\n")
-      outfile.write("#\n")
-      outfile.write("class globalSymbols():\n")
-      outfile.write("\n")
-      outfile.write("   symbols= {\n")
+      try:
+         outfile.write("#!/usr/bin/python3\n# -*- coding: utf-8 -*-\n")
+         outfile.write("#\n# Global symbols from file "+inputFileName+"\n")
+         outfile.write("# Autogenerated file, do not modify!\n")
+         outfile.write("#\n")
+         outfile.write("class globalSymbols():\n")
+         outfile.write("\n")
+         outfile.write("   symbols= {\n")
 #
-#     Process lines
+#        Process lines
 #
-      lineCount=0
-      while True:
-         line=infile.readline()
-         if not line:
-            break
-         line=line.strip("\r\n")
-         lineCount+=1
+         lineCount=0
+         while True:
+            line=infile.readline()
+            if not line:
+               break
+            line=line.strip("\r\n")
+            lineCount+=1
 #
 #        Scan line, we get a list of token:
 #        - lineNumber (from source code file, if any, ignored here)
@@ -132,89 +386,97 @@ class clsSymClassGenerator(object):
 #        - opcode
 #        - list of operands which should consist only of the symbol value 
 #
-         scannedLine=lineScanner.scanLine(line)
-         lineNumber=str(lineCount)
+            scannedLine=lineScanner.scanLine(line)
+            lineNumber=str(lineCount)
 #
 #        Empty line
 #
-         if scannedLine[1]==None:
-            continue
+            if scannedLine[1]==None:
+               continue
 #
 #        Comment
 #
-         symbolName=scannedLine[1].string
-         if symbolName[0]=="*" or symbolName=="!":
-            continue
+            symbolName=scannedLine[1].string
+            if symbolName[0]=="*" or symbolName=="!":
+               continue
 #
 #        Check symbol name
 #
-         if parseFunc.parseLabel(symbolName,labelLen) is None:
-            print("illegal symbols at line: ",lineNumber)
-            errors+=1
-            continue
+            if parseFunc.parseLabel(symbolName,labelLen) is None:
+               print("Line: "+lineNumber+": "+line)
+               print("illegal symbol")
+               errors+=1
+               continue
 #
 #        Check opcode, only "EQU" and "DAD" are allowed
 #
-         if scannedLine[2] is None:
-            print("missing opcode at line: ",lineNumber)
-            errors+=1
-            continue
-         opCode= scannedLine[2].string
-         if opCode== "EQU":
-            opTyp=clsSymClassGenerator.SYM_EQU
-         elif opCode == "DAD":
-            opTyp=clsSymClassGenerator.SYM_DAD
-         else:
-            print("illegal opcode at line: ",lineNumber)
-            errors+=1
-            continue
+            if scannedLine[2] is None:
+               print("Line: "+lineNumber+": "+line)
+               print("missing opcode")
+               errors+=1
+               continue
+            opCode= scannedLine[2].string
+            if opCode== "EQU":
+               opTyp=clsSymClassGenerator.SYM_EQU
+            elif opCode == "DAD":
+               opTyp=clsSymClassGenerator.SYM_DAD
+            else:
+               print("Line: "+lineNumber+": "+line)
+               print("illegal opcode")
+               errors+=1
+               continue
 #
 #        Check value which must be a valid number
 #
-         if len(scannedLine[3])!=1:
-            print("illegal label value at line: ",lineNumber)
-            errors+=1
-            continue
-         value=scannedLine[3][0].string
-         intValue=parseFunc.parseNumber(value)
-         if intValue==None:
-            print("illegal label value at line: ",lineNumber)
-            errors+=1
-            continue
-         if intValue > 0xFFFF:
-            print("illegal label value at line: ",lineNumber)
-            errors+=1
-            continue
+            if len(scannedLine[3])!=1:
+               print("Line: "+lineNumber+": "+line)
+               print("illegal label value")
+               errors+=1
+               continue
+            value=scannedLine[3][0].string
+            intValue=parseFunc.parseNumber(value)
+            if intValue==None:
+               print("Line: "+lineNumber+": "+line)
+               print("illegal label value")
+               errors+=1
+               continue
+            if intValue > 0xFFFF:
+               print("Line: "+lineNumber+": "+line)
+               print("illegal label value")
+               errors+=1
+               continue
 #
 #        Check and print duplicates
 #
-         if symbolName in symDict.keys():
-            print("Line: "+lineNumber+": "+line)
-            ret=symDict[symbolName]
-            print("symbol redefined, first definition was at line: "+ \
+            if symbolName in symDict.keys():
+               print("Line: "+lineNumber+": "+line)
+               ret=symDict[symbolName]
+               print("symbol redefined, first definition was at line: "+ \
                   ret[0]+" opcode: "+ret[1]+" value: "+ret[2])
-            outfile.write('      "'+symbolName+'" : ['+str(opTyp)+ \
+               outfile.write('      "'+symbolName+'" : ['+str(opTyp)+ \
                     ","+str(intValue)+"],\n")
-            duplicates+=1
-         else:
-            symDict[symbolName]=[lineNumber,opCode,value]
-            outfile.write('      "'+symbolName+'" : ['+str(opTyp)+ \
-                    ","+str(intValue)+"],\n")
+               duplicates+=1
+            else:
+               symDict[symbolName]=[lineNumber,opCode,value]
+               outfile.write('      "'+symbolName+'" : ['+str(opTyp)+ \
+                       ","+str(intValue)+"],\n")
 #
 #     All input line processed, write access method
 #
-      infile.close()
-      outfile.write("   }\n")
-      outfile.write("   @staticmethod\n")
-      outfile.write("   def get(name):\n")
-      outfile.write("      if name[0]=='=':\n")
-      outfile.write("         name=name[1:]\n")
-      outfile.write("      if name in globalSymbols.symbols.keys():\n")
-      outfile.write("         return globalSymbols.symbols[name]\n")
-      outfile.write("      else:\n")
-      outfile.write("         return None\n")
-      outfile.write("\n")
-      outfile.close()
+         infile.close()
+         outfile.write("   }\n")
+         outfile.write("   @staticmethod\n")
+         outfile.write("   def get(name):\n")
+         outfile.write("      if name[0]=='=':\n")
+         outfile.write("         name=name[1:]\n")
+         outfile.write("      if name in globalSymbols.symbols.keys():\n")
+         outfile.write("         return globalSymbols.symbols[name]\n")
+         outfile.write("      else:\n")
+         outfile.write("         return None\n")
+         outfile.write("\n")
+         outfile.close()
+      except OSError:
+         raise capasmError("I/O Error while converting global symbols file")
       print("Errors {:d}, duplicate entries {:d} ".format(errors,duplicates))
 #
 #     return error condition
@@ -878,4 +1140,35 @@ def caprom():         # pragma: no cover
       print(e.msg+" -- program terminated")
       sys.exit(1)
 #
+# entry point capconv -------------------------------------------------------
+# convert a binary Series 80 global symbols file to an ascii file with
+# DAD or EQU symbol definitions
+#
+def capconv():         # pragma: no cover
 
+   p=argparse.ArgumentParser(description=\
+   "Utility to convert binary HP-85/HP-87/HP-75 symbol files to ascii files",\
+   epilog="See https://github.com/bug400/capasm for details. "+CAPASM_VERSION)
+   p.add_argument('inputfiles',nargs='+',help="list of gobal symbol assembler files (one argument required)")
+   p.add_argument("-t","--type",required=True,help="what to convert", \
+      choices=["asm","glo"])
+   args=p.parse_args()
+
+   if args.type=="glo":
+      conv=clsSymbolFileConverter()
+      suffix=".glo"
+   else:
+      conv=clsAsmSourceFileConverter()
+      suffix=".asm"
+   hasErrors=False
+   for inputFileName in args.inputfiles:
+      outputFileName=Path(inputFileName).with_suffix(suffix).name
+      try:
+         hasErrors!=conv.convert(inputFileName,outputFileName)
+      except capasmError as e:
+         print(e.msg+" -- program terminated")
+         hasErrors=True
+         break
+   if hasErrors: 
+     sys.exit(1)
+#

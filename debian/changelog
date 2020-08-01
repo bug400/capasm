@@ -1,3 +1,14 @@
+capasm (0.9.8) bionic; urgency=medium
+
+  * added support for ASP/ASP statements with numeric length qualifiers
+  * removed "'" as alternate string delimiter 
+  * removed -m option, added -q option and enhanced global symbols capabilities
+  * allow more special characters in symbol names
+  * refactoring
+  * added capconv tool
+
+ -- bionic <achim@trillian>  Thu, 23 Jul 2020 17:16:08 +0200
+
 capasm (0.9.7) bionic; urgency=medium
 
   * added HP-75 rom support to caprom

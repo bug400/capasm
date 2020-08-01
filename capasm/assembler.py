@@ -59,14 +59,26 @@
 # - literal data list error fixes
 # - support non octal numbers for registers
 # - support LOC and HED statements
+# 23.07.2020 jsi
+# - development version 0.9.8
+# - support for ASC/ASP statements with numeric length qualifiers
+# - removed "'" as alternate string delimiter
+# - do not issue page break triggered by "HED" if there is no list file
+# 27.07.2020 jsi
+# - removed "-m" option
+# - added "-g" option and enhanced global symbols capabilities
+# 31.07.2020 jsi
+# - refactoring
+# - allow more special characters in symbols
 
 import argparse,sys,os,datetime,importlib,re
+import importlib.util
 from pathlib import Path
 #
 # Program Constants -----------------------------------------------------
 #
-CAPASM_VERSION="Version 0.9.7"
-CAPASM_VERSION_DATE="July 2020"
+CAPASM_VERSION="Version 0.9.8"
+CAPASM_VERSION_DATE="August 2020"
 #
 # CAPASM custom exception -----------------------------------------------
 # The assembler raises this exception, if a fatal error occurred
@@ -269,11 +281,13 @@ class OPCODES(object):
    "FIN"  : ["pFin","gNil",0,0,0],
    "LST"  : ["pNil","gNil",0,0,0],
    "UNL"  : ["pNil","gNil",0,0,0],
-   "ASC"   : ["pAsc","gData",0,1,1],
-   "ASP"   : ["pAsc","gData",0,1,1],
+   "GLO"  : ["pNil","gNil",0,1,1],
+   "ASC"   : ["pAsc","gData",0,1,256],
+   "ASP"   : ["pAsc","gData",0,1,256],
    "NAM"   : ["pNam","gNam",0,1,2],
    "BSZ"   : ["pBsz","gGenZ",0,1,1],
    "BYT"   : ["pByt","gData",0,1,256],
+   "OCT"   : ["pByt","gData",0,1,256],
    "DAD"   : ["pEqu","gNil",0,1,1],
    "DEF"   : ["pDef","gDef",0,1,1],
    "EQU"   : ["pEqu","gNil",0,1,1],
@@ -326,7 +340,6 @@ class ERROR(object):
    E_ILL_LITERALLENGTH=21
    E_RHASH_LITERAL=22
    E_MISSING_LABEL=23
-   E_UNSUPPORTED=24
    E_FLAGNOTDEFINED=25
    E_AIFEIFMISMATCH=26
    E_ILLFLAGNAME=27
@@ -359,7 +372,6 @@ class ERROR(object):
       E_ILL_LITERALLENGTH: "Illegal byte length of literal operand",
       E_RHASH_LITERAL: "Dangerous R#, cannot check section boundary",
       E_MISSING_LABEL: "Missing label in label field",
-      E_UNSUPPORTED: "Not supported for this machine",
       E_FLAGNOTDEFINED: "Flag not defined",
       E_AIFEIFMISMATCH: "AIF/EIF mismatch",
       E_ILLFLAGNAME: "Illegal flag name",
@@ -389,7 +401,7 @@ class parseFunc(object):
 #
    @staticmethod
    def parseQuotedString(string):
-      if string[0] != "'" and string[0] != '"':
+      if string[0] != '"':
          return None
       if string[0]!=string[-1]:
          return None
@@ -401,7 +413,7 @@ class parseFunc(object):
 #
    @staticmethod 
    def parseAnyString(string):
-      if string[0]=="'" or string[0]=='"':
+      if string[0]=='"':
          return parseFunc.parseQuotedString(string)
       else:
          return string
@@ -410,8 +422,10 @@ class parseFunc(object):
 #
    @staticmethod
    def parseLabel(string,length):
-      match=re.fullmatch("[A-Za-z][A-Za-z0-9_$\+\-\.#/?\(\!\&)=:<>\|@*%^]{0,"+\
-           str(length)+"}",string)
+# ???
+#     match=re.fullmatch("[A-Za-z][A-Za-z0-9_$\+\-\.#/?\(\!\&)=:<>\|@*%^'"+'"'+"]{0,"+\
+#          str(length)+"}",string)
+      match=re.fullmatch("[^0-9][^ \t\n\r\f\v]{0,"+str(length)+"}",string)
       if match:
          return string
       else:
@@ -509,17 +523,39 @@ class clsSymDict(object):
 #
    LN_GLOBAL= None
 
-   def __init__(self,machine,extendedChecks):
+   def __init__(self,extendedChecks,globalSymbolFile):
       super().__init__()
       
       self.__extendedChecks__=extendedChecks
       self.__symbols__= { }
 #
-#  Load global symbols for the selected machine
+#  Load global symbols 
 #
-      globalModuleName=".globals"+machine
-      self.__globalSyms__=importlib.import_module(globalModuleName, \
+      if globalSymbolFile in ["85","87","75","none"]:
+         globalModuleName=".globals"+globalSymbolFile
+         try:
+            self.__globalSyms__=importlib.import_module(globalModuleName, \
                               package='capasm')
+         except :
+            ERROR.fatalError("Invalid global symbol file")
+      else:
+         globalSymbolFilePath=Path(globalSymbolFile)
+         suffix=globalSymbolFilePath.suffix.upper()
+         if suffix != ".PY":
+            ERROR.fatalError(\
+               "global symbol file does not have a .py suffix")
+         if not os.access(globalSymbolFile,os.R_OK):
+            ERROR.fatalError(\
+               "cannot open or read global symbol file")
+         try:
+            spec=importlib.util.spec_from_file_location(".globals",\
+               globalSymbolFile)
+            self.__globalSyms__=importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.__globalSyms__)
+         except :
+            ERROR.fatalError("Invalid global symbol file")
+         
+              
 #
 #  Enter new symbol, we have to check for duplicates in the global symbol
 #  dictionary and this dictionary as well. Returns None if we have no
@@ -642,7 +678,6 @@ class clsGlobVar(object):
       self.useHex=False              # output hex instead of oct
       self.symDict=None              # Symbol dictionary
       self.errorCount=0              # Error counter
-      self.machine= "85"             # machine type
       self.sourceFileDirectory=""    # directory of source file if specified
       self.condAssembly= None        # conditional assembly object
       self.symDict= None             # global symbol dictionary object
@@ -852,6 +887,9 @@ class clsParsedOperand(object):
 
    def __repr__(self): # pragma: no cover
       return("clsParsedOperand (generic)")
+
+   def isInvalid(self):
+      return self.typ==clsParsedOperand.OP_INVALID
 #
 #  Invalid operand, operand that had issues during parsing
 #
@@ -991,11 +1029,10 @@ class clsParser(object):
 #
 #  Initialize parser
 #
-   def __init__(self,globVar,infile,labelMatchRule):
+   def __init__(self,globVar,infile):
       super().__init__()
       self.__globVar__= globVar
       self.__infile__= infile
-      self.__labelMatchRule__= labelMatchRule
       return
 #
 #  check if a scanned opcode is single- or multibyte
@@ -1093,7 +1130,7 @@ class clsParser(object):
 #
    def parseDr(self):
       dRegister=self.parseRegister(self.__scannedOperand__[0],False,False)
-      if dRegister.typ != clsParsedOperand.OP_INVALID:
+      if not dRegister.isInvalid():
          if dRegister.registerNumber!= clsParsedRegister.R_HASH and \
                self.__globVar__.drpReg!= dRegister.registerNumber:
             self.__needsDrp__= dRegister.registerNumber
@@ -1107,7 +1144,7 @@ class clsParser(object):
    def parseAr(self,signRequired=False):
       aRegister=self.parseRegister(self.__scannedOperand__[1],signRequired,\
          False)
-      if aRegister.typ!= clsParsedOperand.OP_INVALID:
+      if not aRegister.isInvalid():
          if aRegister.registerNumber!= clsParsedRegister.R_HASH  \
             and self.__globVar__.arpReg!= aRegister.registerNumber:
             self.__needsArp__= aRegister.registerNumber
@@ -1120,7 +1157,7 @@ class clsParser(object):
    def parseXr(self,index):
       xRegister=self.parseRegister(self.__scannedOperand__[index],False,\
                  False)
-      if xRegister.typ != clsParsedOperand.OP_INVALID:
+      if not xRegister.isInvalid():
          if xRegister.registerTyp != "X":
             xRegister.typ= clsParsedOperand.OP_INVALID
             self.addError(ERROR.E_XREGEXPECTED)
@@ -1133,15 +1170,17 @@ class clsParser(object):
 #
 #  Parse label as operand
 #
-   def parseLabelOp(self,opIndex):
+   def parseLabelOp(self,opIndex,size=2):
       label=self.__scannedOperand__[opIndex].string
+      if self.__scannedOperand__[opIndex].termChar == ",":
+         label+=","
       if label[0]=="=":
          label=label[1:]
       if parseFunc.parseLabel(label,self.__globVar__.symNamLen) is None:
          self.addError(ERROR.E_ILL_LABELOP)
          return clsInvalidOperand()
       else:
-         return clsParsedLabel(label)
+         return clsParsedLabel(label,size)
 #
 #  Parse literal data lists
 #
@@ -1153,6 +1192,7 @@ class clsParser(object):
 #
       for opIndex in range(1,len(self.__scannedOperand__)):
          opString= self.__scannedOperand__[opIndex].string
+        
 #
 #        first operand, remove "="
 #
@@ -1167,7 +1207,6 @@ class clsParser(object):
 #       check, if we have a label
 #
             if not opString[0] in "0123456789":
-               label=opString
 #
 #        no more operands are allowed
 #
@@ -1175,13 +1214,13 @@ class clsParser(object):
                   self.addError(ERROR.E_ILL_NUMOPERANDS)
                   return opLen,parsedOp
 #
-#        check, if we have to truncate the label value
+#        check, if we have to truncate the label value FIX
 #
                if numberOfBytesToStore==1:
-                  parsedOp.append(clsParsedLabel(label,1))
+                  parsedOp.append(self.parseLabelOp(opIndex,1))
                   opLen+=1
                else:
-                  parsedOp.append(clsParsedLabel(label,2))
+                  parsedOp.append(self.parseLabelOp(opIndex,2))
                   opLen+=2
 #
 #       exit, if label
@@ -1236,17 +1275,18 @@ class clsParser(object):
               self.__globVar__.sourceFileDirectory)
 
 #
-#  Parse the conditinal assembly pseudo ops
+#  Parse the conditinal assembly pseudo ops FIX
 #
    def pCond(self):
       cond=self.__globVar__.condAssembly
       opcode=self.__scannedOpcode__.string
       if len(self.__scannedOperand__)==1:
-         name=parseFunc.parseLabel(self.__scannedOperand__[0].string, \
-            self.__globVar__.symNamLen)
-         if name is None:
-            self.addError(ERROR.E_ILLFLAGNAME)
-            return
+        pLabel=self.parseLabelOp(0)
+        if pLabel.isInvalid():
+           self.addError(ERROR.E_ILLFLAGNAME)
+           return
+        else:
+           name=pLabel.label
       if opcode== "SET":
          cond.set(name)
       elif opcode== "CLR":
@@ -1362,20 +1402,42 @@ class clsParser(object):
       return []
 
 #
-#  Parse ASP, ASC 
+#  Parse ASP, ASC
 #
    def pAsc(self):
       pOperand=[]
-      string=parseFunc.parseQuotedString(self.__scannedOperand__[0].string)
-      if string is None:
-         self.addError(ERROR.E_ILLSTRING)
-         return pOperand
+#
+#     check, if we have a number as first operand
+#
+      firstOperand=self.__scannedOperand__[0]
+      if firstOperand.string[0] in "0123456789":
+         numChars=parseFunc.parseNumber(firstOperand.string)
+         if numChars is None:
+            self.addError(ERROR.E_ILLNUMBER)
+            return pOperand
+#
+#        search for the comma
+#
+         if firstOperand.termChar!=",":
+            self.addError(ERROR.ILLSTRING)
+            return pOperand
+         strIndex=self.__line__.find(",",firstOperand.position+
+            len(firstOperand.string))+1
+         string=self.__line__[strIndex:strIndex+numChars]
+         if len(string)!= numChars:
+            self.addError(ERROR.E_ILLSTRING)
+            return pOperand
+      else:
+         string=parseFunc.parseQuotedString(firstOperand.string)
+         if string is None:
+            self.addError(ERROR.E_ILLSTRING)
+            return pOperand
       i=0
       err=False
       for c in string:
          i+=1
          n=ord(c)
-         if n > 0o177:
+         if n > 0o174 or n == 0o173 or n < 0o40 :
            err=True
            n=0
          if i==len(string) and self.__scannedOpcode__.string=="ASP":
@@ -1469,10 +1531,6 @@ class clsParser(object):
 #
 #     throw error if HP-75
 #
-      if self.__globVar__.machine=="75":
-         self.addError(ERROR.E_UNSUPPORTED)
-         self.__opcodeLen__=0
-         return pOperand
       if self.__globVar__.hasNam:
             self.addError(ERROR.E_NOTALLOWED_HERE)
             return pOperand
@@ -1506,8 +1564,10 @@ class clsParser(object):
 #     decode and check program name
 #      
       progName= self.__scannedOperand__[pnIndex].string
-      match=re.fullmatch("[A-Z][A-Z0-9_$&]{1,6}",progName)
-      if not match or len(progName)>allowedLen  :
+# ????
+#     match=re.fullmatch("[A-Z][A-Z0-9_$&]{1,6}",progName)
+#     if not match or len(progName)>allowedLen  :
+      if len(progName) >allowedLen  :
          self.addError(ERROR.E_ILL_PROGNAME)
          return pOperand
 
@@ -1577,7 +1637,7 @@ class clsParser(object):
 #     parse AR (signed!)
 #
       aRegister=self.parseAr(True)
-      if aRegister.typ != clsParsedOperand.OP_INVALID:
+      if not aRegister.isInvalid():
          if aRegister.registerSign=="+":
             self.__addressMode__= clsParserInfo.STACK_INCREMENT
          else:
@@ -1597,7 +1657,7 @@ class clsParser(object):
 #     bytes to store for literals or labels
 #
       dRegister=self.parseDr()
-      if dRegister.typ== clsParsedOperand.OP_INVALID:
+      if dRegister.isInvalid():
          self.__opcodeLen__=1
          return [dRegister]
 #
@@ -1658,7 +1718,7 @@ class clsParser(object):
 #     bytes to store for literals or labels
 #
       dRegister=self.parseDr()
-      if dRegister.typ== clsParsedOperand.OP_INVALID:
+      if dRegister.isInvalid():
          self.__opcodeLen__=1
          return [dRegister]
 #
@@ -1753,7 +1813,7 @@ class clsParser(object):
       self.__opcodeLen__=1
       dRegister=self.parseDr()
       aRegister=self.parseAr()
-      if dRegister.typ== clsParsedOperand.OP_INVALID or aRegister.typ== clsParsedOperand.OP_INVALID:
+      if dRegister.isInvalid() or aRegister.isInvalid():
          self.__opcodeLen__=1
       return [dRegister,aRegister]
 #
@@ -1772,7 +1832,7 @@ class clsParser(object):
    def p1reg(self):
       self.__opcodeLen__=1
       dRegister=self.parseDr()
-      if dRegister.typ == clsParsedOperand.OP_INVALID:
+      if dRegister.isInvalid():
          self.__opcodeLen__=1
       return [dRegister]
 #
@@ -1781,7 +1841,7 @@ class clsParser(object):
    def pArp(self):
       dRegister=self.parseRegister(self.__scannedOperand__[0],False,True)
       self.__opcodeLen__=1
-      if dRegister.typ!= clsParsedOperand.OP_INVALID:
+      if not dRegister.isInvalid():
          self.__globVar__.arpReg= dRegister.registerNumber
 #        if dRegister.registerTyp=="!":
 #           self.__opcodeLen__=0
@@ -1792,7 +1852,7 @@ class clsParser(object):
    def pDrp(self):
       dRegister=self.parseRegister(self.__scannedOperand__[0],False,True)
       self.__opcodeLen__=1
-      if dRegister.typ != clsParsedOperand.OP_INVALID:
+      if not dRegister.isInvalid():
          self.__globVar__.drpReg= dRegister.registerNumber
 #        if dRegister.registerTyp=="!":
 #           self.__opcodeLen__=0
@@ -2215,7 +2275,7 @@ class clsCodeGenerator(object):
 #     if self.__opcodeLen__==0:
 #        return
       code=self.__opcodeInfo__[2]
-      if self.__parsedOperand__[0].typ!= clsParsedOperand.OP_INVALID:
+      if not self.__parsedOperand__[0].isInvalid():
          code|=self.__parsedOperand__[0].registerNumber
       self.__code__.append(code)
       self.__bytesToGenerate__-=1
@@ -2517,7 +2577,8 @@ class clsListWriter(object):
 #
 #     check if we have a page break
 #
-      if self.__totalLines__ > 0 and self.__globVar__.doPageBreak:
+      if self.__totalLines__ > 0 and self.__globVar__.doPageBreak and \
+         not self.__noList__:
          self.__lineCount__= self.__maxLines__
       self.__globVar__.doPageBreak= False       
       self.__totalLines__+=1
@@ -2793,8 +2854,9 @@ class clsAssembler(object):
 #  Raises capasmError on I/O error
 #     
    def assemble(self,sourceFileName,binFileName="",listFileName="", \
-       referenceOpt=1, pageSize=66, pageWidth=80, machine="85", \
-       extendedChecks=False,  symNamLen=6,useHex=False):
+       referenceOpt=1, pageSize=66, pageWidth=80, \
+       extendedChecks=False,  symNamLen=6,useHex=False,
+       globalSymbolFile="none"):
 #
 #      initialize error condition
 #
@@ -2803,9 +2865,9 @@ class clsAssembler(object):
 #      Create global variables data object
 #
        self.__globVar__=clsGlobVar()
-       self.__globVar__.machine=machine
        self.__globVar__.useHex=useHex
        self.__sourceFileName__= sourceFileName
+       self.__globalSymbolFile__= globalSymbolFile
 #
 #      Build file name of object file if not specified
 #
@@ -2818,14 +2880,13 @@ class clsAssembler(object):
        self.__referenceOpt__= referenceOpt
        self.__pageSize__= pageSize
        self.__pageWidth__= pageWidth
-       self.__machine__= machine
        self.__extendedChecks__= extendedChecks
        self.__symNamLen__= symNamLen
 #
 #      Create symbol table object
 #
-       self.__globVar__.symDict=clsSymDict(self.__machine__, \
-              self.__extendedChecks__)
+       self.__globVar__.symDict=clsSymDict( self.__extendedChecks__, \
+            self.__globalSymbolFile__)
 #
 #      Create conditional assembly object
 #
@@ -2855,9 +2916,8 @@ class clsAssembler(object):
 #
        pass1Info=[]
        infile=clsSourceReader(self.__sourceFileName__)
-       lineScanner=clsLineScanner("!","!","'"+'"')
-       lineParser=clsParser(self.__globVar__,infile,\
-         "[A-Za-z][A-Za-z0-9_$\+\-\.#/?\(\!\&)=:<>\|@*^]")
+       lineScanner=clsLineScanner("!","!",'"')
+       lineParser=clsParser(self.__globVar__,infile)
 
        while not self.__globVar__.isFin:
           line=infile.read()
@@ -2955,7 +3015,6 @@ class argWidthCheck(argparse.Action): # pragma: no cover
 # assembler object and executes it with the parsed command line parameters
 #
 def capasm():             # pragma: no cover
-   global GLOBALMODULE
 #
 #  Command line arguments processing
 #
@@ -2971,6 +3030,8 @@ def capasm():             # pragma: no cover
       default="")
    argparser.add_argument("-l","--listfile",\
       help="list file (default: no list file)",default="")
+   argparser.add_argument("-g","--globalsymbolfile",\
+      help="global symbol file. Use either the built in symbol table names {\"85\",\"87\",\"75\",\"none\"} or specify a file name for a custom table (default: none)",default="none")
    argparser.add_argument("-r","--reference",type=int,default=1,\
       help="symbol reference 0:none, 1:short, 2:full (default:1)",\
       choices=[0,1,2])
@@ -2978,8 +3039,6 @@ def capasm():             # pragma: no cover
       help="lines per page (default: 66)",action=argPageSizeCheck)
    argparser.add_argument("-w","--width",type=int,default=80, \
       help="page width (default:80)",action=argWidthCheck)
-   argparser.add_argument("-m","--machine",choices=['75','85','87'], \
-      help="Machine type (default:85)",default='85')
    argparser.add_argument("-c","--check",help="activate additional checks", \
       action='store_true')
    argparser.add_argument("-x","--hex",help="use hex output", \
@@ -2996,10 +3055,11 @@ def capasm():             # pragma: no cover
       ret=capasm.assemble(args.sourcefile,listFileName=args.listfile,\
            binFileName=args.binfile, referenceOpt=args.reference, \
            pageSize=args.pagesize,pageWidth=args.width, \
-           machine=args.machine,extendedChecks=args.check, \
-           symNamLen=args.symnamelength,useHex=args.hex)
+           extendedChecks=args.check, \
+           symNamLen=args.symnamelength,useHex=args.hex,\
+           globalSymbolFile=args.globalsymbolfile)
    except capasmError as e:
-      print(e.msg+"-- Assembler terminated")
+      print(e.msg+" -- Assembler terminated")
       ret=True
    if ret:
       sys.exit(1)

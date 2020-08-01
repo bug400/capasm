@@ -14,7 +14,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.9.7',
+    version='0.9.8',
 
     description='Assembler for the HP capricorn CPU',
     long_description=long_description,
@@ -64,6 +64,7 @@ setup(
                             'caplex= capasm:caplex',
                             'capglo= capasm:capglo',
                             'caprom= capasm:caprom',
+                            'capconv= capasm:capconv',
                             'caplif= capasm:caplif' ] ,
     }
 )
