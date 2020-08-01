@@ -1,6 +1,17 @@
 ﻿CAPASM release notes
 ====================
 
+0.9.8 (Beta)
+------------
+
+ * added support for ASP/ASP statements with numeric length qualifiers
+ * removed "'" as alternate string delimiter
+ * removed -m option, added -q option and enhanced global symbols capabilities
+ * allow more special characters in symbol names
+ * refactoring
+ * added capconv tool
+
+
 0.9.7 (Beta)
 ------------
 

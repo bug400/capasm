@@ -8,13 +8,15 @@ Index
 * [Description](#description)
 * [Assembler instructions](#assembler-instructions)
 * [Installation](#installation)
-* [Basic use of the assembler](#basic-use-of-the-assembler)
+* [Assemble files](#assemble-files)
 * [Assembler command line parameters](#assembler-command-line-parameters)
-* [Basic use of the LIF image file creator](#basic-use-of-the-lif-image-file-creator)
+* [Create LIF image files for Series 80 computers](#create-lif-image-files-for-series80-computers)
+* [Create LIF images for the HP-75](#create-lif-images-for-the-hp-75)
 * [LIF image file creator command line parameters](#lif-image-file-creator-command-line-parameters)
-* [Create Upload LIF images for the HP-75](#create-upload-lif-images-for-the-hp-75)
-* [Add a LEX file header to assembled LEX files](#add-a-lex-file-header-to-assembled-lex-files)
+* [Add LEX file headers to assembled LEX files](#add-lex-file-headers-to-assembled-lex-files)
 * [Create ROM image files](#create-rom-image-files)
+* [Create custom global symbol tables](#create-custom-global-symbol-tables)
+* [Convert Series 80 Assembler files](#convert-series80-assembler-files)
 * [Known Issues](#known-issues)
 * [Release Notes](#release-notes)
 * [License](#license)
@@ -45,22 +47,23 @@ The *capasm* assembler instructions are as far as possible documented in section
 
 Restrictions to the HP-83/85 Assembler ROM language:
 
-* The use of special characters in symbol names is restricted to "$+-.#/?(!&)=:<>\|@\*%^"
-* The GLO pseudo opcode is not supported, use the *-m* option instead (see below).
-* The ABS 16 and ABS 32 pseudo ops of the HP-83/85 ROM Assemblerare not
+* The LST, UNL and GLO pseudo opcodes are ignored. Use the *-g* option to 
+  provide a global symbol table.
+* The ABS 16 and ABS 32 pseudo ops of the HP-83/85 ROM Assembler are not
   supported. Use *ABS nnnnn* to specify the address of an absoulte binary 
   program.
-* ASC and ASP only support quoted strings as arguments. Use either " or '
-  to quote a string. 
-* The pseudo opcodes LST and UNL are silently ignored.
+* The *capasm* software suite does not support the HP Series 80 character
+  set. Therefore all characters must be in the character code range
+  (0x20-0x7A, 0x7C).
 
 Extensions to the HP-83/85 Assembler ROM language:
 
 * The assembler provides built in symbol tables for the HP-85, HP-87 and
-  HP-75. The *-m* option specifies which table to use. This makes an
-  ORG pseudo op redundant. Default is to use the global symbol table for the 
-  HP-85.
-* If a program number is supplied in a NAM pseudo operation *capasm* generates a HP-87 program header.
+  HP-75. The *-g* option specifies which table to use. This makes an
+  ORG pseudo op redundant. Default is to use no symbol table. Combined with
+  the *capglo* tool you can use custom symbol tables as well.
+* If a program number is supplied in a NAM pseudo operation *capasm* 
+  generates a HP-87 program header.
 * A symbol cross reference listing which is activated with the *-r 2* option.
 * The maximum length of symbol names can be adjusted within the range from 
   6 to 12 characters.
@@ -71,9 +74,12 @@ Extensions to the HP-83/85 Assembler ROM language:
 * Line numbers in the assembler source file are optional.
 * The *-x* option outputs addresses and code as hex numbers
 * Non octal numbers are supported as register numbers
-* Binary (1001B or 1001b) and hexadecimal (01CH, 01Ch or 01C#) are supported. Note: hexadecimal numbers must always begin with a number!
-* Support for the HED and the LOC statement.
+* Binary (1001B or 1001b) and hexadecimal (01CH, 01Ch or 01C#) are 
+  supported. Note: hexadecimal numbers must always begin with a number!
+* Support for the OCT, HED and the LOC statement.
 * Support for empty literal data lists, e.g. LDM R40,=
+
+The following pseudo opcodes are supported:
 
 HED 'Quoted String'<br />
 This pseudo opcode forces a form feed. The quoted string is printed in the header of the page except for the first page.
@@ -88,8 +94,8 @@ Installation
 See the [Installation Instructions](https://github.com/bug400/capasm/blob/master/INSTALL.md) for details.
 
 
-Basic use of the assembler
---------------------------
+Assemble files
+--------------
 
 The *lex85* subdirectory of this repository contains the sample HP-85 LEX file ftoc.asm from the HP-83/85 Assembler ROM manual. To assemble this file type:
 
@@ -118,8 +124,9 @@ You get a description of the command line parameters if you type:
         capasm -h
 
 ```
-Usage: capasm [-h] [-b BINFILE] [-l LISTFILE] [-r {0,1,2}] [-p PAGESIZE]
-              [-w WIDTH] [-m {75,85,87}] [-c] [-x] [-s {6,7,8,9,10,11,12}]
+usage: capasm [-h] [-b BINFILE] [-l LISTFILE] [-g GLOBALSYMBOLFILE]
+              [-r {0,1,2}] [-p PAGESIZE] [-w WIDTH] [-c] [-x]
+              [-s {6,7,8,9,10,11,12}]
               sourcefile
 
 An assembler for the Hewlett Packard Capricorn CPU (Series 80 and HP-75)
@@ -130,18 +137,20 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -b BINFILE, --binfile BINFILE
-                        binary object code file (default: sourcefilename with 
+                        binary object code file (default: sourcefilename with
                         suffix .bin)
   -l LISTFILE, --listfile LISTFILE
                         list file (default: no list file)
+  -g GLOBALSYMBOLFILE, --globalsymbolfile GLOBALSYMBOLFILE
+                        global symbol file. Use either the built in symbol
+                        table names {"85","87","75","none"} or specify a file
+                        name for a custom table (default: none)
   -r {0,1,2}, --reference {0,1,2}
                         symbol reference 0:none, 1:short, 2:full
   -p PAGESIZE, --pagesize PAGESIZE
                         lines per page (default:66)
   -w WIDTH, --width WIDTH
                         page width (default:80)
-  -m {75,85,87}, --machine {75,85,87}
-                        Machine type (default:85)
   -c, --check           activate additional checks
   -x, --hex             use hex output
   -s {6,7,8,9,10,11,12}, --symnamelength {6,7,8,9,10}
@@ -150,7 +159,17 @@ optional arguments:
 See https://github.com/bug400/capasm for details
 ```
 
-*capasm* provides built in repositories of the global symbols for the HP-83/85, HP86/87 or HP-75 computers. The required repository is selected with the *-m* parameter.
+*capasm* provides built in global symbol tables for the HP-83/85, HP86/87 
+or HP-75 computers. The required symbol table is selected with the *-g* 
+option. The naming of these tables is:
+
+- 85  : symbol table for the HP-83/85
+- 87  : symbol table for the HP-86/87
+- 75  : symbol table for the HP-75
+- none: use no symbol table (this is the default)
+
+Alternatively you can provide the file path of a global symbol table which must be created with the *capglo* utility (see below). The file must have
+the extension ".py".
 
 You can enable additional checks with the *-c* option to let the assembler recognize the following issues as an error:
 
@@ -159,8 +178,8 @@ You can enable additional checks with the *-c* option to let the assembler recog
   the drp is unknown, e.g.: `LABELA   ADM R#,1,2,3,4`
 
 
-Basic use of the LIF image file creator
----------------------------------------
+Create LIF image files for Series 80 computers
+----------------------------------------------
 
 To store the assembled LEX file *ftoc.bin* in an Upload LIF image file type:
 
@@ -189,8 +208,18 @@ For the LIF directory entries the following rules apply:
 
 * the maximum length is 8 charaters
 * the file name must begin with a character
-* the remaining characters must be letters, digits or underscores - underscores
-   are allowed for the Series 80 only!
+* the remaining characters must be letters, digits or underscores - 
+  underscores are allowed for the Series 80 only!
+
+
+Create LIF images for the HP-75
+-------------------------------
+
+Upload LIF images for the HP-75 are created in the same manner as for the Series 80 computers. However, the command line parameter *-m 75* is required for *capasm* and *caplif*.
+
+*caplif* adds a HP-75 RAM file header to the assembled LEX file and stores it 
+in the filesystem of the Upload LIF image with the file type 0xE089 (HP75 LEX file). The default file name in the directory entry is the name of the binary object file without suffix. This Upload LIF image file has
+a standard volume header and can be used with the [EMU-75 Emulator](http://www.jeffcalc.hp41.eu/emu71/index.html) of J-F Garnier.
 
 
 LIF image file creator command line parameters
@@ -223,30 +252,52 @@ See https://github.com/bug400/capasm for details.
 ```
 
 
-Create Upload LIF images for the HP-75
---------------------------------------
-
-Upload LIF images for the HP-75 are created in the same manner as for the Series 80 computers. However, the command line parameter *-m 75* is required for *capasm* and *caplif*.
-
-*caplif* adds a HP-75 RAM file header to the assembled LEX file and stores it 
-in the filesystem of the Upload LIF image with the file type 0xE089 (HP75 LEX file). The default file name in the directory entry is the name of the binary object file without suffix. This Upload LIF image file has
-a standard volume header and can be used with the [EMU-75 Emulator](http://www.jeffcalc.hp41.eu/emu71/index.html) of J-F Garnier.
-
-
-Add a LEX file header to assembled LEX files
---------------------------------------------
+Add LEX file headers to assembled LEX files
+-------------------------------------------
 
 The *caplex* utility adds a LEX file header to an assembled Series 80 LEX file.
 If the *-m 75* parameter is specified, a HP-75 RAM file header and a
 LEX file header is put in front of the assembled lex file.
 The program operates the same way as the *caplif* utility.
 
+
 Create ROM image files
 ----------------------
 
-The *caprom* tool converts an assembled binary file to a ROM image. An appropriate ROM header must be present in the assembled binary file. The size of the ROM image file must be specified. *caprom* fills up the assembled binary file to the size of the ROM image and creates the appropriate checksum(s). This is supported for HP-83/85, HP-87 and HP-75 ROM image files. The ROM type is autodetected from the ROM header in the assembled binary file.
+The *caprom* tool converts an assembled binary file to a ROM image. An appropriate ROM header must be present in the assembled binary file. The size of the ROM image file must be specified. *caprom* fills up the assembled binary file to the size of the ROM image and creates the appropriate checksum(s). This is supported for HP-83/85, HP-87 and HP-75 ROM image files. The ROM type is determined from the ROM header in the assembled binary file.
 
 Use *caprom -h* for a description of parameters.
+
+
+Create custom global symbol tables
+----------------------------------
+
+A custom global symbol table is a text file which only has DAD or EQU definitions. The *capglo* utility converts this file into a global symbol table which can be fed to the assembler with the *-g* option.
+
+If you have a custom global symbol source file *myglobal.glo* then:
+
+        capglo myglobal.glo
+
+creates the global symbol table file *myglobal.py*. This file is a Python 
+file, therefore:
+
+* do not change the suffix *.py* of that file
+* do not edit the content of the file.
+
+To use this global symbol table to assemble the file *sample.asm* type:
+
+        capasm sample.asm -g myglobal.glo
+
+
+Convert Series 80 Assembler files
+---------------------------------
+
+The *capconv* utility can convert binary global symbol data files or 
+tokenized Series 80 assembler source files to text files. See 
+*capconv -h* for details how to invoke this tool. Note: Since the 
+*capasm* software suite does not support the Series 80 character set, 
+the result files must be revised if any characters exist in the file 
+which are not in the code range (0x20-0x7A, 0x7C).
 
 
 Known Issues
@@ -254,7 +305,7 @@ Known Issues
 
 The global symbol file for the HP-75 contains a couple of duplicate entries 
 (see the file *duplicateSymbols.txt* in the *symbols* directory).
-The *capasm* assembler only uses the *last* entry. There are also a couple of symbols which contain the "'" character. They cannot be used with *capasm* because this character is reserved as string delimiter.
+The *capasm* assembler only uses the *last* entry.
 
 
 Release Notes
