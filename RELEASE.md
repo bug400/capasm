@@ -6,9 +6,9 @@
 
  * added support for ASP/ASP statements with numeric length qualifiers
  * removed "'" as alternate string delimiter
- * removed -m option, added -q option and enhanced global symbols capabilities
+ * removed -m option, added -g option and enhanced global symbols capabilities
  * allow more special characters in symbol names
- * refactoring
+ * OCT pseudo op added
  * added capconv tool
 
 
