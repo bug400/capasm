@@ -51,7 +51,7 @@ import sys, argparse,os, codecs,re,contextlib
 from pathlib import Path
 from itertools import groupby
 from datetime import datetime
-from .assembler import clsLineScanner, parseFunc, capasmError, CAPASM_VERSION
+from .capcommon import capasmError, clsLineScanner, parseFunc, CAPASM_VERSION
 
 #
 # silently remove files, continue if they do not exist
@@ -308,7 +308,7 @@ class clsSymbolFileConverter(object):
 # SymCassGenerator class -------------------------------------------------
 #
 # An object of this class reads a global symbol file which must match
-# the syntax rules of the CAPASM assembler. Only comments, DEF and EQU
+# the syntax rules of the CAPASM assembler. Only comments, DAD (or ADDR) and EQU
 # statements are allowed in this file.
 #
 # The object generates a Python script which a static class "globalSymbols"
@@ -339,9 +339,18 @@ class clsSymClassGenerator(object):
 #     True: errors or duplicates
 #  Raises capasmError on i/o error
 #
-   def generate(self,inputFileName,outputFileName,labelLen=8):
+   def generate(self,inputFileName,outputFileName,labelLen=8,style="capasm"):
 
-      lineScanner=clsLineScanner("!","!",'"')
+      if style== "ncas":
+         labelLen=32
+         lineScanner=clsLineScanner("*",";","'`^"+'"')
+         parseFunc.DELIMITER="'"+'"'
+         parseFunc.LABELMATCHSTRING=\
+          "[A-Za-z][A-Za-z0-9_$\+\-\.#/?\(\!\&)=:<>\|@*^]{0,"
+      else:
+         lineScanner=clsLineScanner("!","!",'"')
+         parseFunc.DELIMITER='"'
+         parseFunc.LABELMATCHSTRING="[(^0-9)(\x20-\x7A|\|)][\x20-\x7A|\|]{0,"
       symDict= { }
       duplicates=0
       errors=0
@@ -418,7 +427,7 @@ class clsSymClassGenerator(object):
             opCode= scannedLine[2].string
             if opCode== "EQU":
                opTyp=clsSymClassGenerator.SYM_EQU
-            elif opCode == "DAD":
+            elif opCode == "DAD" or opCode == "ADDR":
                opTyp=clsSymClassGenerator.SYM_DAD
             else:
                print("Line: "+lineNumber+": "+line)
@@ -1100,14 +1109,17 @@ def capglo():         # pragma: no cover
    "Utility to convert global HP-85/HP-87/HP-75 symbol files for the capasm assembler",\
    epilog="See https://github.com/bug400/capasm for details. "+CAPASM_VERSION)
    p.add_argument('inputfiles',nargs='+',help="list of gobal symbol assembler files (one argument required)")
+   p.add_argument("-s","--style",help="Source style (capasm/ncas), default=capasm",default="capasm",choices=["capasm","ncas"])
    args=p.parse_args()
 
    gen=clsSymClassGenerator()
    hasErrors=False
+   labelLen=6
+   style=args.style
    for inputFileName in args.inputfiles:
       outputFileName=Path(inputFileName).with_suffix(".py").name
       try:
-         hasErrors!=gen.generate(inputFileName,outputFileName)
+         hasErrors!=gen.generate(inputFileName,outputFileName,labelLen,style)
       except capasmError as e:
          print(e.msg+" -- program terminated")
          hasErrors=True

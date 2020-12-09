@@ -61,6 +61,7 @@ setup(
 #   },
     entry_points={
        'console_scripts': [ 'capasm= capasm:capasm',
+                            'ncas= capasm:ncas',
                             'caplex= capasm:caplex',
                             'capglo= capasm:capglo',
                             'caprom= capasm:caprom',

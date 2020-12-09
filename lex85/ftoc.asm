@@ -1,54 +1,60 @@
-        LST
-!****************************
-!*     FTOC BINARY          *
-!* (c) Hewlett-Packard Co.  *
-!*        1980              *
-!****************************
-!       GLO GLOBAL    this is not supported on CAPASM
-        NAM FTOC
-!****************************
-!System Tables:
-        DEF RUNTIM
-        DEF ASCIIS
-        DEF PARSE
-        DEF ERMSG
-        DEF INIT
-!****************************
-!Parse Routine Table
-PARSE   BYT 0,0
-!****************************
-!Runtime Routine
-RUNTIM  BYT 0,0
-        DEF FTOC.
-        BYT 377,377
-!****************************
-!ASCII Table
-ASCIIS  BSZ  0
-        ASP "FTOC"
-        BYT 377
-!****************************
-!Error Message Table
-ERMSG   BSZ 0
-        BYT 377
-!****************************
-!Initialization Routine:
-INIT    BSZ 0
-        RTN
-!****************************
-!Runtime Routines:
-        BYT 20,55            !Attributes for FTOC.
-FTOC.   BSZ 0                !Begin runtime routine.
-        BIN                  !Sets BIN mode for ONER routine.
-        JSB =ONER            !Load F into R40.
-        LDM R50,R40          !Move F into R50.
-        LDM R40,=1,0,0,0,0,0,0,32C !Load 32 into R40.
-        JSB =SUB10           !Perform subtraction.
-        POMD R70,-R12        !Throw away copy on stack.
-        LDM R50,=0,0,0,0,0,0,0,50C !Load 50 into R50
-        JSB =MPY10           !Perform multiplication.
-        POMD R70,-R12        !Throw away copy on stack.
-        LDM R50,R40          !Move intermediate result to R50
-        LDM R40,=0,0,0,0,0,0,0,90C !Load 90 into R40.
-        JSB =DIV10           !Perform division
-        RTN                  !Answer is on stack, so return
-        FIN
+1 !****************************
+2 !*      FTOC BINARY         *
+3 !* (c) Hewlett-Packard Co.  *
+4 !*          1980            *
+5 !****************************
+10        LST 
+20 !      GLO GLOBAL 
+30        NAM FTOC  
+40 !***************************
+50 !System Table:
+60        DEF RUNTIM
+70        DEF ASCIIS
+80        DEF PARSE 
+90        DEF ERMSG 
+100        DEF INIT  
+110 !***************************
+
+120 !Parse Routine Table:
+130 PARSE  BYT 0,0
+140 !***************************
+
+150 !Runtime Routine Table:
+160 RUNTIM BYT 0,0
+170        DEF FTOC. 
+180        BYT 377,377
+190 !**************************
+200 !ASCII Table:
+210 ASCIIS BSZ 0
+220        ASP "FTOC"
+230        BYT 377
+240 !**************************
+250 !Error Message Table:
+260 ERMSG  BSZ 0
+270        BYT 377
+280 !**************************
+290 !Initialization Routine:
+300 INIT   BSZ 0
+310        RTN 
+320 !**************************
+330 !Runtime Routines:
+340        BYT 20,55
+350 FTOC.  BSZ 0
+360        BIN 
+370        JSB =ONER  
+380        LDM R50,R40
+390        LDM R40,=1,0,0,0,0,0, 0,32C
+400        JSB =SUB10 
+410        POMD R70,-R12
+420        LDM R50,=0,0,0,0,0,0, 0,50C
+430        JSB =MPY10 
+440        POMD R70,-R12
+450        LDM R50,R40
+460        LDM R40,=0,0,0,0,0,0, 0,90C
+470        JSB =DIV10 
+480        RTN 
+490 ONER   DAD 56215
+500 SUB10  DAD 52137
+510 MPY10  DAD 52562
+520 DIV10  DAD 51644
+530        FIN 

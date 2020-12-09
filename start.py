@@ -12,12 +12,14 @@ import os
 PYTHON_REQUIRED_MAJOR=3
 PYTHON_REQUIRED_MINOR=6
 
-from capasm import capasm, caplif, caplex, capglo, caprom
+from capasm import capasm, caplif, caplex, capglo, caprom, capconv, ncas
 entryPointDict= { "capasm": capasm,
                   "caplex": caplex,
                   "caplif": caplif,
                   "capglo": capglo,
                   "caprom": caprom,
+                  "capconv":capconv,
+                  "ncas": ncas,
                 }
 def usage():
    print("Usage:")
@@ -46,7 +48,8 @@ else:
    progName=sys.argv[1]
 #  del sys.argv[1]
    sys.argv=sys.argv[1:]
-   try:
+#  try:
+   if True:
       entryPointDict[progName]()
-   except KeyError:
-      usage()
+#  except KeyError:
+#     usage()
