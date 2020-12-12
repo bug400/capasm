@@ -26,6 +26,23 @@
 #
 import re,os,sys,importlib,datetime
 from pathlib import Path
+
+def get_methods(object, spacing=20):
+  methodList = []
+  for method_name in dir(object):
+    try:
+        if callable(getattr(object, method_name)):
+            methodList.append(str(method_name))
+    except:
+        methodList.append(str(method_name))
+  processFunc = (lambda s: ' '.join(s.split())) or (lambda s: s)
+  for method in methodList:
+    try:
+        print(str(method.ljust(spacing)) + ' ' +
+              processFunc(str(getattr(object, method).__doc__)[0:90]))
+    except:
+        print(method.ljust(spacing) + ' ' + ' getattr() failed')
+
 #
 # Program Constants -----------------------------------------------------
 #
@@ -258,7 +275,7 @@ class parseFunc(object):
 #
 #  Basic Static class for the opcode dictionary ----------------------------------
 #
-class basicOPCODES(object):
+class OPCODES(object):
 
    NUM_OPERANDS_ANY=-1
 #
@@ -269,7 +286,7 @@ class basicOPCODES(object):
 #    - number of operand parameters min
 #    - number of operand parameters max
 #
-   basicOpcodeDict= {
+   __opcodeDict__= {
    "ARP" : ["pArp","gdarp",0o0,1,1,False,False],
    "DRP" : ["pDrp","gdarp",0o100,1,1,False,False],
    "ELB" : ["p1reg","gdirect",0o200,1,1,False,False],
@@ -358,6 +375,25 @@ class basicOPCODES(object):
    "JRZ"  : ["pJrel","gJrel",0o376,1,1,False,False],
    "JRN"  : ["pJrel","gJrel",0o377,1,1,False,False],
    }
+#
+#  extend the basic opcodes above with the assembler pseudo ops
+#
+   @classmethod
+   def extendDict(cls,extendedOpcodes):
+      OPCODES.__opcodeDict__.update(extendedOpcodes)
+#
+#  get opcode information
+#
+   @classmethod
+   def get(cls,opcode):
+      lookUp=opcode
+      if lookUp in OPCODES.__opcodeDict__.keys():
+         return OPCODES.__opcodeDict__[lookUp]
+      else:
+         return []
+
+
+
 
 #
 # Error Messages static class --------------------------------------------
@@ -1374,3 +1410,1527 @@ class clsParserInfo(object):
 
    def __repr__(self): # pragma: no cover
       return("clsParserInfo object:")
+#
+# Parsed Operand Data Class --------------------------------------------
+#
+# Note: the base class is used to indicate illegal operand items
+#
+class clsParsedOperand(object):
+#
+#  Parsed Operand Types
+#
+   OP_INVALID=0
+   OP_REGISTER=1
+   OP_LABEL=2
+   OP_NUMBER=3
+   OP_STRING=4
+   OP_EXPRESSION=5
+
+   def __init__(self,typ=OP_INVALID):
+      self.typ=typ
+      self.size=None
+
+   def __repr__(self): # pragma: no cover
+      return("clsParsedOperand (generic)")
+
+   def isInvalid(self):
+      return self.typ==clsParsedOperand.OP_INVALID
+#
+#  Invalid operand, operand that had issues during parsing
+#
+class clsInvalidOperand(clsParsedOperand):
+   
+   def __init__(self):
+      super().__init__(clsParsedOperand.OP_INVALID)
+
+   def __repr__(self): # pragma: no cover
+      return("clsParsedOperand (invalid)")
+#
+#  Parsed expression
+#
+class clsParsedExpression(clsParsedOperand): 
+
+   def __init__(self,bytecode,size):
+      super().__init__(clsParsedOperand.OP_EXPRESSION)
+      self.byteCode=bytecode
+      self.size=size
+
+   def __repr__(self): # pragma: no cover
+      return ("clsParsedOperand expression")
+#
+#  Valid number operand (syntax checked)
+#
+class clsParsedNumber(clsParsedOperand):
+   
+   def __init__(self,number,size=None):
+      super().__init__(clsParsedOperand.OP_NUMBER)
+      self.number=number
+      self.size=size
+
+   def __repr__(self): # pragma: no cover
+      return ("clsParsedNumber number= {:o}".format(self.number))
+#
+# Valid string operand (syntax checked)
+#
+class clsParsedString(clsParsedOperand):
+   
+   def __init__(self,string):
+      super().__init__(clsParsedOperand.OP_STRING)
+      self.string=string
+
+   def __repr__(self): # pragma: no cover
+      return ("clsParsedString string= {:s}".format(self.string))
+
+#
+#  Valid label operand (syntax checked) with optional size constraint
+#  for symbols in literal data lists
+#
+class clsParsedLabel(clsParsedOperand):
+
+   def __init__(self,label,size=None):
+      super().__init__(clsParsedOperand.OP_LABEL)
+      self.label=label
+      self.size=size
+
+   def __repr__(self): # pragma: no cover
+      return ("clsParsedLabel label= "+self.label+" "+str(self.size))
+#
+# Valid register operand (syntax checked)
+#
+class clsParsedRegister(clsParsedOperand):
+
+   R_HASH=-1
+   R_ILLEGAL=-2
+
+   def __init__(self,registerSign="", registerTyp="", registerNumber=R_ILLEGAL):
+      super().__init__(clsParsedOperand.OP_REGISTER)
+      self.registerSign=registerSign      # sign of the register "+", "-" or ""
+      self.registerTyp=registerTyp        # register typ "R" or "X" or "!"
+      self.registerNumber=registerNumber  # decimal register number
+                                          # a * results in register number 1
+                                          # a # results in register number
+                                          # R_HASH
+                                          # if the number is R_ILLEGAL then
+                                          # we have an invalid register
+
+   def __repr__(self): # pragma: no cover
+      return ("clsParsedRegister object '{:s}' {:s} '{:d}'".format(self.registerSign, self.registerTyp,self.registerNumber))
+
+
+#
+# Code Info Data class -------------------------------------------------
+#
+# An object of this class is returned by the code generator
+#
+class clsCodeInfo(object):
+   
+   def __init__(self,code, messages):
+      self.code= code         # list of generated code (bytes)
+      self.messages=messages  # list of error messages
+
+   def __repr__(self): # pragma: no cover
+      s="clsCodeInfo object code= "
+      for i in self.code:
+         s+="{:o} ".format(i)
+      return (s)
+
+
+#
+# Code Generator Base class --------------------------------------------
+#
+# Genertes code and returns an object of class clsCodeInfo
+#
+class clsCodeGeneratorBase(object):
+#
+#  Completion for load-/store- instruction templates according to address mode
+#
+   LOADSTORE_COMPLETION = {
+   clsParserInfo.AM_REGISTER_IMMEDIATE    : 0b00000,
+   clsParserInfo.AM_REGISTER_DIRECT       : 0b00100,
+   clsParserInfo.AM_REGISTER_INDIRECT     : 0b01100,
+   clsParserInfo.AM_LITERAL_IMMEDIATE     : 0b01000,
+   clsParserInfo.AM_LITERAL_DIRECT        : 0b10000,
+   clsParserInfo.AM_LITERAL_INDIRECT      : 0b11000,
+   clsParserInfo.AM_INDEX_DIRECT          : 0b10100,
+   clsParserInfo.AM_INDEX_INDIRECT        : 0b11100
+      
+   }
+#
+#  Completion for arithmetic instruction templates according to address mode
+#
+   ARI_COMPLETION = {
+   clsParserInfo.AM_REGISTER_IMMEDIATE    : 0b00000,
+   clsParserInfo.AM_REGISTER_DIRECT       : 0b11000,
+   clsParserInfo.AM_LITERAL_IMMEDIATE     : 0b01000,
+   clsParserInfo.AM_LITERAL_DIRECT        : 0b10000,
+   }
+#
+#  Completion for jsb instruction templates according to address mode
+#
+   JSB_COMPLETION = {
+   clsParserInfo.JS_LITERAL_DIRECT        : 0b01000,
+   clsParserInfo.JS_INDEXED               : 0b00000,
+   }
+#
+#  Completion for stack instruction templates according to address mode
+#
+   STACK_COMPLETION = {
+   clsParserInfo.STACK_INCREMENT          : 0b00000,
+   clsParserInfo.STACK_DECREMENT          : 0b00010,
+   }
+            
+   _methodDict_= { }
+#
+#  Initialize generator
+#
+   def __init__(self,globVar):
+      super().__init__()
+      self.__globVar__= globVar
+      return
+#
+#  Add error message to the code generator message list
+#
+   def addError(self,errno):
+      if isinstance(errno,list):
+         self.__messages__.extend(errno)
+         for e in errno:
+            if e  < 1000:
+               self.__globVar__.errorCount+=1
+            else:
+               self.__globVar__.warningCount+=1
+      else:
+         self.__messages__.append(errno)
+         if errno  < 1000:
+            self.__globVar__.errorCount+=1
+         else:
+            self.__globVar__.warningCount+=1
+      return
+#
+#  Generate GTO
+#
+   def gGto(self):
+      SymDict=self.__globVar__.symDict
+      defCode= [0]* self.__opcodeLen__
+      pLabel=self.__parsedOperand__[1]
+      if pLabel.typ != clsParsedOperand.OP_LABEL:
+         self.__code__.extend(defCode)
+         return
+      ret=SymDict.get(pLabel.label,self.__lineInfo__)
+      if ret==None:
+         self.addError(MESSAGE.E_SYMNOTFOUND)
+         self.__code__.extend(defCode)
+      else:
+#
+#        relative jump, only local labels which are not abs
+#
+         typ=ret[0]
+         value=ret[1]
+         if typ==clsSymDict.SYM_LCL and not self.__globVar__.hasAbs:
+            self.__code__.append(0o313)       # ADMD
+            offset= value -(self.__pc__+self.__opcodeLen__-1)
+            if offset < 0:
+               offset= 0xFFFF  + offset
+            self.__code__.extend([offset & 0xFF, (offset >>8)&0xFF])
+         else:
+#
+#        absolute jump
+#
+            value-=1
+            self.__code__.append(0o251)       # LDMD
+            self.__code__.extend([value & 0xFF, (value >>8)&0xFF])
+      return
+
+#
+#  Generate DEF,VAL
+#
+   def gDef(self):
+      SymDict=self.__globVar__.symDict
+      defCode= [0]* self.__opcodeLen__
+      pLabel=self.__parsedOperand__[0]
+      if pLabel.typ != clsParsedOperand.OP_LABEL:
+         self.__code__.extend(defCode)
+         return
+      ret=SymDict.get(pLabel.label,self.__lineInfo__)
+      if ret==None:
+         self.addError(MESSAGE.E_SYMNOTFOUND)
+         self.__code__.extend(defCode)
+      else:
+         if self.__opcodeLen__==1:
+            if ret[1] > 0xFF:
+               self.addError(MESSAGE.E_NUMBERTOOLARGE)
+               self.__code__.extend(defCode)
+            else:
+               self.__code__.append(ret[1])
+         else:
+            self.__code__.extend([ret[1] & 0xFF, ret[1] >>8])
+#
+#  Generate zeros
+#
+   def gGenZ(self):
+      for i in range(0,self.__opcodeLen__):
+         self.__code__.append(0)
+      return
+#
+#  Generate nothing
+
+   def gNil(self):
+      return
+#
+#  Generate Data, we have only parsed numbers
+#
+   def gData(self):
+      self.gOperands()
+      return
+#
+#  Generate relative jump instructions
+#
+   def gJrel(self):
+#
+#     exit if relative jump of an ELSE was removed due to code optimization
+#
+      if len(self.__parsedOperand__)==0:
+         return
+      SymDict=self.__globVar__.symDict
+      self.__code__.append(self.__opcodeInfo__[2])
+      self.__bytesToGenerate__-=1
+      pOperand=self.__parsedOperand__[0]
+      if pOperand.typ == clsParsedOperand.OP_LABEL:
+         ret=SymDict.get(pOperand.label,self.__lineInfo__)
+         if ret==None:
+            self.addError(MESSAGE.E_SYMNOTFOUND)
+            self.__code__.append(0)
+         else:
+            value=ret[1]
+            offset=value-(self.__pc__+2)
+            if offset < 0:
+               offset=255 -abs(offset)+1
+            if offset > 255 or offset < 0:
+               offset=0
+               self.addError(MESSAGE.E_RELJUMP_TOOLARGE)
+            self.__code__.append(offset)
+      else:
+         self.__code__.append(0)
+      return
+#
+#  Generate Stack instructions
+#
+   def gStack(self):
+#
+#     Complete instruction template according to address mode
+#
+      self.__code__.append(self.__opcodeInfo__[2] | \
+         clsCodeGeneratorBase.STACK_COMPLETION[self.__addressMode__ ] )
+      self.__bytesToGenerate__-=1
+      self.gOperands()
+      return
+
+#
+#  Generate JSB instructions
+#
+   def gJsb(self):
+#
+#     Complete instruction template according to address mode
+#
+      self.__code__.append(self.__opcodeInfo__[2] | \
+         clsCodeGeneratorBase.JSB_COMPLETION[self.__addressMode__ ] )
+      self.__bytesToGenerate__-=1
+      self.gOperands()
+      return
+#
+#  generate CM, AD, SB, ANM instructions
+#
+   def gAri(self):
+#
+#     Complete instruction template according to address mode
+#
+      self.__code__.append(self.__opcodeInfo__[2] | \
+         clsCodeGeneratorBase.ARI_COMPLETION[self.__addressMode__ ] )
+      self.__bytesToGenerate__-=1
+      self.gOperands()
+      return
+
+#
+#  Generate LD, ST instructions
+#
+   def gLdSt(self):
+#
+#     Complete instruction template according to address mode
+#
+      self.__code__.append(self.__opcodeInfo__[2] | \
+         clsCodeGeneratorBase.LOADSTORE_COMPLETION[self.__addressMode__ ] )
+      self.__bytesToGenerate__-=1
+      self.gOperands()
+      return
+
+#
+#  Process operands
+#
+#  def gOperands(self):
+#     SymDict=self.__globVar__.symDict
+#     op=[]
+#     for pOperand in self.__parsedOperand__:
+#
+#         Noting to to for a register
+#
+#         if pOperand.typ== clsParsedOperand.OP_REGISTER:
+#            continue
+#
+#         Process label, 1 or 2 bytes long
+#
+#         if pOperand.typ== clsParsedOperand.OP_LABEL:
+#            ret=SymDict.get(pOperand.label,self.__lineInfo__)
+#
+#            apply the size constraint
+#
+#            if ret==None:
+#               self.addError(MESSAGE.E_SYMNOTFOUND)
+#               op.append(0)
+#            else:
+#               if pOperand.size==2:
+#                  op.append(ret[1] & 0xFF)
+#                  op.append(ret[1] >>8)
+#               else:
+#                  op.append(ret[1] & 0xFF)
+#
+#         Number, 1 bytes
+#
+#         if pOperand.typ==clsParsedOperand.OP_NUMBER:
+#            number=pOperand.number
+#            if number > 0xFF:
+#               self.addError(MESSAGE.E_NUMBERTOOLARGE)
+#               op.append(0)
+#            else:
+#               op.append(number)
+#
+#     Append to instructions, check if we have too many bytes
+#     and exceed section boundaries
+#
+#     if len(op) > self.__bytesToGenerate__:
+#        self.addError(MESSAGE.E_OPEXCEEDSSECTION)
+#     else:
+#        self.__code__.extend(op)
+
+   def gOperands(self):
+      SymDict=self.__globVar__.symDict
+      op=[]
+      for pOperand in self.__parsedOperand__:
+#
+#         Noting to to for a register
+#
+          if pOperand.typ== clsParsedOperand.OP_REGISTER:
+             continue
+#
+#         Process label, 1 or 2 bytes long
+#
+          elif pOperand.typ== clsParsedOperand.OP_LABEL:
+             ret=SymDict.get(pOperand.label,self.__lineInfo__)
+#
+#            apply the size constraint
+#
+             if ret==None:
+                self.addError(MESSAGE.E_SYMNOTFOUND)
+                op.append(0)
+             else:
+                value=ret[1]
+                if pOperand.size==2:
+                   op.append(value & 0xFF)
+                   op.append(value >>8)
+                else:
+                   op.append(value & 0xFF)
+#
+#         Number, 1 bytes
+#
+          elif pOperand.typ==clsParsedOperand.OP_NUMBER:
+             number=pOperand.number
+             if number > 0xFF:
+                self.addError(MESSAGE.E_NUMBERTOOLARGE)
+                op.append(0)
+             else:
+                op.append(number)
+          elif pOperand.typ==clsParsedOperand.OP_EXPRESSION:
+             result,byteResult, errors=self.__expression__.execute( \
+                pOperand, self.__lineInfo__)
+             if len(errors)>0:
+                self.addError(errors)
+             else:
+                for b in byteResult:
+                   op.append(b)
+#
+#     Append to instructions, check if we have too many bytes
+#     and exceed section boundaries
+#
+      if len(op) > self.__bytesToGenerate__:
+         self.addError(MESSAGE.E_OPEXCEEDSSECTION)
+      else:
+#
+#     fill missing code with zeros (only necessary for faulty statements)
+#
+         l=len(op)
+         while l < self.__bytesToGenerate__:
+            self.__code__.append(0)
+            l+=1
+         self.__code__.extend(op)
+      return
+#
+#  Generate ARP, DRP instructions. Do not generate any code if
+#  the parsedOperand is of type OP_INVALID
+#
+   def gdarp(self):
+#     if self.__opcodeLen__==0:
+#        return
+      code=self.__opcodeInfo__[2]
+      if not self.__parsedOperand__[0].isInvalid():
+         code|=self.__parsedOperand__[0].registerNumber
+      self.__code__.append(code)
+      self.__bytesToGenerate__-=1
+      return
+#
+#  Generate all instructions, where the opcode is not modfied by operands
+#
+   def gdirect(self):
+      self.__code__.append(self.__opcodeInfo__[2])
+      self.__bytesToGenerate__-=1
+      return
+#
+#  Generate Control Block (capasm only)
+#
+   def gNam(self):
+      if len(self.__parsedOperand__)==0:
+         return
+      progName=self.__parsedOperand__[0].string
+#
+#     if we have no program number, create HP-85 style control block
+#
+      if len(self.__parsedOperand__)==1:
+         progName=progName.ljust(6)
+#
+#     Prog name (6 characters)
+         for i in range(0,6):
+            self.__code__.append(ord(progName[i]))
+#
+#     Type (always 2)
+#
+         self.__code__.append(2)
+#
+#       19 zeros
+#
+         for i in range(0,19):
+            self.__code__.append(0)
+      else:
+
+#
+#     generate HP-87 style control block
+#
+         progNumber=self.__parsedOperand__[1].number
+         progName=progName.ljust(10)
+#
+#     Prog name (4 characters)
+#
+         for i in range(0,4):
+            self.__code__.append(ord(progName[i]))
+#
+#     Length (2 bytes)
+#
+         self.__code__.append(self.__globVar__.codeLen & 0xFF)
+         self.__code__.append((self.__globVar__.codeLen>>8) & 0xFF)
+#
+#     Type (always 2)
+#
+         self.__code__.append(2)
+#
+#     Program number
+#
+         self.__code__.append(progNumber)
+#
+#     Full ascii name
+#
+         for i in range (0,10):
+            self.__code__.append(ord(progName[i]))
+#
+#     8 zeros
+#
+         for i in range(0,8):
+            self.__code__.append(0)
+
+      return
+#
+#  Generate HED pseudo op
+#
+   def gHed(self):
+      self.__globVar__.doPageBreak=True
+      self.__globVar__.title=self.__parsedOperand__[0].string
+      return
+#
+#  Generate STE instruction (ncas only)
+#
+   def gSte(self):
+      self.__code__.append(0x9D)
+      self.__code__.append(0x9C)
+#
+#  Generate code, top level method
+#
+   def generate(self,parsedLine):
+      self.__pc__= parsedLine.PC
+      self.__opcode__=parsedLine.opcode
+      self.__opcodeLen__=parsedLine.opcodeLen
+      self.__bytesToGenerate__=self.__opcodeLen__
+      self.__needsArp__= parsedLine.needsArp
+      self.__needsDrp__= parsedLine.needsDrp
+      self.__parsedOperand__= parsedLine.parsedOperand
+      self.__addressMode__= parsedLine.addressMode
+      self.__lineInfo__= parsedLine.lineInfo
+      self.__code__=[]
+      self.__messages__=[]
+      if self.__opcode__=="":
+         return clsCodeInfo(self.__code__,self.__messages__)
+#
+#     Generate DRP, ARP if needed
+#
+      if self.__needsDrp__>=0:
+         self.__code__.append(0o100 | self.__needsDrp__)
+         self.__bytesToGenerate__-=1
+       
+      if self.__needsArp__>=0:
+         self.__code__.append(0o0 | self.__needsArp__)
+         self.__bytesToGenerate__-=1
+#
+#     Call the opcode specific generator method
+#
+      self.__opcodeInfo__=OPCODES.get(self.__opcode__)
+      if self.__opcodeInfo__ !=[]:
+         fname=self.__opcodeInfo__[1]
+         getattr(self,fname)()
+      return clsCodeInfo(self.__code__, self.__messages__)
+#
+# Parser Base class ----------------------------------------------------
+#
+# The parseLine method takes the Program Counter, the list of scanned token
+# and the original source line as arguments and returns an object of type
+# clsParserInfo
+#
+class clsParserBase(object):
+
+#
+#  Initialize parser
+#
+   def __init__(self,globVar,infile):
+      super().__init__()
+      self.__globVar__= globVar
+      self.__infile__= infile
+      self.__hasLcl__=False
+      return
+#
+#  check if a scanned opcode is single- or multibyte
+#
+   def getByteMode(self):
+      c=self.__scannedOpcode__.string[2]
+      if c=="B":
+         return clsParserInfo.BM_SINGLEBYTE
+      elif c=="M":
+         return clsParserInfo.BM_MULTIBYTE
+      else:
+         return clsParserInfo.BM_UNKNOWN     # dead code?
+#
+#  Add an error to the parser error list
+#
+   def addError(self,errno):
+      if isinstance(errno,list):
+         self.__messages__.extend(errno)
+         for e in errno:
+            if e  < 1000:
+               self.__globVar__.errorCount+=1
+            else:
+               self.__globVar__.warningCount+=1
+      else:
+         self.__messages__.append(errno)
+         if errno  < 1000:
+            self.__globVar__.errorCount+=1
+         else:
+            self.__globVar__.warningCount+=1
+      return
+#
+#  Parse register [+|-] [R|Z] [OctalNumber | # | *]
+#  returns object of class clsParsedRegister
+#  If signRequired is True, then a missing sign throws an error
+#  If notAllowed is True, then we can have a !<RegisterNumber>
+#
+   def parseRegister(self,token,signRequired,notAllowed):
+      string=token.string
+      registerTypes="rRxX"
+      if notAllowed:
+         registerTypes+="!"
+      i=0
+      sign=""
+      if string[i]=="+" or string[i]=="-":
+         sign=string[i]
+         i+=1
+         if not signRequired:
+            self.addError(MESSAGE.E_REGISTERSIGN)
+            return clsInvalidOperand()
+#     typ="R"
+      if signRequired and sign=="":
+         self.addError(MESSAGE.E_SIGNEDREGISTER)
+         return clsInvalidOperand()
+      if string[i] in registerTypes:
+         typ=string[i].upper()
+         i+=1
+         if string[i]=="*":
+            return clsParsedRegister(sign, typ, 1)
+         elif string[i]=="#":
+            return clsParsedRegister(sign, typ, clsParsedRegister.R_HASH)
+      else:
+         self.addError(MESSAGE.E_ILL_REGISTER)
+         return clsInvalidOperand()
+      number=parseFunc.parseNumber(string[i:])
+      if number is None or number > 0o77 or number==1:
+         self.addError(MESSAGE.E_ILL_REGISTER)
+         return clsInvalidOperand()
+      else:
+         return clsParsedRegister(sign, typ, number)
+#
+#  Parse the Label field
+#
+   def parseLabelField(self):
+      label= self.__scannedLabel__.string
+      PC=self.__globVar__.PC
+      SymDict=self.__globVar__.symDict
+      isLcl=False
+#
+#     Valid label?
+#
+      if parseFunc.parseLabel(label,self.__globVar__.symNamLen) is None:
+         self.addError(MESSAGE.E_ILL_LABEL)
+      else:
+#
+#        check if we have a "real" LCL and not an EQU or DAD
+#
+         isLcl=True
+         if self.__scannedOpcode__ is not None:
+            if self.__scannedOpcode__.string=="EQU" or \
+               self.__scannedOpcode__.string=="DAD" or \
+               self.__scannedOpcode__.string=="ADDR":
+               isLcl=False
+#
+#        real label, enter it into symbol table and invalidate
+#        arp, drp context
+#
+         if isLcl: 
+            ret=SymDict.enter(label,clsSymDict.SYM_LCL,PC,2, \
+                self.__lineInfo__)
+            if ret is not None:
+               self.addError(ret)
+#           self.__globVar__.arpReg= -1
+#           self.__globVar__.drpReg= -1
+      return isLcl 
+
+#
+#  Parse Data register, which is the first operand. Handle drp elimination
+#
+   def parseDr(self):
+      dRegister=self.parseRegister(self.__scannedOperand__[0],False,False)
+      if not dRegister.isInvalid():
+         if dRegister.registerNumber!= clsParsedRegister.R_HASH and \
+               self.__globVar__.drpReg!= dRegister.registerNumber:
+            self.__needsDrp__= dRegister.registerNumber
+            self.__globVar__.drpReg = dRegister.registerNumber
+            self.__opcodeLen__+=1
+      return dRegister
+#
+#  Parse Adress register, which is the second operand. Handle arp elimination
+#  Note: the push/pop opcodes require AR to have a sign
+#
+   def parseAr(self,signRequired=False):
+      aRegister=self.parseRegister(self.__scannedOperand__[1],signRequired,\
+         False)
+      if not aRegister.isInvalid():
+         if aRegister.registerNumber!= clsParsedRegister.R_HASH  \
+            and self.__globVar__.arpReg!= aRegister.registerNumber:
+            self.__needsArp__= aRegister.registerNumber
+            self.__globVar__.arpReg = aRegister.registerNumber
+            self.__opcodeLen__+=1
+      return aRegister
+#
+#  Parse Index register. Handle arp elimination
+#
+   def parseXr(self,index):
+      xRegister=self.parseRegister(self.__scannedOperand__[index],False,\
+                 False)
+      if not xRegister.isInvalid():
+         if xRegister.registerTyp != "X":
+            xRegister.typ= clsParsedOperand.OP_INVALID
+            self.addError(MESSAGE.E_XREGEXPECTED)
+         if xRegister.registerNumber!= clsParsedRegister.R_HASH  \
+            and self.__globVar__.arpReg!= xRegister.registerNumber:
+            self.__needsArp__= xRegister.registerNumber
+            self.__globVar__.arpReg = xRegister.registerNumber
+            self.__opcodeLen__+=1
+      return(xRegister)
+#
+#  Parse label as operand
+#
+   def parseLabelOp(self,opIndex,size=2):
+      label=self.__scannedOperand__[opIndex].string
+      if self.__scannedOperand__[opIndex].termChar == ",":
+         label+=","
+      if label[0]=="=":
+         label=label[1:]
+      if parseFunc.parseLabel(label,self.__globVar__.symNamLen) is None:
+         self.addError(MESSAGE.E_ILL_LABELOP)
+         return clsInvalidOperand()
+      else:
+         return clsParsedLabel(label,size)
+#
+#  Parse expression list
+#
+   def parseExpressionList(self,idx,numberOfBytesToStore=None):
+      parsedOp=[ ]
+      opLen=0
+      hasErrors=False
+#
+#     we have at least one operand which is a "="
+#
+      for opIndex in range(idx,len(self.__scannedOperand__)):
+         opString= self.__scannedOperand__[opIndex].string
+#
+#        if there is no operand, then quit
+#
+         if opString=="":
+            return opLen,parsedOp
+
+         parsedExpression,errors=self.__expression__.parse(opString,None,\
+            True)
+         if parsedExpression.typ== clsParsedOperand.OP_INVALID:
+            self.addError(errors)
+            parsedOp.append(clsInvalidOperand())
+            hasErrors=True
+            continue
+         parsedOp.append(parsedExpression)
+         if hasErrors:
+            opLen=None
+         else:
+            opLen+=parsedExpression.size
+#
+#     check, if we exceed the section boundary
+#
+      if numberOfBytesToStore is not None and opLen is not None:
+         if opLen  > numberOfBytesToStore:
+            self.addError(MESSAGE.E_OPEXCEEDSSECTION)
+            opLen=None
+      return [opLen,parsedOp]
+#
+#  parse single operand expression
+#
+   def parseSingleExpression(self,opIndex,indicatedSize=None):
+      opString= self.__scannedOperand__[opIndex].string
+      parsedExpression,errors=self.__expression__.parse(opString, \
+             indicatedSize, False)
+      if parsedExpression.typ== clsParsedOperand.OP_INVALID:
+         self.addError(errors)
+      return parsedExpression
+      
+      
+#
+#  Include parsing and processing
+#
+   def pInc(self):
+      self.__globVar__.hasIncludes=True
+      fileName=parseFunc.parseAnyString(self.__scannedOperand__[0].string)
+      if fileName is None:
+         self.addError(MESSAGE.E_ILLSTRING)
+      else:
+         if self.__scannedOpcode__.string=="LNK":
+           self.__infile__.openLink(fileName, \
+             self.__globVar__.sourceFileDirectory)
+         else:
+           self.__infile__.openInclude(fileName, \
+             self.__globVar__.sourceFileDirectory)
+
+#
+#  Parse the HED statement
+#
+   def pHed(self):
+      title=parseFunc.parseQuotedString(self.__scannedOperand__[0].string)
+      if title is None:
+         self.addError(MESSAGE.E_ILLSTRING)
+         return [clsParsedString("")]
+      else:
+         return [clsParsedString(title)]
+   
+#
+#  Now the opcode specific parsing methods follow. They are specified
+#  in the opcode table.
+#
+#  Parse GTO, we have to fake a LDM R4, DESTINATION_LABEL-1 (LIT DIRECT)
+#
+   def pGto(self):
+#
+#     Rearrange the scanned Operand
+#
+      self.__scannedOperand__= [clsToken("R4",3,""),self.__scannedOperand__[0]]
+      self.__opcodeLen__=1
+      dRegister=self.parseDr()
+      pLabel=self.parseLabelOp(1)
+      self.__opcodeLen__+=2
+      return[dRegister,pLabel]
+  
+#
+#  Parse BSS
+#
+   def pBss(self):
+      self.__opcodeLen__=0
+      opstring= self.__scannedOperand__[0].string
+      result,byteResult,errors=self.__expression__.immediate(opstring, \
+         self.__lineInfo__)
+      if result is not None:
+         if result < 0:
+            self.addError(MESSAGE.E_ILLVALUE)
+         else:
+            self.__opcodeLen__=result
+      else:
+         self.addError(errors)
+      return []
+
+#
+#  Parse ignored statements
+#
+   def pNil(self):
+      self.__opcodeLen__=0
+      return []
+#
+#  Parse END statement
+#
+   def pEnd(self):
+      self.__globVar__.isFin=True
+#
+#     check, if we have any open conditionals
+#
+      if self.__globVar__.condAssembly.isOpen():
+         self.addError(MESSAGE.E_AIFEIFMISMATCH)
+#
+#     check, if we habe any open structural pseudo ops
+#
+      if not self.__structCtx__.isEmpty():
+         self.addError(MESSAGE.E_ILLSTRUCT)
+
+
+      self.__opcodeLen__=0
+      return []
+#
+#  Parse Data pseudo op
+#
+   def pData(self):
+      opLen,parsedOperand=self.parseExpressionList(0,None)
+      if opLen is None:
+         return []
+      self.__opcodeLen__=opLen
+      return(parsedOperand)
+#
+#  Parse STE pseudo op which expands to a CLE, STE
+#
+   def pSte(self):
+      self.__opcodeLen__=2
+      return
+#
+# Parse IFxx pseudo op
+#
+   def pIf(self):
+      label=self.__structCtx__.structIf(self.__globVar__.arpReg, \
+            self.__globVar__.drpReg)
+      self.__opcodeLen__+=2
+      return [clsParsedLabel(label,2)]
+#
+# Parse ELSE pseudo op
+#
+   def pElse(self):
+      SymDict=self.__globVar__.symDict
+      ret=self.__structCtx__.structElse(self.__globVar__.arpReg, \
+            self.__globVar__.drpReg)
+      if ret is None:
+         self.addError(MESSAGE.E_ILLSTRUCT)
+         return [clsInvalidOperand()]
+      else:
+         label1,label2,oldArpReg,oldDrpReg=ret
+#
+#        if the last statement was an unconditional jump then eliminate the
+#        ELSE condition and insert the destination label of the IF statement
+#        here. 
+#
+         if self.__globVar__.lastOpcodeWasJmp:
+            self.__opcodeLen__=0
+            ret=SymDict.enter(label1,clsSymDict.SYM_DAD,self.__globVar__.PC,\
+                2,self.__lineInfo__)
+            invalidateArp,invalidateDrp=self.__structCtx__.removeElse()
+            if invalidateArp:
+               self.__globVar__.arpReg= -1
+            if invalidateDrp:
+               self.__globVar__.drpReg= -1
+            return []
+         self.__opcodeLen__+=2
+         ret=SymDict.enter(label1,clsSymDict.SYM_DAD,self.__globVar__.PC+2,\
+                2,self.__lineInfo__)
+         self.__globVar__.arpReg= oldArpReg
+         self.__globVar__.drpReg= oldDrpReg
+ 
+         return [clsParsedLabel(label2,2)]
+
+#
+# Parse ENDIF pseudo op
+#
+   def pEndif(self):
+      SymDict=self.__globVar__.symDict
+      ret=self.__structCtx__.structEndif(self.__globVar__.arpReg, \
+            self.__globVar__.drpReg)
+      if ret is None:
+         self.addError(MESSAGE.E_ILLSTRUCT)
+      else:
+         label,oldArpReg, oldDrpReg, invalidateArp,invalidateDrp=ret
+         if label=="":
+            return
+         ret=SymDict.enter(label,clsSymDict.SYM_DAD,self.__globVar__.PC,2, \
+                self.__lineInfo__)
+         if self.__globVar__.lastOpcodeWasJmp:
+            self.__globVar__.arpReg= oldArpReg
+            self.__globVar__.drpReg= oldDrpReg
+         else:
+            if invalidateArp:
+               self.__globVar__.arpReg= -1
+            if invalidateDrp:
+               self.__globVar__.drpReg= -1
+      return 
+#
+# Parse LOOP pseudo op
+#
+   def pLoop(self):
+      SymDict=self.__globVar__.symDict
+      label=self.__structCtx__.structLoop()
+      ret=SymDict.enter(label,clsSymDict.SYM_DAD,self.__globVar__.PC,2, \
+             self.__lineInfo__)
+      self.__globVar__.arpReg= -1
+      self.__globVar__.drpReg= -1
+      return 
+#
+# Parse EXxx pseudo op
+#
+   def pEx(self):
+      label=self.__structCtx__.structEx()
+      if label is None:
+         self.addError(MESSAGE.E_ILLSTRUCT)
+         return [clsInvalidOperand()]
+      self.__opcodeLen__+=2
+      return [clsParsedLabel(label,2)]
+#
+# Parse WHxx pseudo op
+#
+   def pWh(self):
+      SymDict=self.__globVar__.symDict
+      ret=self.__structCtx__.structWhile()
+      if ret is None:
+         self.addError(MESSAGE.E_ILLSTRUCT)
+         return [clsInvalidOperand()]
+      label1,label2=ret
+      if label2 is not None:
+         ret=SymDict.enter(label2,clsSymDict.SYM_DAD,self.__globVar__.PC+3,\
+            2, self.__lineInfo__)
+         self.__globVar__.arpReg= -1
+         self.__globVar__.drpReg= -1
+
+      self.__opcodeLen__+=2
+      return [clsParsedLabel(label1,2)]
+#
+# Parse Rxx pseudo op
+#
+   def pR(self):
+      SymDict=self.__globVar__.symDict
+#
+#     check distance to a previous label, if within range, then 
+#     create a label for that location
+#
+      if self.__globVar__.PC +2 - self.__globVar__.lastRtnAddr <= 128:
+         label=self.__structCtx__.newLabel()
+         ret=SymDict.enter(label,clsSymDict.SYM_DAD,\
+           self.__globVar__.lastRtnAddr, 2, self.__lineInfo__)
+      else:
+#
+#     otherwise try to create a label for a jump to the next rtn statement
+#
+         label=self.__structCtx__.structR()
+      self.__opcodeLen__+=2
+      return [clsParsedLabel(label,2)]
+#
+#  Parse the LOC statement
+#
+   def pLoc(self):
+      self.__opcodeLen__=0
+      number=self.parseAddress(0)
+      if number==clsParserInfo.ILL_NUMBER:
+         return []
+#
+#     statement only allowed in ABS programs
+#
+      if not self.__globVar__.hasAbs:
+         self.addError(MESSAGE.E_NOTALLOWED_HERE)
+         return []
+#
+#     do nothing if PC is the specified address
+#
+      if self.__globVar__.PC== number:
+         return []
+#
+#     error if PC is greater than address
+#
+      if self.__globVar__.PC> number:
+         self.addError(MESSAGE.E_PCGREATERTANADDRESS)
+      else:
+         self.__opcodeLen__= number- self.__globVar__.PC
+      return []
+#
+#  Parse BYT
+#
+   def pByt(self):
+      err=False
+      self.__opcodeLen__=0
+      pOperand=[]
+      for operand in self.__scannedOperand__:
+         number=parseFunc.parseNumber(operand.string)
+         if number is None or number > 0xFF:
+            err=True
+            pOperand.append(clsInvalidOperand())
+         else:
+            pOperand.append(clsParsedNumber(number))
+            self.__opcodeLen__+=1
+      if err:
+         self.addError(MESSAGE.E_ILLNUMBER)
+         pOperand=[clsInvalidOperand()]
+      return pOperand
+#
+#  Parse BSZ
+#
+   def pBsz(self):
+      number=self.parseAddress(0)
+      if number!=clsParserInfo.ILL_NUMBER:
+         self.__opcodeLen__=number
+      else:
+         self.__opcodeLen__=0
+      return []
+
+#
+#  Parse ASP, ASC
+#
+   def pAsc(self):
+      pOperand=[]
+#
+#     check, if we have a number as first operand
+#
+      firstOperand=self.__scannedOperand__[0]
+      if firstOperand.string[0] in "0123456789":
+         numChars=parseFunc.parseNumber(firstOperand.string)
+         if numChars is None:
+            self.addError(MESSAGE.E_ILLNUMBER)
+            return pOperand
+#
+#        search for the comma
+#
+         if firstOperand.termChar!=",":
+            self.addError(MESSAGE.ILLSTRING)
+            return pOperand
+         strIndex=self.__line__.find(",",firstOperand.position+
+            len(firstOperand.string))+1
+         string=self.__line__[strIndex:strIndex+numChars]
+         if len(string)!= numChars:
+            self.addError(MESSAGE.E_ILLSTRING)
+            return pOperand
+      else:
+         string=parseFunc.parseQuotedString(firstOperand.string)
+         if string is None:
+            self.addError(MESSAGE.E_ILLSTRING)
+            return pOperand
+      i=0
+      err=False
+      for c in string:
+         i+=1
+         n=ord(c)
+         if n > 0o174 or n == 0o173 or n < 0o40 :
+           err=True
+           n=0
+         if i==len(string) and self.__scannedOpcode__.string=="ASP":
+           n|=0o200
+         pOperand.append(clsParsedNumber(n))
+      if err or i==0:
+         self.addError(MESSAGE.E_ILLSTRING)
+      self.__opcodeLen__=len(pOperand)
+      return pOperand
+#
+#  Parse FIN statement
+#
+   def pFin(self):
+      self.__globVar__.isFin=True
+#
+#     check, if we have any open conditionals
+#
+      if self.__globVar__.condAssembly.isOpen():
+         self.addError(MESSAGE.E_AIFEIFMISMATCH)
+      self.__opcodeLen__=0
+      return []
+      
+#
+#  Parse ABS pseudoop
+#  Syntax is: ABS {ROM} nnnn
+#  ROM does not matter here
+#
+   def pAbs(self):
+      self.__globVar__.hasAbs=True
+      if self.__globVar__.PC !=0 or self.__globVar__.hasNam:
+         self.addError(MESSAGE.E_NOTALLOWED_HERE)
+      addrIndex=0
+      if len(self.__scannedOperand__)==2:
+         if self.__scannedOperand__[0].string.upper()== "ROM":
+            addrIndex=1
+         else:
+            self.addError(MESSAGE.E_ROM_EXPECTED)
+            return []
+      address=self.parseAddress(addrIndex)
+      if address!=clsParserInfo.ILL_NUMBER:
+         self.__globVar__.PC=address 
+      return []
+#
+#  Parse an address
+#
+   def parseAddress(self,idx):
+      address=parseFunc.parseNumber(self.__scannedOperand__[idx].string)
+      if address is None:
+         self.addError(MESSAGE.E_ILLNUMBER)
+         address=clsParserInfo.ILL_NUMBER
+      elif address > 0xFFFF:
+         self.addError(MESSAGE.E_NUMBERTOOLARGE)
+         address=clsParserInfo.ILL_NUMBER
+      return address
+
+
+#
+#  Parse literal data lists
+#
+   def parseLiteralDataList(self,numberOfBytesToStore):
+      parsedOp=[ ]
+      opLen=0
+#
+#     we have at least one operand which is a "="
+#
+      for opIndex in range(1,len(self.__scannedOperand__)):
+         opString= self.__scannedOperand__[opIndex].string
+        
+#
+#        first operand, remove "="
+#
+         if opIndex==1:
+            opString=opString[1:]
+#
+#        if there is no operand, then quit
+#
+            if opString=="":
+               return opLen,parsedOp
+#
+#       check, if we have a label
+#
+            if not opString[0] in "0123456789":
+#
+#        no more operands are allowed
+#
+               if len(self.__scannedOperand__) > 2:
+                  self.addError(MESSAGE.E_ILL_NUMOPERANDS)
+                  return opLen,parsedOp
+#
+#        check, if we have to truncate the label value FIX
+#
+               if numberOfBytesToStore==1:
+                  parsedOp.append(self.parseLabelOp(opIndex,1))
+                  opLen+=1
+               else:
+                  parsedOp.append(self.parseLabelOp(opIndex,2))
+                  opLen+=2
+#
+#       exit, if label
+#
+               return opLen,parsedOp
+#
+#      numbers, the code generator checks that they do not exceed 0xFF
+#
+         
+         number=parseFunc.parseNumber(opString)
+         if number is None:
+            self.addError(MESSAGE.E_ILLNUMBER)
+            parsedOp.append(clsInvalidOperand())
+            continue
+#
+#        check, if we exceed the section boundary
+#
+         if numberOfBytesToStore is not None:
+            if opLen+1> numberOfBytesToStore:
+               self.addError(MESSAGE.E_OPEXCEEDSSECTION)
+               break
+         parsedOp.append(clsParsedNumber(number))
+         opLen+=1
+      
+      return opLen,parsedOp
+#
+#  Parse NAM pseudoop
+#  Syntax is NAM unquotedString (HP83/85 only)
+#         or NAM octalNumber, unquotedString (HP86/87 only)
+#  not supported on HP-75
+#
+   def pNam(self):
+      pOperand=[ ]
+#
+#     throw error if HP-75
+#
+      if self.__globVar__.hasNam:
+            self.addError(MESSAGE.E_NOTALLOWED_HERE)
+            return pOperand
+      self.__globVar__.hasNam=True
+#
+#     ABS only allowed before, if PC >= 0o77777
+#
+      if self.__globVar__.hasAbs and self.__globVar__.PC<=0o77777:
+         self.addError(MESSAGE.E_NOTALLOWED_HERE)
+         return pOperand
+#
+#
+#     check if we have two parameters, then decode program number first
+#
+      pnIndex=0
+      progNumber= -1
+      allowedLen=6
+      if len(self.__scannedOperand__)==2:
+         pnIndex=1
+         allowedLen=10
+      if len(self.__scannedOperand__)==2:
+         number=parseFunc.parseNumber(\
+            self.__scannedOperand__[0].string)
+         if number is None or number > 0o377:
+            progNumber=0
+            self.addError(MESSAGE.E_ILLNUMBER)
+            return pOperand
+         else:
+            progNumber=number   
+#
+#     decode and check program name
+#      
+      progName= self.__scannedOperand__[pnIndex].string
+      match=re.fullmatch("[\x20-\x7A|\|]{1,"+str(allowedLen)+"}",progName)
+      if not match:
+         self.addError(MESSAGE.E_ILL_PROGNAME)
+         return pOperand
+
+      self.__opcodeLen__=26
+#
+      if progNumber >=0:
+         return [clsParsedString(progName),clsParsedNumber(progNumber)]
+      else:
+         return [clsParsedString(progName)]
+#
+#  Parse JMP relative instructions
+#
+   def pJrel(self):
+      self.__opcodeLen__=2
+      return [self.parseLabelOp(0)]
+      
+#
+#  Parse Push-/Pop- instructions
+#
+   def pStack(self):
+      
+      parsedOperand=[]
+      self.__opcodeLen__=1
+#
+#     parse DR
+#
+      dRegister=self.parseDr()
+#
+#     parse AR (signed!)
+#
+      aRegister=self.parseAr(True)
+      if not aRegister.isInvalid():
+         if aRegister.registerSign=="+":
+            self.__addressMode__= clsParserInfo.STACK_INCREMENT
+         else:
+            self.__addressMode__= clsParserInfo.STACK_DECREMENT
+      return [dRegister,aRegister]
+ 
+#
+#  Parse or/xor- instructions, they have two operands DR and AR
+#
+   def pOrXr(self):
+      self.__opcodeLen__=1
+      dRegister=self.parseDr()
+      aRegister=self.parseAr()
+      if dRegister.isInvalid() or aRegister.isInvalid():
+         self.__opcodeLen__=1
+      return [dRegister,aRegister]
+#
+#  Parse instructions without operand. If PAD was encountered set a flag to
+#  ensure that the DRP/ARP conetext becomes disabled
+#
+   def pNoPer(self):
+      self.__opcodeLen__=1
+      if  self.__opcode__== "PAD":
+         self.__globVar__.lastStmtWasPAD=True
+      return [ ]
+
+#
+#  Parse p1reg instructions, the only operand is the data register
+#
+   def p1reg(self):
+      self.__opcodeLen__=1
+      dRegister=self.parseDr()
+      if dRegister.isInvalid():
+         self.__opcodeLen__=1
+      return [dRegister]
+#
+#  Parse arp instruction, the only operand is the data register
+#
+   def pArp(self):
+      dRegister=self.parseRegister(self.__scannedOperand__[0],False,True)
+      self.__opcodeLen__=1
+      if not dRegister.isInvalid():
+         self.__globVar__.arpReg= dRegister.registerNumber
+         if dRegister.registerTyp=="!":
+            self.__opcodeLen__=0
+      return [dRegister]
+#
+#  Parse drp instruction, the only operand is the data register
+#
+   def pDrp(self):
+      dRegister=self.parseRegister(self.__scannedOperand__[0],False,True)
+      self.__opcodeLen__=1
+      if not dRegister.isInvalid():
+         self.__globVar__.drpReg= dRegister.registerNumber
+         if dRegister.registerTyp=="!":
+            self.__opcodeLen__=0
+      return [dRegister]
+#
+#  Parse line, top level method
+#
+   def parseLine(self,scannedLine,line):
+      self.__messages__= [ ]
+      self.__scannedLine__=scannedLine
+      self.__scannedLineNumber__= scannedLine[0]
+      self.__scannedLabel__= scannedLine[1]
+      self.__line__=line
+      self.__scannedOpcode__=self.__scannedLine__[2]
+      self.__scannedOperand__= self.__scannedLine__[3]
+
+      self.__parsedOperand__= [ ]
+      self.__opcodeLen__=0
+      self.__needsArp__= -1
+      self.__needsDrp__= -1
+      self.__addressMode__= clsParserInfo.AM_REGISTER_IMMEDIATE
+      PC=self.__globVar__.PC
+      self.__lineInfo__=self.__infile__.getLineInfo()
+
+      condAssemblyIsSuppressed=self.__globVar__.condAssembly.isSuppressed()
+#
+#     Parse lineNumber, if we have one (may be not a valid integer)
+#
+      if self.__scannedLineNumber__ is not None:
+         if parseFunc.parseDecimal( \
+                    self.__scannedLineNumber__.string) is None:
+            self.addError(MESSAGE.E_ILL_LINENUMBER)
+#
+#     If we have a label field, parse it and enter label into symbol table
+#
+      if self.__scannedLabel__ is not None and not condAssemblyIsSuppressed:
+         self.__hasLcl__=self.parseLabelField()
+#
+#     Return if we have no opcode nor operands
+#
+      if self.__scannedOpcode__ is None:
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                self.__line__)
+#
+#     We have to check the conditional assembly status,
+#     treat the line as comment if we are in False state
+#     except we have an EIF statement
+#
+      if condAssemblyIsSuppressed and \
+         self.__scannedOpcode__.string !="EIF":
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                self.__line__)
+
+      
+#
+#     Return if we have a comment ! in the opcode field
+#
+      if self.__scannedOpcode__.string=="!":
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                self.__line__)
+
+      self.__opcode__=self.__scannedOpcode__.string
+#
+#     Invalidate arp, drp context if the previous statement was a subroutine 
+#     call or PAD
+#
+      if self.__globVar__.lastStmtWasPAD or self.__globVar__.lastStmtWasJSB:
+         self.__globVar__.arpReg= -1
+         self.__globVar__.drpReg= -1
+         self.__globVar__.lastStmtWasPAD=False
+         self.__globVar__.lastStmtWasJSB=False
+#
+#     Get information how to parse the opcode
+# 
+      self.__opcodeInfo__=OPCODES.get(self.__opcode__)
+
+      if self.__opcodeInfo__ !=[]:
+#
+#        We have a valid opcode or pseudo opcode, check number of params
+#
+         if len(self.__scannedOperand__)< self.__opcodeInfo__[3]:
+               self.addError(MESSAGE.E_ILL_NUMOPERANDS)
+               return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                              self.__line__)
+         if self.__opcodeInfo__[4] != OPCODES.NUM_OPERANDS_ANY:
+            if len(self.__scannedOperand__)> self.__opcodeInfo__[4]:
+               self.addError(MESSAGE.E_ILL_NUMOPERANDS)
+               return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                              self.__line__)
+#
+#        Invalidate arp/drp context if we the following conditions are met:
+#        - the opcode generates executable code
+#        - the opcode is no unconditional jump
+#        - a local label exists for that line 
+#
+         if not self.__opcodeInfo__[6]:
+            if self.__hasLcl__ and not self.__opcodeInfo__[5]:
+                self.__globVar__.arpReg= -1
+                self.__globVar__.drpReg= -1
+         self.__hasLcl__=False
+#
+#        Call operand parse method
+#
+         fname=self.__opcodeInfo__[0]
+         self.__parsedOperand__= getattr(self,fname)()
+#
+#        Set flag, if the parsed operand is an unconditional JMP
+#        This flag is needed for parsing an immediately following ELSE
+#        statement which will eliminate the jump instructions to the
+#        corresponding ENDIF
+#
+         if self.__opcodeInfo__[5]:
+            self.__globVar__.lastOpcodeWasJmp=True
+         else:
+            if not self.__opcodeInfo__[6]:
+               self.__globVar__.lastOpcodeWasJmp=False
+#
+#        return parsed statement information
+#
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                self.__line__, \
+                self.__opcode__,self.__opcodeLen__, self.__parsedOperand__, \
+                self.__needsArp__,self.__needsDrp__,self.__addressMode__)
+
+      else:
+#
+#        return error information
+#
+         self.__hasLcl__=False
+         self.addError(MESSAGE.E_ILL_OPCODE)
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                              self.__line__)
