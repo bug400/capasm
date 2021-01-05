@@ -129,6 +129,26 @@ class clsParser(clsParserBase):
          else:
             cond.eif()
 #
+#  Parse ABS pseudoop
+#  Syntax is: ABS {ROM} nnnn
+#  ROM does not matter here
+#
+   def pAbs(self):
+      self.__globVar__.hasAbs=True
+      if self.__globVar__.PC !=0 or self.__globVar__.hasNam:
+         self.addError(MESSAGE.E_NOTALLOWED_HERE)
+      addrIndex=0
+      if len(self.__scannedOperand__)==2:
+         if self.__scannedOperand__[0].string.upper()== "ROM":
+            addrIndex=1
+         else:
+            self.addError(MESSAGE.E_ROM_EXPECTED)
+            return []
+      address=self.parseAddress(addrIndex)
+      if address!=clsParserInfo.ILL_NUMBER:
+         self.__globVar__.PC=address 
+      return []
+#
 #  Parse EQU and DAD pseudoops
 #
    def pEqu(self):
@@ -634,7 +654,7 @@ def capasm():             # pragma: no cover
    argparser.add_argument("-l","--listfile",\
       help="list file (default: no list file)",default="")
    argparser.add_argument("-g","--globalsymbolfile",\
-      help="global symbol file. Use either the built in symbol table names {\"85\",\"87\",\"75\",\"none\"} or specify a file name for a custom table (default: none)",default="none")
+      help="global symbol file. Use either the built-in symbol table names {\"85\",\"87\",\"75\",\"none\"} or specify a file name for a custom table (default: none)",default="none")
    argparser.add_argument("-r","--reference",type=int,default=1,\
       help="symbol reference 0:none, 1:short, 2:full (default:1)",\
       choices=[0,1,2])

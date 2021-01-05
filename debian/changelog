@@ -2,7 +2,9 @@ capasm (1.0.0) focal; urgency=medium
 
   * bug fixes
   * much refactoring 
-  * ncas assembler
+  * new ncas assembler
+  * capasm: suppress superfluous code output of BSZ pseudo-ops
+  * capasm: extended check marks redefinition of global symbols if there is a type or value mismatch
 
  -- bionic <achim@trillian>  Tue, 08 Dec 2020 19:14:06 +0100
 

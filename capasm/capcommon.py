@@ -23,31 +23,17 @@
 #
 # Changelog
 #
+# 02.01.2021 jsi
+# - solved issue #2, incorrect range check of relative jumps
 #
 import re,os,sys,importlib,datetime
 from pathlib import Path
-
-def get_methods(object, spacing=20):
-  methodList = []
-  for method_name in dir(object):
-    try:
-        if callable(getattr(object, method_name)):
-            methodList.append(str(method_name))
-    except:
-        methodList.append(str(method_name))
-  processFunc = (lambda s: ' '.join(s.split())) or (lambda s: s)
-  for method in methodList:
-    try:
-        print(str(method.ljust(spacing)) + ' ' +
-              processFunc(str(getattr(object, method).__doc__)[0:90]))
-    except:
-        print(method.ljust(spacing) + ' ' + ' getattr() failed')
 
 #
 # Program Constants -----------------------------------------------------
 #
 CAPASM_VERSION="Version 1.0.0"
-CAPASM_VERSION_DATE="December 2020"
+CAPASM_VERSION_DATE="January 2021"
 
 #
 # CAPASM custom exception -----------------------------------------------
@@ -57,6 +43,24 @@ class capasmError(Exception):
    def __init__(self,msg):
       super().__init__()
       self.msg= msg
+
+#
+# Class to generates Date/Time as BCD ---------------------------------------
+#
+class clsDateTime(object):
+
+   def __init__(self):
+      super().__init__()
+      now=datetime.datetime.now()
+      self.bcdYear= self.intToBcd(now.date().year-2000)
+      self.bcdMonth= self.intToBcd(now.date().month)
+      self.bcdDay= self.intToBcd(now.date().day)
+      self.bcdHour= self.intToBcd(now.time().hour)
+      self.bcdMin= self.intToBcd(now.time().minute)
+      self.bcdSec= self.intToBcd(now.time().second)
+
+   def intToBcd(self,value):
+      return (((int(value/10)%10)<<4)+(value%10))
 #
 # Static class for the bytes to store check --------------------------------
 #
@@ -206,7 +210,7 @@ class parseFunc(object):
          return None
 
 #
-#  Parse binar number
+#  Parse binary number
 #
    @staticmethod
    def parseBin(string):
@@ -559,8 +563,7 @@ class clsSymDict(object):
             spec.loader.exec_module(self.__globalSyms__)
          except :
             MESSAGE.fatalError("Invalid global symbol file")
-         
-              
+      return
 #
 #  Enter new symbol, we have to check for duplicates in the global symbol
 #  dictionary and this dictionary as well. Returns None if we have no
@@ -644,6 +647,12 @@ class clsSymDict(object):
 #
    def getMaxSymNameLength(self):
       return self.__maxSymNameLength__
+#
+#  Extend the global symbol table
+#
+   def extendGlobalSymbols(self,key,value):
+       self.__globalSyms__.globalSymbols.symbols[key]=value
+     
 
 #
 # Conditional assembling class ---------------------------------------------
@@ -1126,11 +1135,13 @@ class clsListWriter(object):
       self.wrL(s)
 #
 #     Continuation line(s) for code, if we have more than numCode bytes 
-#     of code. i is the index of the current byte
+#     of code. i is the index of the current byte. If the shortList
+#     flag is set in the codeInfo object, then continuation lines are skipped
 #
       j=0
       i=numCode
       s=""
+      skippedCode=False
       while i < codeLen:
          if j==0:
             pc+=numCode
@@ -1138,9 +1149,14 @@ class clsListWriter(object):
          s+=self.formatCode(codeInfo.code[i])+" "
          j+=1
          if j==numCode:
-            self.wrL(s)
+            if(not codeInfo.shortList):
+               self.wrL(s)
+            else:
+               skippedCode=True
             j=0
          i+=1
+      if (skippedCode):
+         self.wrL("...")
       if j>0:
          self.wrL(s)
 #
@@ -1456,7 +1472,11 @@ class clsParsedExpression(clsParsedOperand):
       self.size=size
 
    def __repr__(self): # pragma: no cover
-      return ("clsParsedOperand expression")
+      s="clsParsedExpression\n"
+      for item in self.byteCode:
+         s+=str(item)+" "
+      s+=str(self.size)
+      return(s)
 #
 #  Valid number operand (syntax checked)
 #
@@ -1524,9 +1544,10 @@ class clsParsedRegister(clsParsedOperand):
 #
 class clsCodeInfo(object):
    
-   def __init__(self,code, messages):
+   def __init__(self,code, messages, shortList=False):
       self.code= code         # list of generated code (bytes)
       self.messages=messages  # list of error messages
+      self.shortList=shortList # do not list all generated code (BSS)
 
    def __repr__(self): # pragma: no cover
       s="clsCodeInfo object code= "
@@ -1669,6 +1690,7 @@ class clsCodeGeneratorBase(object):
    def gGenZ(self):
       for i in range(0,self.__opcodeLen__):
          self.__code__.append(0)
+      self.__shortList__=True
       return
 #
 #  Generate nothing
@@ -1702,11 +1724,11 @@ class clsCodeGeneratorBase(object):
          else:
             value=ret[1]
             offset=value-(self.__pc__+2)
-            if offset < 0:
-               offset=255 -abs(offset)+1
-            if offset > 255 or offset < 0:
+            if offset > 127 or offset < -128:
                offset=0
                self.addError(MESSAGE.E_RELJUMP_TOOLARGE)
+            if offset < 0:
+               offset=255 -abs(offset)+1
             self.__code__.append(offset)
       else:
          self.__code__.append(0)
@@ -1761,55 +1783,9 @@ class clsCodeGeneratorBase(object):
       self.__bytesToGenerate__-=1
       self.gOperands()
       return
-
 #
-#  Process operands
+#  generate code for operands
 #
-#  def gOperands(self):
-#     SymDict=self.__globVar__.symDict
-#     op=[]
-#     for pOperand in self.__parsedOperand__:
-#
-#         Noting to to for a register
-#
-#         if pOperand.typ== clsParsedOperand.OP_REGISTER:
-#            continue
-#
-#         Process label, 1 or 2 bytes long
-#
-#         if pOperand.typ== clsParsedOperand.OP_LABEL:
-#            ret=SymDict.get(pOperand.label,self.__lineInfo__)
-#
-#            apply the size constraint
-#
-#            if ret==None:
-#               self.addError(MESSAGE.E_SYMNOTFOUND)
-#               op.append(0)
-#            else:
-#               if pOperand.size==2:
-#                  op.append(ret[1] & 0xFF)
-#                  op.append(ret[1] >>8)
-#               else:
-#                  op.append(ret[1] & 0xFF)
-#
-#         Number, 1 bytes
-#
-#         if pOperand.typ==clsParsedOperand.OP_NUMBER:
-#            number=pOperand.number
-#            if number > 0xFF:
-#               self.addError(MESSAGE.E_NUMBERTOOLARGE)
-#               op.append(0)
-#            else:
-#               op.append(number)
-#
-#     Append to instructions, check if we have too many bytes
-#     and exceed section boundaries
-#
-#     if len(op) > self.__bytesToGenerate__:
-#        self.addError(MESSAGE.E_OPEXCEEDSSECTION)
-#     else:
-#        self.__code__.extend(op)
-
    def gOperands(self):
       SymDict=self.__globVar__.symDict
       op=[]
@@ -1981,6 +1957,7 @@ class clsCodeGeneratorBase(object):
       self.__lineInfo__= parsedLine.lineInfo
       self.__code__=[]
       self.__messages__=[]
+      self.__shortList__=False
       if self.__opcode__=="":
          return clsCodeInfo(self.__code__,self.__messages__)
 #
@@ -2000,7 +1977,7 @@ class clsCodeGeneratorBase(object):
       if self.__opcodeInfo__ !=[]:
          fname=self.__opcodeInfo__[1]
          getattr(self,fname)()
-      return clsCodeInfo(self.__code__, self.__messages__)
+      return clsCodeInfo(self.__code__, self.__messages__,self.__shortList__)
 #
 # Parser Base class ----------------------------------------------------
 #
@@ -2279,7 +2256,7 @@ class clsParserBase(object):
    def pBss(self):
       self.__opcodeLen__=0
       opstring= self.__scannedOperand__[0].string
-      result,byteResult,errors=self.__expression__.immediate(opstring, \
+      result,byteResult,errors=self.__expression__.immediate(opstring, 2, \
          self.__lineInfo__)
       if result is not None:
          if result < 0:
@@ -2357,7 +2334,7 @@ class clsParserBase(object):
 #
          if self.__globVar__.lastOpcodeWasJmp:
             self.__opcodeLen__=0
-            ret=SymDict.enter(label1,clsSymDict.SYM_DAD,self.__globVar__.PC,\
+            ret=SymDict.enter(label1,clsSymDict.SYM_LCL,self.__globVar__.PC,\
                 2,self.__lineInfo__)
             invalidateArp,invalidateDrp=self.__structCtx__.removeElse()
             if invalidateArp:
@@ -2366,7 +2343,7 @@ class clsParserBase(object):
                self.__globVar__.drpReg= -1
             return []
          self.__opcodeLen__+=2
-         ret=SymDict.enter(label1,clsSymDict.SYM_DAD,self.__globVar__.PC+2,\
+         ret=SymDict.enter(label1,clsSymDict.SYM_LCL,self.__globVar__.PC+2,\
                 2,self.__lineInfo__)
          self.__globVar__.arpReg= oldArpReg
          self.__globVar__.drpReg= oldDrpReg
@@ -2386,7 +2363,7 @@ class clsParserBase(object):
          label,oldArpReg, oldDrpReg, invalidateArp,invalidateDrp=ret
          if label=="":
             return
-         ret=SymDict.enter(label,clsSymDict.SYM_DAD,self.__globVar__.PC,2, \
+         ret=SymDict.enter(label,clsSymDict.SYM_LCL,self.__globVar__.PC,2, \
                 self.__lineInfo__)
          if self.__globVar__.lastOpcodeWasJmp:
             self.__globVar__.arpReg= oldArpReg
@@ -2403,7 +2380,7 @@ class clsParserBase(object):
    def pLoop(self):
       SymDict=self.__globVar__.symDict
       label=self.__structCtx__.structLoop()
-      ret=SymDict.enter(label,clsSymDict.SYM_DAD,self.__globVar__.PC,2, \
+      ret=SymDict.enter(label,clsSymDict.SYM_LCL,self.__globVar__.PC,2, \
              self.__lineInfo__)
       self.__globVar__.arpReg= -1
       self.__globVar__.drpReg= -1
@@ -2429,7 +2406,7 @@ class clsParserBase(object):
          return [clsInvalidOperand()]
       label1,label2=ret
       if label2 is not None:
-         ret=SymDict.enter(label2,clsSymDict.SYM_DAD,self.__globVar__.PC+3,\
+         ret=SymDict.enter(label2,clsSymDict.SYM_LCL,self.__globVar__.PC+3,\
             2, self.__lineInfo__)
          self.__globVar__.arpReg= -1
          self.__globVar__.drpReg= -1
@@ -2447,7 +2424,7 @@ class clsParserBase(object):
 #
       if self.__globVar__.PC +2 - self.__globVar__.lastRtnAddr <= 128:
          label=self.__structCtx__.newLabel()
-         ret=SymDict.enter(label,clsSymDict.SYM_DAD,\
+         ret=SymDict.enter(label,clsSymDict.SYM_LCL,\
            self.__globVar__.lastRtnAddr, 2, self.__lineInfo__)
       else:
 #
@@ -2570,27 +2547,6 @@ class clsParserBase(object):
       if self.__globVar__.condAssembly.isOpen():
          self.addError(MESSAGE.E_AIFEIFMISMATCH)
       self.__opcodeLen__=0
-      return []
-      
-#
-#  Parse ABS pseudoop
-#  Syntax is: ABS {ROM} nnnn
-#  ROM does not matter here
-#
-   def pAbs(self):
-      self.__globVar__.hasAbs=True
-      if self.__globVar__.PC !=0 or self.__globVar__.hasNam:
-         self.addError(MESSAGE.E_NOTALLOWED_HERE)
-      addrIndex=0
-      if len(self.__scannedOperand__)==2:
-         if self.__scannedOperand__[0].string.upper()== "ROM":
-            addrIndex=1
-         else:
-            self.addError(MESSAGE.E_ROM_EXPECTED)
-            return []
-      address=self.parseAddress(addrIndex)
-      if address!=clsParserInfo.ILL_NUMBER:
-         self.__globVar__.PC=address 
       return []
 #
 #  Parse an address

@@ -22,7 +22,7 @@
 #
 # Changelog
 
-import argparse,sys,os,math
+import argparse,sys,os,math,time
 import importlib.util
 from pathlib import Path
 from .capcommon import capasmError,BYTESTOSTORE,parseFunc,OPCODES, \
@@ -31,7 +31,7 @@ from .capcommon import capasmError,BYTESTOSTORE,parseFunc,OPCODES, \
      clsObjWriter, clsListWriter, clsSourceReader, clsParserInfo, \
      clsParsedOperand, clsParsedExpression, clsInvalidOperand, \
      clsParsedLabel,clsParsedString, clsParsedRegister, clsCodeInfo, \
-     clsCodeGeneratorBase, clsParserBase
+     clsCodeGeneratorBase, clsParserBase, clsDateTime
 
 #
 # Expression parser and execute class -----------------------------------
@@ -53,6 +53,8 @@ class clsExpression(object):
    OP_RESIZE=8
    OP_CHS=9
    OP_NONE=10
+
+   CH_OP=["PLUS","MINUS","DIV","MULT","OR","AND","NOT","MOD","RESIZE","CHS","NONE"]
 
 
    def __init__(self,globVar):
@@ -97,19 +99,29 @@ class clsExpression(object):
       else:
          self.__size__= None
 #
-#  returns the number of bytes value will occupy
+#  returns the smallest number of bytes a integer value will occupy
+#  Note: for negative number an additional bit will be needed for the 
+#  2s representation. Therefore an additional byte could be needed.
 #
    def byteLen(self,value):
       if value==0:
          return 1
       else:
-         return (1+math.floor(math.log(abs(value))/(0.69314718055994530942*8)))
+         n=(1+math.floor(math.log(abs(value))/(0.69314718055994530942*8)))
+#
+#        check if we need an additional byte for the 2's representation
+#
+         if (value < 0) :
+           maxValue=(2**(8*n))/2
+           if abs(value) > maxValue:
+              n+=1
+      return n
 #
 #  convert the result into a list of byte values
 #
    def makeBytes(self,value,size=None):
       if size is None:
-         nBytes=self.byteLen(value)
+         return None
       else:
          nBytes=size
       b= [0]* nBytes
@@ -125,16 +137,15 @@ class clsExpression(object):
 #  returns None if size is too small
 #
    def resize(self,value,size):
-      nBytes=self.byteLen(value)
-      if size< nBytes:
+      nBytes= self.byteLen(value)
+      if size < nBytes:
          return None
-      nPad=size-nBytes
-      rVal=value
-      if rVal < 0:
-         for i in range(0,nPad):
-             nBytes+=1
-             rVal |=0xFF << (nBytes*8)
-      return rVal
+#
+#     2s complement for negative numbers
+#
+      if value < 0 :
+        value= (2 ** (size*8)) + value 
+      return value
 #
 #  scan a character
 #
@@ -160,7 +171,7 @@ class clsExpression(object):
       while True:
          numString+=self.__GCH__
          self.getch()
-         if "01234567890abcdefABCDEFhHoOKk#".find(self.__GCH__)< 0:
+         if "01234567890abcdefABCDEFhHoOKkQq#".find(self.__GCH__)< 0:
             break
       value=parseFunc.parseNumber(numString)
       if value is None:
@@ -262,10 +273,10 @@ class clsExpression(object):
          self.getch()
          self.base()
          self.genOp(clsExpression.OP_CHS)
-      elif self.__GCH__=="~":
-         self.getch()
-         self.base()
-         self.genOp(clsExpression.OP_NOT)
+#     elif self.__GCH__=="~":
+#        self.getch()
+#        self.base()
+#        self.genOp(clsExpression.OP_NOT)
       else:
          self.base()
       return 
@@ -414,6 +425,7 @@ class clsExpression(object):
       self.__errors__= []
       size=parsedExpression.size
 
+
       for typ,op in parsedExpression.byteCode:
          if typ== clsExpression.EX_NUM:
             stack.append(op)
@@ -453,9 +465,9 @@ class clsExpression(object):
                stack[-2]|=stack[-1]
                stack.pop()
             elif op==clsExpression.OP_CHS:
-               stack[-1]|=-stack[-1]
+               stack[-1]=-stack[-1]
             elif op==clsExpression.OP_NOT:
-               stack[-1]|= ~ stack[-1]
+               stack[-1]= ~ stack[-1]
             elif op==clsExpression.OP_RESIZE:
                value=self.resize(stack[-2],stack[-1])
                if value== None:
@@ -469,8 +481,8 @@ class clsExpression(object):
       byteResult=self.makeBytes(result,size)
       return result,byteResult,self.__errors__
 
-   def immediate(self,expression,lineInfo):
-      parsedExpression,errors=self.parse(expression,None,False)
+   def immediate(self,expression,indicatedSize,lineInfo):
+      parsedExpression,errors=self.parse(expression,indicatedSize,False)
       if len(errors)!=0:
          return None, None,errors
       result,byteResult, errors=self.execute(parsedExpression,lineInfo)
@@ -675,8 +687,10 @@ class clsParser(clsParserBase):
 #     parsed by the parseLine method
 #
       isAddr=False
-      if self.__scannedOpcode__=="ADDR":
+      indicatedSize=None
+      if self.__scannedOpcode__.string=="ADDR":
          isAddr=True
+         indicatedSize=2
       SymDict=self.__globVar__.symDict
       if self.__scannedLabel__ is None:
          self.addError(MESSAGE.E_MISSING_LABEL)
@@ -687,18 +701,22 @@ class clsParser(clsParserBase):
 #
 #     evaluate expression immediately
 #
-      result,byteResult,errors=self.__expression__.immediate(opstring, \
-         self.__lineInfo__)
+      result,byteResult,errors=self.__expression__.immediate(opstring,\
+         indicatedSize,  self.__lineInfo__)
 
       if result is not None:
-         size=len(byteResult)
          if isAddr:
-            if size  > 2:
+            if result < 0 or result > 0xFFFF:
                self.addError(MESSAGE.E_ILL_ADDRESS)
                return []
+            size=len(byteResult)
             ret=SymDict.enter(label,clsSymDict.SYM_DAD,result,size, \
                 self.__lineInfo__)
          else:
+            if byteResult is None:
+               size=None
+            else:
+               size=len(byteResult)
             ret=SymDict.enter(label,clsSymDict.SYM_EQU,result,size, \
                 self.__lineInfo__)
          if ret is not None:
@@ -706,14 +724,20 @@ class clsParser(clsParserBase):
       else:
          self.addError(errors)
       return []
-      
+#
+#  Parse ABS pseudoop
+#
+   def pAbs(self):
+      self.__globVar__.hasAbs=True
+      if self.__globVar__.PC !=0: 
+         self.addError(MESSAGE.E_NOTALLOWED_HERE)
+      return []
 #
 #  Parse ORG pseudoop
 #
    def pOrg(self):
-      self.__globVar__.hasAbs=True
       opstring= self.__scannedOperand__[0].string
-      result,byteResult,errors=self.__expression__.immediate(opstring, \
+      result,byteResult,errors=self.__expression__.immediate(opstring,2, \
           self.__lineInfo__)
       if result is not None:
          if result >= 0 and result <= 0xFFFF:
@@ -742,7 +766,7 @@ class clsParser(clsParserBase):
       SymDict=self.__globVar__.symDict
       label=self.__structCtx__.getRtnDest()
       if label is not None:
-         ret=SymDict.enter(label,clsSymDict.SYM_DAD,self.__globVar__.PC,2, \
+         ret=SymDict.enter(label,clsSymDict.SYM_LCL,self.__globVar__.PC,2, \
              self.__lineInfo__)
       return
          
@@ -1141,6 +1165,7 @@ class clsNcas(object):
       "EQU"   : ["pEqu","gNil",0,1,1,False,True],
       "GTO"   : ["pGto","gGto",0,1,1,True,False],
       "ORG"   : ["pOrg","gNil",0,1,1,False,True],
+      "ABS"   : ["pAbs","gNil",0,0,0,False,True],
       ".SET"   : ["pCond","gNil",0,1,1,False,True],
       ".CLR"   : ["pCond","gNil",0,1,1,False,True],
       ".IFSET"   : ["pCond","gNil",0,1,1,False,True],
@@ -1154,6 +1179,39 @@ class clsNcas(object):
       "NOP" : ["pNoPer","gdirect",0o220,0,0,False,False], #  Karma NOP
       "NOP1" : ["pNoPer","gdirect",0o336,0,0,False,False], # see Series 80 wiki
       })
+
+   def addTimeDateSyms(self,isRegressiontest):
+#
+#  Add predefined symbols to global dictionary
+#
+      if (isRegressiontest):
+         bcdYear=0
+         bcdMonth=0
+         bcdDay=0
+         bcdHour=0
+         bcdMin=0
+         bcdSec=0
+         seconds1900=2208988800
+      else:
+         dt=clsDateTime()
+         bcdYear=dt.bcdYear
+         bcdMonth=dt.bcdMonth
+         bcdDay=dt.bcdDay
+         bcdHour=dt.bcdHour
+         bcdMin=dt.bcdMin
+         bcdSec=dt.bcdSec
+         seconds1970=int(time.time())
+         seconds1900=seconds1970+2208988800
+
+      self.__globVar__.symDict.extendGlobalSymbols('BCD_YEAR',[1,bcdYear])
+      self.__globVar__.symDict.extendGlobalSymbols('BCD_MONTH',[1,bcdMonth])
+      self.__globVar__.symDict.extendGlobalSymbols('BCD_DAY',[1,bcdDay])
+      self.__globVar__.symDict.extendGlobalSymbols('BCD_HOUR',[1,bcdHour])
+      self.__globVar__.symDict.extendGlobalSymbols('BCD_MIN',[1,bcdMin])
+      self.__globVar__.symDict.extendGlobalSymbols('BCD_SEC',[1,bcdSec])
+      self.__globVar__.symDict.extendGlobalSymbols('SECONDS1900',[1,seconds1900])
+      return
+
 #
 #  Assemble method. The method takes the values of the command line
 #  switches and parameters. This method may be called multiple times
@@ -1204,6 +1262,11 @@ class clsNcas(object):
        self.__extendedChecks__= extendedChecks
        self.__symNamLen__= 32
 #
+#      Check if we run in regression test mode
+#
+       if os.getenv("CAPASMREGRESSIONTEST"):
+          self.__globVar__.isRegressionTest=True
+#
 #      Create symbol table object
 #
        self.__globVar__.symDict=clsSymDict( self.__extendedChecks__, \
@@ -1212,14 +1275,13 @@ class clsNcas(object):
               clsSymDict.SYM_EQU: "EQU", \
               clsSymDict.SYM_LCL: "LCL" })
 #
+#      add time and date global symbols
+#
+       self.addTimeDateSyms(self.__globVar__.isRegressionTest)
+#
 #      Create conditional assembly object
 #
        self.__globVar__.condAssembly=clsConditionalAssembly()
-#
-#      Check if we run in regression test mode
-#
-       if os.getenv("CAPASMREGRESSIONTEST"):
-          self.__globVar__.isRegressionTest=True
 #
 #      get directory of source file
 #
@@ -1343,7 +1405,7 @@ def ncas():             # pragma: no cover
 #  Command line arguments processing
 #
    argparser=argparse.ArgumentParser(description=\
-   "An assembler for the Hewlett Packard Capricorn CPU (Series 80 and HP-75)",\
+   "An assembler for the Hewlett Packard HP-75",\
    epilog=\
    "See https://github.com/bug400/capasm for details. "+CAPASM_VERSION)
    
@@ -1355,7 +1417,7 @@ def ncas():             # pragma: no cover
    argparser.add_argument("-l","--listfile",\
       help="list file (default: no list file)",default="")
    argparser.add_argument("-g","--globalsymbolfile",\
-      help="global symbol file. Use either the built in symbol table names {\"85\",\"87\",\"75\",\"none\"} or specify a file name for a custom table (default: none)",default="none")
+      help="global symbol file. Use either the built-in symbol table names {\"85\",\"87\",\"75\",\"none\"} or specify a file name for a custom table (default: 75)",default="75")
    argparser.add_argument("-r","--reference",type=int,default=1,\
       help="symbol reference 0:none, 1:short, 2:full (default:1)",\
       choices=[0,1,2])

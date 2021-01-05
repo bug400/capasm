@@ -6,10 +6,10 @@ Index
 -----
 
 * [Description](#description)
-* [Assembler instructions](#assembler-instructions)
 * [Installation](#installation)
 * [Assemble files](#assemble-files)
-* [Assembler command line parameters](#assembler-command-line-parameters)
+* [CAPASM Assembler command line parameters](#capasm-assembler-command-line-parameters)
+* [NCAS Assembler command line parameters](#ncas-assembler-command-line-parameters)
 * [Create LIF image files for Series 80 computers](#create-lif-image-files-for-series-80-computers)
 * [Create LIF images for the HP-75](#create-lif-images-for-the-hp-75)
 * [LIF image file creator command line parameters](#lif-image-file-creator-command-line-parameters)
@@ -29,63 +29,21 @@ CAPASM is a software suite primary intended for programmers who would like to
 assemble ROM or LEX files for the Series 80 desktop or the HP-75 handheld 
 computers. 
 
-Essential part of the software suite is the assembler *capasm* which is 
-almost compatible to the assembler of the HP-83/85 Assembler ROM and the HP-86/87 Assembler ROM. 
+Essential part of the software suite are the assemblers:
+* *capasm* which is almost compatible to the assembler of the HP-83/85 Assembler 
+  ROM and the HP-86/87 Assembler ROM. See the 
+  [CAPASM Assembler language description](CAPASM.md) for details.
+* *ncas* which implements language elements to facilitate the assembly of
+  source code written for the *karma* assembler. The *karma* assembler
+  was used by HP for the development of the HP-75 system ROMs. See the 
+  [NCAS Assembler language description](NCAS.md) for details.
 
-In addition the CAPASM suite provides tools to post-process the assembled
-object files to LEX-, LIF image or ROM files in order to use the assembled
+In addition, the CAPASM suite provides tools to post-process the assembled
+object files to LEX, LIF image or ROM files in order to use the assembled
 files in emulators or "real" hardware.
 
 The CAPASM software is entirely written in Python3 and was successfully 
-tested on LINUX, mac OS and Windows 10.
-
-
-Assembler Instructions
-----------------------
-
-The *capasm* assembler instructions are as far as possible documented in section 4 of the HP-83/85 Assembler ROM manual. The manual is available on the [www.series80.org](http://www.series80.org) web site.
-
-Restrictions to the HP-83/85 Assembler ROM language:
-
-* The LST, UNL and GLO pseudo opcodes are ignored. Use the *-g* option to 
-  provide a global symbol table.
-* The ABS 16 and ABS 32 pseudo ops of the HP-83/85 ROM Assembler are not
-  supported. Use *ABS nnnnn* to specify the address of an absoulte binary 
-  program.
-* The *capasm* software suite does not support the HP Series 80 character
-  set. Therefore all characters must be in the character code range
-  (0x20-0x7A, 0x7C).
-
-Extensions to the HP-83/85 Assembler ROM language:
-
-* The assembler provides built in symbol tables for the HP-85, HP-87 and
-  HP-75. The *-g* option specifies which table to use. This makes an
-  ORG pseudo op redundant. Default is to use no symbol table. Combined with
-  the *capglo* tool you can use custom symbol tables as well.
-* If a program number is supplied in a NAM pseudo operation *capasm* 
-  generates a HP-87 program header.
-* A symbol cross reference listing which is activated with the *-r 2* option.
-* The maximum length of symbol names can be adjusted within the range from 
-  6 to 12 characters.
-* The pseudo instructions for conditional assembly were extended by an
-  ELS statement and may be nested
-* In addition to the LNK pseudo instruction an INC statement allows 
-  including assembler source files.
-* Line numbers in the assembler source file are optional.
-* The *-x* option outputs addresses and code as hex numbers
-* Non octal numbers are supported as register numbers
-* Binary (1001B or 1001b) and hexadecimal (01CH, 01Ch or 01C#) are 
-  supported. Note: hexadecimal numbers must always begin with a number!
-* Support for the OCT, HED and the LOC statement.
-* Support for empty literal data lists, e.g. LDM R40,=
-
-The following pseudo opcodes are supported:
-
-HED 'Quoted String'<br />
-This pseudo opcode forces a form feed. The quoted string is printed in the header of the page except for the first page.
-
-LOC  numeric constant<br />
-This statement is only supported in absolute programs. It forces the program counter (PC) to the numeric constant by generating an appropriate number of zero bytes. Does nothing, if PC is already the numeric constant. Generates an error, if the PC is greater.
+tested on LINUX, macOS and Windows 10.
 
 
 Installation
@@ -107,17 +65,23 @@ To get a list file type:
 
         capasm ftoc.asm -l ftoc.lst
 
-This creates a list file *ftoc.lst* with the default symbol table. To get a symbol table with a cross reference use the *-r 2* option:
+This creates a list file *ftoc.lst* with the default symbol table. To get a symbol table with a cross-reference use the *-r 2* option:
 
         capasm ftoc.asm -l ftoc.lst -r 2
+
+Note: The default base of addresses in the list file is octal.
 
 If not specified, the name of the binar object file is the name of the source file with the extension *.bin*. You can specify a different binary object file name with the *-b* option:
 
         capasm ftoc.asm -l ftoc.lst -b result.bin -r 2
 
+The *ncas* assembler is called in the same way. The default base for addresses in
+*ncase* assembly list files is hexadecimal. The *lex75* subdirectory contains
+sample assembler source files for *ncas*.
 
-Assembler command line parameters
----------------------------------
+
+CAPASM Assembler command line parameters
+----------------------------------------
 
 You get a description of the command line parameters if you type:
 
@@ -142,7 +106,7 @@ optional arguments:
   -l LISTFILE, --listfile LISTFILE
                         list file (default: no list file)
   -g GLOBALSYMBOLFILE, --globalsymbolfile GLOBALSYMBOLFILE
-                        global symbol file. Use either the built in symbol
+                        global symbol file. Use either the built-in symbol
                         table names {"85","87","75","none"} or specify a file
                         name for a custom table (default: none)
   -r {0,1,2}, --reference {0,1,2}
@@ -159,7 +123,7 @@ optional arguments:
 See https://github.com/bug400/capasm for details
 ```
 
-*capasm* provides built in global symbol tables for the HP-83/85, HP86/87 
+*capasm* provides built-in global symbol tables for the HP-83/85, HP86/87 
 or HP-75 computers. The required symbol table is selected with the *-g* 
 option. The naming of these tables is:
 
@@ -171,24 +135,75 @@ option. The naming of these tables is:
 Alternatively you can provide the file path of a global symbol table which must be created with the *capglo* utility (see below). The file must have
 the extension ".py".
 
-You can enable additional checks with the *-c* option to let the assembler recognize the following issues as an error:
+You can enable additional checks with the *-c* option. The assembler issues
+a warning if:
 
-* redefine global symbols as local labels or constants
-* use R# as data register operand in literal immediate mode, if the value of
+* A symbol defined in the source file has an other value or type than a global
+  symbol of the same name
+* R# is used as data register operand in literal immediate mode and the value of
   the drp is unknown, e.g.: `LABELA   ADM R#,1,2,3,4`
+
+
+NCAS Assembler command line parameters
+--------------------------------------
+
+You get a description of the command line parameters if you type:
+
+        ncas -h
+
+```
+usage: ncas [-h] [-b BINFILE] [-l LISTFILE] [-g GLOBALSYMBOLFILE] [-r {0,1,2}]
+            [-p PAGESIZE] [-w WIDTH] [-c] [-o]
+            sourcefile
+
+An assembler for the Hewlett Packard HP-75
+
+positional arguments:
+  sourcefile            source code file (required)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b BINFILE, --binfile BINFILE
+                        binary object code file (default: sourcefilename with
+                        suffix .bin
+  -l LISTFILE, --listfile LISTFILE
+                        list file (default: no list file)
+  -g GLOBALSYMBOLFILE, --globalsymbolfile GLOBALSYMBOLFILE
+                        global symbol file. Use either the built-in symbol table
+                        names {"85","87","75","none"} or specify a file name for
+                        a custom table (default: 75)
+  -r {0,1,2}, --reference {0,1,2}
+                        symbol reference 0:none, 1:short, 2:full (default:1)
+  -p PAGESIZE, --pagesize PAGESIZE
+                        lines per page (default: 66)
+  -w WIDTH, --width WIDTH
+                        page width (default:80)
+  -c, --check           activate additional checks
+  -o, --oct             use octal output
+
+See https://github.com/bug400/capasm for details.
+
+```
+
+*ncas* uses the built-in HP-75 global symbol table per default. You may override
+this with the *-g* option to use not any or another symbol table. Custom symbol
+tables must be created with the *capglo* command (see below). This file must
+have the extension *.py*.
+
+Regarding the extended checks option see the chapter above.
 
 
 Create LIF image files for Series 80 computers
 ----------------------------------------------
 
-To store the assembled LEX file *ftoc.bin* in an Upload LIF image file type:
+To store the assembled LEX file *ftoc.bin* into an Upload LIF image file type:
 
         caplif ftoc.bin
 
 This creates a LIF image file *ftoc.dat* that has a LIF file system where
 the file *ftoc.bin* is stored with the default file name *WS_FILE* and the
-file type 0xE008 (BPGM Binary Program). This Upload LIF image has a non
-standard volume header and is inteded for use with the
+file type 0xE008 (BPGM Binary Program). This Upload LIF image has a nonstandard 
+volume header and is inteded for use with the
 [HP-85/85B787 Emulator](http://www.kaser.com/hp85.html) of Everett Kaser.
 
 *caplif* can not insert multiple input files into an upload LIF image file.
@@ -198,7 +213,7 @@ You can specify a different file name for the Upload LIF image file with the
 
         caplif ftoc.bin -l disk0.dat
 
-You can define an other name for te LIF directory entry than WS_FILE as well:
+You can define another name for the LIF directory entry than WS_FILE as well:
 
         caplif ftoc.bin -l disk0.dat -f ftoc
 
@@ -206,19 +221,19 @@ The file name specified with the *-f* parameter is converted to uppercase.
 
 For the LIF directory entries the following rules apply:
 
-* the maximum length is 8 charaters
-* the file name must begin with a character
-* the remaining characters must be letters, digits or underscores - 
+* The maximum length is 8 charaters
+* The file name must begin with a character
+* The remaining characters must be letters, digits or underscores - 
   underscores are allowed for the Series 80 only!
 
 
 Create LIF images for the HP-75
 -------------------------------
 
-Upload LIF images for the HP-75 are created in the same manner as for the Series 80 computers. However, the command line parameter *-m 75* is required for *capasm* and *caplif*.
+Upload LIF images for the HP-75 are created in almost the same manner as for the Series 80 computers. However, the command line parameter *-m 75* is required for *capasm* and *caplif*.
 
-*caplif* adds a HP-75 RAM file header to the assembled LEX file and stores it 
-in the filesystem of the Upload LIF image with the file type 0xE089 (HP75 LEX file). The default file name in the directory entry is the name of the binary object file without suffix. This Upload LIF image file has
+*caplif* adds an HP-75 RAM file header to the assembled LEX file and stores it 
+in the file system of the Upload LIF image with the file type 0xE089 (HP75 LEX file). The default file name in the directory entry is the name of the binary object file without suffix. This Upload LIF image file has
 a standard volume header and can be used with the [EMU-75 Emulator](http://www.jeffcalc.hp41.eu/emu71/index.html) of J-F Garnier.
 
 
@@ -256,7 +271,7 @@ Add LEX file headers to assembled LEX files
 -------------------------------------------
 
 The *caplex* utility adds a LEX file header to an assembled Series 80 LEX file.
-If the *-m 75* parameter is specified, a HP-75 RAM file header and a
+If the *-m 75* parameter is specified, an HP-75 RAM file header and a
 LEX file header is put in front of the assembled lex file.
 The program operates the same way as the *caplif* utility.
 
@@ -281,8 +296,8 @@ If you have a custom global symbol source file *myglobal.glo* then:
 creates the global symbol table file *myglobal.py*. This file is a Python 
 file, therefore:
 
-* do not change the suffix *.py* of that file
-* do not edit the content of the file.
+* Do not change the suffix *.py* of that file
+* Do not edit the content of the file.
 
 To use this global symbol table to assemble the file *sample.asm* type:
 
@@ -305,7 +320,10 @@ Known Issues
 
 The global symbol file for the HP-75 contains a couple of duplicate entries 
 (see the file *duplicateSymbols.txt* in the *symbols* directory).
-The *capasm* assembler only uses the *last* entry.
+The last entry is used in each case.
+
+The *ncas* assembler is still in beta phase. Processing faulty assembler 
+files has not been tested sufficiently.
 
 
 Release Notes

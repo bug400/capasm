@@ -50,8 +50,7 @@
 import sys, argparse,os, codecs,re,contextlib
 from pathlib import Path
 from itertools import groupby
-from datetime import datetime
-from .capcommon import capasmError, clsLineScanner, parseFunc, CAPASM_VERSION
+from .capcommon import capasmError, clsLineScanner, parseFunc, CAPASM_VERSION,clsDateTime
 
 #
 # silently remove files, continue if they do not exist
@@ -589,23 +588,6 @@ class fileDiff(object):
          print (diffs)
       return notIdentical
 
-#
-# Class to generates Date/Time as BCD ---------------------------------------
-#
-class clsDateTime(object):
-
-   def __init__(self):
-      super().__init__()
-      now=datetime.now()
-      self.bcdYear= self.intToBcd(now.date().year-2000)
-      self.bcdMonth= self.intToBcd(now.date().month)
-      self.bcdDay= self.intToBcd(now.date().day)
-      self.bcdHour= self.intToBcd(now.time().hour)
-      self.bcdMin= self.intToBcd(now.time().minute)
-      self.bcdSec= self.intToBcd(now.time().second)
-
-   def intToBcd(self,value):
-      return (((int(value/10)%10)<<4)+(value%10))
 #
 # LIF item classes ----------------------------------------------------------
 #
