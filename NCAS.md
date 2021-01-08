@@ -28,6 +28,7 @@ Index
 * [LOOP-WH pseudo-ops](#loop-wh-pseudo-ops)
 * [EX pseudo-ops](#ex-pseudo-ops)
 * [DATA pseudo-op](#data-pseudo-op)
+* [Conditional assembly pseudo-ops](#conditional-assembly-pseudo-ops)
 * [Other pseudo-ops](#other-pseudo-ops)
 * [Examples](#examples)
 
@@ -479,7 +480,7 @@ INCLUDE pseudo-op
 
     INCLUDE 'quoted string'
 
-Include the given file into the program.  The INCLUDE instruction is printed in 
+Include the given file into the program.  The *INCLUDE* instruction is printed in 
 the program listing. Included files can be nested up to a level of 3.
 
 
@@ -654,11 +655,55 @@ Note: an expression must always be sized if it contains an operand
 ([see Data Lists](#data-lists)).
 
 
+Conditional assembly pseudo-ops
+-------------------------------
+
+This set of pseudo-ops permits the user to control assembly by means of 
+conditions. A conditional assembly flag has the same constraints as the
+other symbols, but they do not share the same symbol table.
+
+    .IFSET <symbol>
+
+Tests the specified conditional assembly flag and, if true, continues
+to assemble the following code. If the flag tests false, the
+source code after the flag is treated as if it were a series of comments
+until an *ELSE* or *ENDIF* instruction is found. Multiple conditional
+assemblies can be nested.
+
+If \<symbol\> does not exist, an error is thrown.
+
+    .ELSE
+
+The source code following this instruction is treated in the opposite way as
+the corresponding *.IFSET* or *.IFDEF* conditional.
+
+    .ENDIF
+
+Terminates the conditional assembly in progress. 
+
+    .IFDEF <symbol>
+
+Tests if the specified conditional assembly flag does exist, e.g. was either
+defined by a *.SET*, or *.CLR* pseudo-op or was set with the *-d* command line
+option.
+    
+    .SET <symbol>
+
+Sets the specified conditional assembly flag to the true state.
+
+    .CLR <symbol>
+
+Sets the specified conditional assembly flag to the false state.
+
+The *IFNDEF* is the opposite of the *IFDEF* and the *IFNSET* is the opposite of 
+the *IFSET* pseudo-op.
+
+
 Other pseudo-ops
 ----------------
 
-The following pseudo operations were implemented because they are frequently used
-in *karma* assembler program code:
+The following pseudo operations were implemented because they were frequently used
+in program code written for the *karma* assembler:
 
        STE
 
@@ -688,3 +733,7 @@ Examples
 
 The *ncas* subdirectory contains the file *example.asm* which is the example
 ROM-based LEX file from *Appendix A* of the HP-75C *Description and Entry Points* Document. 
+
+The *riowio.asm* which exists in the same directory shows how to create a
+lex file including the HP-75 RAM-header and the LIF-header without additional
+post-processing.

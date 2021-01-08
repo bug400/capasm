@@ -466,8 +466,8 @@ class clsExpression(object):
                stack.pop()
             elif op==clsExpression.OP_CHS:
                stack[-1]=-stack[-1]
-            elif op==clsExpression.OP_NOT:
-               stack[-1]= ~ stack[-1]
+#           elif op==clsExpression.OP_NOT:
+#              stack[-1]= ~ stack[-1]
             elif op==clsExpression.OP_RESIZE:
                value=self.resize(stack[-2],stack[-1])
                if value== None:
@@ -648,36 +648,6 @@ class clsParser(clsParserBase):
       self.__expression__=clsExpression(globVar)
       self.__structCtx__= clsStructContext()
       return
-
-#
-#  Parse the conditinal assembly pseudo ops
-#
-   def pCond(self):
-      cond=self.__globVar__.condAssembly
-      opcode=self.__scannedOpcode__.string
-      if len(self.__scannedOperand__)==1:
-        flag=parseFunc.parseLabel(self.__scannedOperand__[0].string)
-        if flag is None:
-           self.addError(MESSAGE.E_ILLFLAGNAME)
-           return
-      if opcode== ".SET":
-         cond.set(flag)
-      elif opcode== ".CLR":
-         cond.clr(flag)
-      elif opcode== ".IFSET":
-         ret=cond.aif(flag)
-         if not ret:
-            self.addError(MESSAGE.E_FLAGNOTDEFINED)
-      elif opcode==".ELSE":
-         if not cond.isOpen():
-            self.addError(MESSAGE.E_AIFEIFMISMATCH)
-         else:
-            cond.els()
-      else:  # EIF
-         if not cond.isOpen():
-            self.addError(MESSAGE.E_AIFEIFMISMATCH)
-         else:
-            cond.eif()
 #
 #  Parse EQU, Addr pseudoop
 #
@@ -1035,149 +1005,152 @@ class clsNcas(object):
 #
 #  ncas specific ops
 #
-      "RTN" : ["pRtn","gdirect",0o236,0,0,True,False],
+      "RTN" : ["pRtn","gdirect",0o236,0,0,True,False,False],
 #
 #  This is a karma "special" and it means a JSB without return
 #  Therefore this instruction is handled the same way as a RTN or GTO
 #  at the end of IF-ELSE clauses in optimizing ARP/DRP elimination
 #
-      "JSBN"  : ["pJsb","gJsb",0o306,1,2,True,False],
+      "JSBN"  : ["pJsb","gJsb",0o306,1,2,True,False,False],
 #
 #  conditional jump alias
 #
-      "JEQ"  : ["pJrel","gJrel",0o367,1,1,False,False], # alias of JZR
-      "JNE"  : ["pJrel","gJrel",0o366,1,1,False,False], # alias of JNZ
-      "JGE"  : ["pJrel","gJrel",0o365,1,1,False,False], # alias of JPS
-      "JLT"  : ["pJrel","gJrel",0o364,1,1,False,False], # alias of JNG
-      "JHS"  : ["pJrel","gJrel",0o373,1,1,False,False], # alias of JCY
-      "JLO"  : ["pJrel","gJrel",0o372,1,1,False,False], # alias of JNC
+      "JEQ"  : ["pJrel","gJrel",0o367,1,1,False,False,False], # alias of JZR
+      "JNE"  : ["pJrel","gJrel",0o366,1,1,False,False,False], # alias of JNZ
+      "JGE"  : ["pJrel","gJrel",0o365,1,1,False,False,False], # alias of JPS
+      "JLT"  : ["pJrel","gJrel",0o364,1,1,False,False,False], # alias of JNG
+      "JHS"  : ["pJrel","gJrel",0o373,1,1,False,False,False], # alias of JCY
+      "JLO"  : ["pJrel","gJrel",0o372,1,1,False,False,False], # alias of JNC
 #
 #  IF pseudo op (we have to take the opposite condition there)
 #
-      "IFOV"  : ["pIf","gJrel",0o361,0,0,False,False],  # is JNO
-      "IFEV"  : ["pIf","gJrel",0o362,0,0,False,False],  # is JOD
-      "IFOD"  : ["pIf","gJrel",0o363,0,0,False,False],  # is JEV
-      "IFPS"  : ["pIf","gJrel",0o364,0,0,False,False],  # is JNG
-      "IFNG"  : ["pIf","gJrel",0o365,0,0,False,False],  # is JPS
-      "IFZR"  : ["pIf","gJrel",0o366,0,0,False,False],  # is JNZ
-      "IFNZ"  : ["pIf","gJrel",0o367,0,0,False,False],  # is JZR
-      "IFEZ"  : ["pIf","gJrel",0o370,0,0,False,False],  # is JEN
-      "IFEN"  : ["pIf","gJrel",0o371,0,0,False,False],  # is JEZ
-      "IFCY"  : ["pIf","gJrel",0o372,0,0,False,False],  # is JNC
-      "IFNC"  : ["pIf","gJrel",0o373,0,0,False,False],  # is JCY
-      "IFLN"  : ["pIf","gJrel",0o374,0,0,False,False],  # is JLZ
-      "IFLZ"  : ["pIf","gJrel",0o375,0,0,False,False],  # IS JLN
-      "IFRN"  : ["pIf","gJrel",0o376,0,0,False,False],  # is JRZ
-      "IFRZ"  : ["pIf","gJrel",0o377,0,0,False,False],  # is JRN
-      "IFNE"  : ["pIf","gJrel",0o367,0,0,False,False], # alias of JZR
-      "IFEQ"  : ["pIf","gJrel",0o366,0,0,False,False], # alias of JNZ
-      "IFLT"  : ["pIf","gJrel",0o365,0,0,False,False], # alias of JPS
-      "IFLE"  : ["pIf","gJrel",0o364,0,0,False,False], # alias of JNG
-      "IFLO"  : ["pIf","gJrel",0o373,0,0,False,False], # alias of JCY
-      "IFHS"  : ["pIf","gJrel",0o372,0,0,False,False], # alias of JNC
+      "IFOV"  : ["pIf","gJrel",0o361,0,0,False,False,False],  # is JNO
+      "IFEV"  : ["pIf","gJrel",0o362,0,0,False,False,False],  # is JOD
+      "IFOD"  : ["pIf","gJrel",0o363,0,0,False,False,False],  # is JEV
+      "IFPS"  : ["pIf","gJrel",0o364,0,0,False,False,False],  # is JNG
+      "IFNG"  : ["pIf","gJrel",0o365,0,0,False,False,False],  # is JPS
+      "IFZR"  : ["pIf","gJrel",0o366,0,0,False,False,False],  # is JNZ
+      "IFNZ"  : ["pIf","gJrel",0o367,0,0,False,False,False],  # is JZR
+      "IFEZ"  : ["pIf","gJrel",0o370,0,0,False,False,False],  # is JEN
+      "IFEN"  : ["pIf","gJrel",0o371,0,0,False,False,False],  # is JEZ
+      "IFCY"  : ["pIf","gJrel",0o372,0,0,False,False,False],  # is JNC
+      "IFNC"  : ["pIf","gJrel",0o373,0,0,False,False,False],  # is JCY
+      "IFLN"  : ["pIf","gJrel",0o374,0,0,False,False,False],  # is JLZ
+      "IFLZ"  : ["pIf","gJrel",0o375,0,0,False,False,False],  # IS JLN
+      "IFRN"  : ["pIf","gJrel",0o376,0,0,False,False,False],  # is JRZ
+      "IFRZ"  : ["pIf","gJrel",0o377,0,0,False,False,False],  # is JRN
+      "IFNE"  : ["pIf","gJrel",0o367,0,0,False,False,False], # alias of JZR
+      "IFEQ"  : ["pIf","gJrel",0o366,0,0,False,False,False], # alias of JNZ
+      "IFLT"  : ["pIf","gJrel",0o365,0,0,False,False,False], # alias of JPS
+      "IFLE"  : ["pIf","gJrel",0o364,0,0,False,False,False], # alias of JNG
+      "IFLO"  : ["pIf","gJrel",0o373,0,0,False,False,False], # alias of JCY
+      "IFHS"  : ["pIf","gJrel",0o372,0,0,False,False,False], # alias of JNC
 #
 #  While pseudo op
 #
-      "WHMP"  : ["pWh","gJrel",0o360,0,0,False,False],
-      "WHNO"  : ["pWh","gJrel",0o361,0,0,False,False],
-      "WHOD"  : ["pWh","gJrel",0o362,0,0,False,False],
-      "WHEV"  : ["pWh","gJrel",0o363,0,0,False,False],
-      "WHNG"  : ["pWh","gJrel",0o364,0,0,False,False],
-      "WHPS"  : ["pWh","gJrel",0o365,0,0,False,False],
-      "WHNZ"  : ["pWh","gJrel",0o366,0,0,False,False],
-      "WHZR"  : ["pWh","gJrel",0o367,0,0,False,False],
-      "WHEN"  : ["pWh","gJrel",0o370,0,0,False,False],
-      "WHEZ"  : ["pWh","gJrel",0o371,0,0,False,False],
-      "WHNC"  : ["pWh","gJrel",0o372,0,0,False,False],
-      "WHCY"  : ["pWh","gJrel",0o373,0,0,False,False],
-      "WHLZ"  : ["pWh","gJrel",0o374,0,0,False,False],
-      "WHLN"  : ["pWh","gJrel",0o375,0,0,False,False],
-      "WHRZ"  : ["pWh","gJrel",0o376,0,0,False,False],
-      "WHRN"  : ["pWh","gJrel",0o377,0,0,False,False],
-      "WHEQ"  : ["pWh","gJrel",0o367,0,0,False,False], # alias of WHZR
-      "WHNE"  : ["pWh","gJrel",0o366,0,0,False,False], # alias of WHNZ
-      "WHGE"  : ["pWh","gJrel",0o365,0,0,False,False], # alias of WHPS
-      "WHLT"  : ["pWh","gJrel",0o364,0,0,False,False], # alias of WHNG
-      "WHHS"  : ["pWh","gJrel",0o373,0,0,False,False], # alias of WHCY
-      "WHLO"  : ["pWh","gJrel",0o372,0,0,False,False], # alias of WHNC
+      "WHMP"  : ["pWh","gJrel",0o360,0,0,False,False,False],
+      "WHNO"  : ["pWh","gJrel",0o361,0,0,False,False,False],
+      "WHOD"  : ["pWh","gJrel",0o362,0,0,False,False,False],
+      "WHEV"  : ["pWh","gJrel",0o363,0,0,False,False,False],
+      "WHNG"  : ["pWh","gJrel",0o364,0,0,False,False,False],
+      "WHPS"  : ["pWh","gJrel",0o365,0,0,False,False,False],
+      "WHNZ"  : ["pWh","gJrel",0o366,0,0,False,False,False],
+      "WHZR"  : ["pWh","gJrel",0o367,0,0,False,False,False],
+      "WHEN"  : ["pWh","gJrel",0o370,0,0,False,False,False],
+      "WHEZ"  : ["pWh","gJrel",0o371,0,0,False,False,False],
+      "WHNC"  : ["pWh","gJrel",0o372,0,0,False,False,False],
+      "WHCY"  : ["pWh","gJrel",0o373,0,0,False,False,False],
+      "WHLZ"  : ["pWh","gJrel",0o374,0,0,False,False,False],
+      "WHLN"  : ["pWh","gJrel",0o375,0,0,False,False,False],
+      "WHRZ"  : ["pWh","gJrel",0o376,0,0,False,False,False],
+      "WHRN"  : ["pWh","gJrel",0o377,0,0,False,False,False],
+      "WHEQ"  : ["pWh","gJrel",0o367,0,0,False,False,False], # alias of WHZR
+      "WHNE"  : ["pWh","gJrel",0o366,0,0,False,False,False], # alias of WHNZ
+      "WHGE"  : ["pWh","gJrel",0o365,0,0,False,False,False], # alias of WHPS
+      "WHLT"  : ["pWh","gJrel",0o364,0,0,False,False,False], # alias of WHNG
+      "WHHS"  : ["pWh","gJrel",0o373,0,0,False,False,False], # alias of WHCY
+      "WHLO"  : ["pWh","gJrel",0o372,0,0,False,False,False], # alias of WHNC
 #
 #  conditional return pseudo op
 #
-      "RNO"  : ["pR","gJrel",0o361,0,0,False,False],
-      "ROD"  : ["pR","gJrel",0o362,0,0,False,False],
-      "REV"  : ["pR","gJrel",0o363,0,0,False,False],
-      "RNG"  : ["pR","gJrel",0o364,0,0,False,False],
-      "RPS"  : ["pR","gJrel",0o365,0,0,False,False],
-      "RNZ"  : ["pR","gJrel",0o366,0,0,False,False],
-      "RZR"  : ["pR","gJrel",0o367,0,0,False,False],
-      "REN"  : ["pR","gJrel",0o370,0,0,False,False],
-      "REZ"  : ["pR","gJrel",0o371,0,0,False,False],
-      "RNC"  : ["pR","gJrel",0o372,0,0,False,False],
-      "RCY"  : ["pR","gJrel",0o373,0,0,False,False],
-      "RLZ"  : ["pR","gJrel",0o374,0,0,False,False],
-      "RLN"  : ["pR","gJrel",0o375,0,0,False,False],
-      "RRZ"  : ["pR","gJrel",0o376,0,0,False,False],
-      "RRN"  : ["pR","gJrel",0o377,0,0,False,False],
-      "REQ"  : ["pR","gJrel",0o367,0,0,False,False], # alias of RZR
-      "RNE"  : ["pR","gJrel",0o366,0,0,False,False], # alias of RNZ
-      "RGE"  : ["pR","gJrel",0o365,0,0,False,False], # alias of RPS
-      "RLT"  : ["pR","gJrel",0o364,0,0,False,False], # alias of RNG
-      "RHS"  : ["pR","gJrel",0o373,0,0,False,False], # alias of RCY
-      "RLO"  : ["pR","gJrel",0o372,0,0,False,False], # alias of RNC
+      "RNO"  : ["pR","gJrel",0o361,0,0,False,False,False],
+      "ROD"  : ["pR","gJrel",0o362,0,0,False,False,False],
+      "REV"  : ["pR","gJrel",0o363,0,0,False,False,False],
+      "RNG"  : ["pR","gJrel",0o364,0,0,False,False,False],
+      "RPS"  : ["pR","gJrel",0o365,0,0,False,False,False],
+      "RNZ"  : ["pR","gJrel",0o366,0,0,False,False,False],
+      "RZR"  : ["pR","gJrel",0o367,0,0,False,False,False],
+      "REN"  : ["pR","gJrel",0o370,0,0,False,False,False],
+      "REZ"  : ["pR","gJrel",0o371,0,0,False,False,False],
+      "RNC"  : ["pR","gJrel",0o372,0,0,False,False,False],
+      "RCY"  : ["pR","gJrel",0o373,0,0,False,False,False],
+      "RLZ"  : ["pR","gJrel",0o374,0,0,False,False,False],
+      "RLN"  : ["pR","gJrel",0o375,0,0,False,False,False],
+      "RRZ"  : ["pR","gJrel",0o376,0,0,False,False,False],
+      "RRN"  : ["pR","gJrel",0o377,0,0,False,False,False],
+      "REQ"  : ["pR","gJrel",0o367,0,0,False,False,False], # alias of RZR
+      "RNE"  : ["pR","gJrel",0o366,0,0,False,False,False], # alias of RNZ
+      "RGE"  : ["pR","gJrel",0o365,0,0,False,False,False], # alias of RPS
+      "RLT"  : ["pR","gJrel",0o364,0,0,False,False,False], # alias of RNG
+      "RHS"  : ["pR","gJrel",0o373,0,0,False,False,False], # alias of RCY
+      "RLO"  : ["pR","gJrel",0o372,0,0,False,False,False], # alias of RNC
 #
 #  conditional exit pseudo op
 #
-      "EXNO"  : ["pEx","gJrel",0o361,0,0,False,False],
-      "EXOD"  : ["pEx","gJrel",0o362,0,0,False,False],
-      "EXEV"  : ["pEx","gJrel",0o363,0,0,False,False],
-      "EXNG"  : ["pEx","gJrel",0o364,0,0,False,False],
-      "EXPS"  : ["pEx","gJrel",0o365,0,0,False,False],
-      "EXNZ"  : ["pEx","gJrel",0o366,0,0,False,False],
-      "EXZR"  : ["pEx","gJrel",0o367,0,0,False,False],
-      "EXEN"  : ["pEx","gJrel",0o370,0,0,False,False],
-      "EXEZ"  : ["pEx","gJrel",0o371,0,0,False,False],
-      "EXNC"  : ["pEx","gJrel",0o372,0,0,False,False],
-      "EXCY"  : ["pEx","gJrel",0o373,0,0,False,False],
-      "EXLZ"  : ["pEx","gJrel",0o374,0,0,False,False],
-      "EXLN"  : ["pEx","gJrel",0o375,0,0,False,False],
-      "EXRZ"  : ["pEx","gJrel",0o376,0,0,False,False],
-      "EXRN"  : ["pEx","gJrel",0o377,0,0,False,False],
-      "EXEQ"  : ["pEx","gJrel",0o367,0,0,False,False], # alias of RZR
-      "EXNE"  : ["pEx","gJrel",0o366,0,0,False,False], # alias of RNZ
-      "EXGE"  : ["pEx","gJrel",0o365,0,0,False,False], # alias of RPS
-      "EXLT"  : ["pEx","gJrel",0o364,0,0,False,False], # alias of RNG
-      "EXHS"  : ["pEx","gJrel",0o373,0,0,False,False], # alias of RCY
-      "EXLO"  : ["pEx","gJrel",0o372,0,0,False,False], # alias of RNC
-      "LOOP"  : ["pLoop","gNil",0,0,0,False,False],
-      "ENDIF" : ["pEndif","gNil",0,0,0,False,False],
-      "ELSE"  : ["pElse","gJrel",0o360,0,0,False,False],
+      "EXNO"  : ["pEx","gJrel",0o361,0,0,False,False,False],
+      "EXOD"  : ["pEx","gJrel",0o362,0,0,False,False,False],
+      "EXEV"  : ["pEx","gJrel",0o363,0,0,False,False,False],
+      "EXNG"  : ["pEx","gJrel",0o364,0,0,False,False,False],
+      "EXPS"  : ["pEx","gJrel",0o365,0,0,False,False,False],
+      "EXNZ"  : ["pEx","gJrel",0o366,0,0,False,False,False],
+      "EXZR"  : ["pEx","gJrel",0o367,0,0,False,False,False],
+      "EXEN"  : ["pEx","gJrel",0o370,0,0,False,False,False],
+      "EXEZ"  : ["pEx","gJrel",0o371,0,0,False,False,False],
+      "EXNC"  : ["pEx","gJrel",0o372,0,0,False,False,False],
+      "EXCY"  : ["pEx","gJrel",0o373,0,0,False,False,False],
+      "EXLZ"  : ["pEx","gJrel",0o374,0,0,False,False,False],
+      "EXLN"  : ["pEx","gJrel",0o375,0,0,False,False,False],
+      "EXRZ"  : ["pEx","gJrel",0o376,0,0,False,False,False],
+      "EXRN"  : ["pEx","gJrel",0o377,0,0,False,False,False],
+      "EXEQ"  : ["pEx","gJrel",0o367,0,0,False,False,False], # alias of RZR
+      "EXNE"  : ["pEx","gJrel",0o366,0,0,False,False,False], # alias of RNZ
+      "EXGE"  : ["pEx","gJrel",0o365,0,0,False,False,False], # alias of RPS
+      "EXLT"  : ["pEx","gJrel",0o364,0,0,False,False,False], # alias of RNG
+      "EXHS"  : ["pEx","gJrel",0o373,0,0,False,False,False], # alias of RCY
+      "EXLO"  : ["pEx","gJrel",0o372,0,0,False,False,False], # alias of RNC
+      "LOOP"  : ["pLoop","gNil",0,0,0,False,False,False],
+      "ENDIF" : ["pEndif","gNil",0,0,0,False,False,False],
+      "ELSE"  : ["pElse","gJrel",0o360,0,0,False,False,False],
 #
 #  compatibility pseudo ops
 #
-      "DEF"   : ["pDef","gData",0,1,1,False,True],
-      "VAL"   : ["pDef","gData",0,1,1,False,True],
+      "DEF"   : ["pDef","gData",0,1,1,False,True,False],
+      "VAL"   : ["pDef","gData",0,1,1,False,True,False],
 #
 #  ncas pseudo ops
 #
-      "END"  : ["pEnd","gNil",0,0,0,False,False],
-      "BSS"   : ["pBss","gGenZ",0,1,1,False,True],
-      "ADDR"   : ["pEqu","gNil",0,1,1,False,True],
-      "EQU"   : ["pEqu","gNil",0,1,1,False,True],
-      "GTO"   : ["pGto","gGto",0,1,1,True,False],
-      "ORG"   : ["pOrg","gNil",0,1,1,False,True],
-      "ABS"   : ["pAbs","gNil",0,0,0,False,True],
-      ".SET"   : ["pCond","gNil",0,1,1,False,True],
-      ".CLR"   : ["pCond","gNil",0,1,1,False,True],
-      ".IFSET"   : ["pCond","gNil",0,1,1,False,True],
-      ".ENDIF"   : ["pCond","gNil",0,0,0,False,True],
-      ".ELSE"   : ["pCond","gNil",0,0,0,False,True],
-      "INCLUDE"   : ["pInc","gNil",0,1,1,False,True],
-      "DATA"  : ["pData","gData",0,1,OPCODES.NUM_OPERANDS_ANY,False,True],
-      "TITLE" : ["pHed","gHed",0,1,1,False,True],
-      "STE" : ["pSte","gSte",0o235,0,0,False,False],
-#     "NOP" : ["pNoPer","gdirect",0o235,0,0,False,False],
-      "NOP" : ["pNoPer","gdirect",0o220,0,0,False,False], #  Karma NOP
-      "NOP1" : ["pNoPer","gdirect",0o336,0,0,False,False], # see Series 80 wiki
+      "END"  : ["pEnd","gNil",0,0,0,False,False,False],
+      "BSS"   : ["pBss","gGenZ",0,1,1,False,True,False],
+      "ADDR"   : ["pEqu","gNil",0,1,1,False,True,False],
+      "EQU"   : ["pEqu","gNil",0,1,1,False,True,False],
+      "GTO"   : ["pGto","gGto",0,1,1,True,False,False],
+      "ORG"   : ["pOrg","gNil",0,1,1,False,True,False],
+      "ABS"   : ["pAbs","gNil",0,0,0,False,True,False],
+      ".SET"   : ["pCondSet","gNil",0,1,1,False,True,False],
+      ".CLR"   : ["pCondClr","gNil",0,1,1,False,True,False],
+      ".IFSET"   : ["pCondIfSet","gNil",0,1,1,False,True,True],
+      ".IFNSET"   : ["pCondIfNotSet","gNil",0,1,1,False,True,True],
+      ".IFDEF"   : ["pCondIfDef","gNil",0,1,1,False,True,True],
+      ".IFNDEF"   : ["pCondIfNotDef","gNil",0,1,1,False,True,True],
+      ".ENDIF"   : ["pCondEndif","gNil",0,0,0,False,True,True],
+      ".ELSE"   : ["pCondElse","gNil",0,0,0,False,True,True],
+      "INCLUDE"   : ["pInc","gNil",0,1,1,False,True,False],
+      "DATA"  : ["pData","gData",0,1,OPCODES.NUM_OPERANDS_ANY,False,True,False],
+      "TITLE" : ["pHed","gHed",0,1,1,False,True,False],
+      "STE" : ["pSte","gSte",0o235,0,0,False,False,False],
+#     "NOP" : ["pNoPer","gdirect",0o235,0,0,False,False,False],
+      "NOP" : ["pNoPer","gdirect",0o220,0,0,False,False,False], #  Karma NOP
+      "NOP1" : ["pNoPer","gdirect",0o336,0,0,False,False,False], # see Series 80 wiki
       })
 
    def addTimeDateSyms(self,isRegressiontest):
@@ -1223,7 +1196,7 @@ class clsNcas(object):
 #     
    def assemble(self,sourceFileName,binFileName="",listFileName="", \
        referenceOpt=1, pageSize=66, pageWidth=80, \
-       extendedChecks=False,useOct=False,
+       extendedChecks=False,useOct=False, definedFlags=[], \
        globalSymbolFile="none"):
 #
 #      initialize opcode
@@ -1281,7 +1254,7 @@ class clsNcas(object):
 #
 #      Create conditional assembly object
 #
-       self.__globVar__.condAssembly=clsConditionalAssembly()
+       self.__globVar__.condAssembly=clsConditionalAssembly(definedFlags)
 #
 #      get directory of source file
 #
@@ -1427,6 +1400,8 @@ def ncas():             # pragma: no cover
       help="page width (default:80)",action=argWidthCheck)
    argparser.add_argument("-c","--check",help="activate additional checks", \
       action='store_true')
+   argparser.add_argument("-d","--define",action='append',default=[],\
+      help="define conditional flag with value True")
    argparser.add_argument("-o","--oct",help="use octal output", \
       action='store_true')
    args= argparser.parse_args()
@@ -1440,6 +1415,7 @@ def ncas():             # pragma: no cover
            pageSize=args.pagesize,pageWidth=args.width, \
            extendedChecks=args.check, \
            useOct=args.oct,\
+           definedFlags=args.define, \
            globalSymbolFile=args.globalsymbolfile)
    except capasmError as e:
       print(e.msg+" -- Assembler terminated")

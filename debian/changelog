@@ -5,6 +5,11 @@ capasm (1.0.0) focal; urgency=medium
   * new ncas assembler
   * capasm: suppress superfluous code output of BSZ pseudo-ops
   * capasm: extended check marks redefinition of global symbols if there is a type or value mismatch
+  * capasm: fix incorrect range checks of relative jumps
+  * capasm: suppress superfluous code output of BSZ pseudo-ops
+  * capasm: line numbers in list file
+  * capasm: parsing of conditional assembly pseudo-ops fixed
+
 
  -- bionic <achim@trillian>  Tue, 08 Dec 2020 19:14:06 +0100
 

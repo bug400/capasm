@@ -98,37 +98,6 @@ class clsParser(clsParserBase):
       super().__init__(globVar,infile)
       return
 #
-#  Parse the conditinal assembly pseudo ops FIX
-#
-   def pCond(self):
-      cond=self.__globVar__.condAssembly
-      opcode=self.__scannedOpcode__.string
-      if len(self.__scannedOperand__)==1:
-        pLabel=self.parseLabelOp(0)
-        if pLabel.isInvalid():
-           self.addError(MESSAGE.E_ILLFLAGNAME)
-           return
-        else:
-           name=pLabel.label
-      if opcode== "SET":
-         cond.set(name)
-      elif opcode== "CLR":
-         cond.clr(name)
-      elif opcode== "AIF":
-         ret=cond.aif(name)
-         if not ret:
-            self.addError(MESSAGE.E_FLAGNOTDEFINED)
-      elif opcode=="ELS":
-         if not cond.isOpen():
-            self.addError(MESSAGE.E_AIFEIFMISMATCH)
-         else:
-            cond.els()
-      else:  # EIF
-         if not cond.isOpen():
-            self.addError(MESSAGE.E_AIFEIFMISMATCH)
-         else:
-            cond.eif()
-#
 #  Parse ABS pseudoop
 #  Syntax is: ABS {ROM} nnnn
 #  ROM does not matter here
@@ -426,33 +395,34 @@ class clsAssembler(object):
 #
    def extendOpcodes(self):
       OPCODES.extendDict( {
-      "RTN" : ["pNoPer","gdirect",0o236,0,0,False,False],
-      "ABS"  : ["pAbs","gNil",0,1,2,False,False],
-      "FIN"  : ["pFin","gNil",0,0,0,False,False],
-      "LST"  : ["pNil","gNil",0,0,0,False,False],
-      "UNL"  : ["pNil","gNil",0,0,0,False,False],
-      "GLO"  : ["pNil","gNil",0,1,1,False,False],
-      "ASC"   : ["pAsc","gData",0,1,256,False,False],
-      "ASP"   : ["pAsc","gData",0,1,256,False,False],
-      "NAM"   : ["pNam","gNam",0,1,2,False,False],
-      "BSZ"   : ["pBsz","gGenZ",0,1,1,False,False],
-      "BYT"   : ["pByt","gData",0,1,256,False,False],
-      "OCT"   : ["pByt","gData",0,1,256,False,False],
-      "DAD"   : ["pEqu","gNil",0,1,1,False,False],
-      "DEF"   : ["pDef","gDef",0,1,1,False,False],
-      "EQU"   : ["pEqu","gNil",0,1,1,False,False],
-      "GTO"   : ["pGto","gGto",0,1,1,False,False],
-      "VAL"   : ["pDef","gDef",0,1,1,False,False],
-      "ORG"   : ["pOrg","gNil",0,1,1,False,False],
-      "SET"   : ["pCond","gNil",0,1,1,False,False],
-      "CLR"   : ["pCond","gNil",0,1,1,False,False],
-      "AIF"   : ["pCond","gNil",0,1,1,False,False],
-      "EIF"   : ["pCond","gNil",0,0,0,False,False],
-      "ELS"   : ["pCond","gNil",0,0,0,False,False],
-      "INC"   : ["pInc","gNil",0,1,1,False,False],
-      "LNK"   : ["pInc","gNil",0,1,1,False,False],
-      "HED"   : ["pHed","gHed",0,1,1,False,False],
-      "LOC"   : ["pLoc","gGenZ",0,1,1,False,False],
+      "RTN" : ["pNoPer","gdirect",0o236,0,0,False,False,False],
+      "ABS"  : ["pAbs","gNil",0,1,2,False,False,False],
+      "FIN"  : ["pFin","gNil",0,0,0,False,False,False],
+      "LST"  : ["pNil","gNil",0,0,0,False,False,False],
+      "UNL"  : ["pNil","gNil",0,0,0,False,False,False],
+      "GLO"  : ["pNil","gNil",0,1,1,False,False,False],
+      "ASC"   : ["pAsc","gData",0,1,256,False,False,False],
+      "ASP"   : ["pAsc","gData",0,1,256,False,False,False],
+      "NAM"   : ["pNam","gNam",0,1,2,False,False,False],
+      "BSZ"   : ["pBsz","gGenZ",0,1,1,False,False,False],
+      "BYT"   : ["pByt","gData",0,1,256,False,False,False],
+      "OCT"   : ["pByt","gData",0,1,256,False,False,False],
+      "DAD"   : ["pEqu","gNil",0,1,1,False,False,False],
+      "DEF"   : ["pDef","gDef",0,1,1,False,False,False],
+      "EQU"   : ["pEqu","gNil",0,1,1,False,False,False],
+      "GTO"   : ["pGto","gGto",0,1,1,False,False,False],
+      "VAL"   : ["pDef","gDef",0,1,1,False,False,False],
+      "ORG"   : ["pOrg","gNil",0,1,1,False,False,False],
+      "SET"   : ["pCondSet","gNil",0,1,1,False,False,False],
+      "CLR"   : ["pCondClr","gNil",0,1,1,False,False,False],
+      "AIF"   : ["pCondIfSet","gNil",0,1,1,False,False,True],
+      "DIF"   : ["pCondIfDef","gNil",0,1,1,False,False,True],
+      "EIF"   : ["pCondEndif","gNil",0,0,0,False,False,True],
+      "ELS"   : ["pCondElse","gNil",0,0,0,False,False,True],
+      "INC"   : ["pInc","gNil",0,1,1,False,False,False],
+      "LNK"   : ["pInc","gNil",0,1,1,False,False,False],
+      "HED"   : ["pHed","gHed",0,1,1,False,False,False],
+      "LOC"   : ["pLoc","gGenZ",0,1,1,False,False,False],
       })
 #
 #  Assemble method. The method takes the values of the command line
@@ -465,7 +435,7 @@ class clsAssembler(object):
 #     
    def assemble(self,sourceFileName,binFileName="",listFileName="", \
        referenceOpt=1, pageSize=66, pageWidth=80, \
-       extendedChecks=False,  symNamLen=6,useHex=False,
+       extendedChecks=False,  symNamLen=6,useHex=False, definedFlags=[], \
        globalSymbolFile="none"):
 #
 #      initialize opcodes
@@ -513,7 +483,7 @@ class clsAssembler(object):
 #
 #      Create conditional assembly object
 #
-       self.__globVar__.condAssembly=clsConditionalAssembly()
+       self.__globVar__.condAssembly=clsConditionalAssembly(definedFlags)
 #
 #      Check if we run in regression test mode
 #
@@ -664,6 +634,8 @@ def capasm():             # pragma: no cover
       help="page width (default:80)",action=argWidthCheck)
    argparser.add_argument("-c","--check",help="activate additional checks", \
       action='store_true')
+   argparser.add_argument("-d","--define",action='append',default=[],\
+      help="define conditional flag with value True")
    argparser.add_argument("-x","--hex",help="use hex output", \
       action='store_true')
    argparser.add_argument("-s","--symnamelength",\
@@ -680,6 +652,7 @@ def capasm():             # pragma: no cover
            pageSize=args.pagesize,pageWidth=args.width, \
            extendedChecks=args.check, \
            symNamLen=args.symnamelength,useHex=args.hex,\
+           definedFlags=args.define, \
            globalSymbolFile=args.globalsymbolfile)
    except capasmError as e:
       print(e.msg+" -- Assembler terminated")

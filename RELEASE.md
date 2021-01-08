@@ -1,6 +1,17 @@
 ﻿CAPASM release notes
 ====================
 
+1.0.0 (Production)
+-----------------
+ * CAPASM: fix incorrect range checks of relative jumps
+ * CAPASM: extended check marks redefinition of global symbols if there is a type or value mismatch
+ * CAPASM: suppress superfluous code output of BSZ pseudo-ops
+ * CAPASM: line numbers in list file
+ * CAPASM: parsing of conditional assembly pseudo-ops fixed
+ * CAPASM: various other small fixes
+ * CAPASM: documentation updates
+ * NCAS: new assembler with extended capabilities (beta!)
+
 0.9.8 (Beta)
 ------------
 

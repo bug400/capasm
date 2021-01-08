@@ -116,6 +116,8 @@ optional arguments:
   -w WIDTH, --width WIDTH
                         page width (default:80)
   -c, --check           activate additional checks
+  -d DEFINE, --define DEFINE
+                        define conditional flag with value True
   -x, --hex             use hex output
   -s {6,7,8,9,10,11,12}, --symnamelength {6,7,8,9,10}
                         maximum length of symbol names (default:6)
@@ -179,6 +181,8 @@ optional arguments:
   -w WIDTH, --width WIDTH
                         page width (default:80)
   -c, --check           activate additional checks
+  -d DEFINE, --define DEFINE
+                        define conditional flag with value True
   -o, --oct             use octal output
 
 See https://github.com/bug400/capasm for details.

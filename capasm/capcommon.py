@@ -25,6 +25,12 @@
 #
 # 02.01.2021 jsi
 # - solved issue #2, incorrect range check of relative jumps
+# 08.01.2021 jsi
+# - extended check marks redefinition of global symbols if there is a type or 
+#   value mismatch
+# - suppress superfluous code output of BSZ pseudo-ops
+# - line numbers in list file
+# - parsing of conditional assembly pseudo-ops fixed
 #
 import re,os,sys,importlib,datetime
 from pathlib import Path
@@ -289,96 +295,102 @@ class OPCODES(object):
 #    - instruction or instruction template which must be completed later
 #    - number of operand parameters min
 #    - number of operand parameters max
+#    for ARP/DRP optimization in IF-ELSE-ENDIF clauses:
+#    - flag if opcode is an unconditional jump (GTO, RTN, JSBN) 
+#    - flag if opcode does not executable code
+#    for the processing of conditional assembly pseudo-ops
+#    - flag if opcode is an IF/ELSE/ENDIF conditional pseudo op
 #
    __opcodeDict__= {
-   "ARP" : ["pArp","gdarp",0o0,1,1,False,False],
-   "DRP" : ["pDrp","gdarp",0o100,1,1,False,False],
-   "ELB" : ["p1reg","gdirect",0o200,1,1,False,False],
-   "ELM" : ["p1reg","gdirect",0o201,1,1,False,False],
-   "ERB" : ["p1reg","gdirect",0o202,1,1,False,False],
-   "ERM" : ["p1reg","gdirect",0o203,1,1,False,False],
-   "LLB" : ["p1reg","gdirect",0o204,1,1,False,False],
-   "LLM" : ["p1reg","gdirect",0o205,1,1,False,False],
-   "LRB" : ["p1reg","gdirect",0o206,1,1,False,False],
-   "LRM" : ["p1reg","gdirect",0o207,1,1,False,False],
-   "ICB" : ["p1reg","gdirect",0o210,1,1,False,False],
-   "ICM" : ["p1reg","gdirect",0o211,1,1,False,False],
-   "DCB" : ["p1reg","gdirect",0o212,1,1,False,False],
-   "DCM" : ["p1reg","gdirect",0o213,1,1,False,False],
-   "TCB" : ["p1reg","gdirect",0o214,1,1,False,False],
-   "TCM" : ["p1reg","gdirect",0o215,1,1,False,False],
-   "NCB" : ["p1reg","gdirect",0o216,1,1,False,False],
-   "NCM" : ["p1reg","gdirect",0o217,1,1,False,False],
-   "TSB" : ["p1reg","gdirect",0o220,1,1,False,False],
-   "TSM" : ["p1reg","gdirect",0o221,1,1,False,False],
-   "CLB" : ["p1reg","gdirect",0o222,1,1,False,False],
-   "CLM" : ["p1reg","gdirect",0o223,1,1,False,False],
-   "ORB" : ["pOrXr","gdirect",0o224,2,2,False,False],
-   "ORM" : ["pOrXr","gdirect",0o225,2,2,False,False],
-   "XRB" : ["pOrXr","gdirect",0o226,2,2,False,False],
-   "XRM" : ["pOrXr","gdirect",0o227,2,2,False,False],
-   "BIN" : ["pNoPer","gdirect",0o230,0,0,False,False],
-   "BCD" : ["pNoPer","gdirect",0o231,0,0,False,False],
-   "SAD" : ["pNoPer","gdirect",0o232,0,0,False,False],
-   "DCE" : ["pNoPer","gdirect",0o233,0,0,False,False],
-   "ICE" : ["pNoPer","gdirect",0o234,0,0,False,False],
-   "CLE" : ["pNoPer","gdirect",0o235,0,0,False,False],
-   "PAD" : ["pNoPer","gdirect",0o237,0,0,False,False],
-   "LDB" : ["pLdSt","gLdSt",0o240,2,10,False,False],
-   "LDBI" : ["pLdSt","gLdSt",0o240,2,NUM_OPERANDS_ANY,False,False],
-   "LDBD" : ["pLdSt","gLdSt",0o240,2,NUM_OPERANDS_ANY,False,False],
-   "LDM" : ["pLdSt","gLdSt",0o241,2,NUM_OPERANDS_ANY,False,False],
-   "LDMI" : ["pLdSt","gLdSt",0o241,2,NUM_OPERANDS_ANY,False,False],
-   "LDMD" : ["pLdSt","gLdSt",0o241,2,NUM_OPERANDS_ANY,False,False],
-   "STB" : ["pLdSt","gLdSt",0o242,2,NUM_OPERANDS_ANY,False,False],
-   "STBI" : ["pLdSt","gLdSt",0o242,2,NUM_OPERANDS_ANY,False,False],
-   "STBD" : ["pLdSt","gLdSt",0o242,2,NUM_OPERANDS_ANY,False,False],
-   "STM" : ["pLdSt","gLdSt",0o243,2,NUM_OPERANDS_ANY,False,False],
-   "STMI" : ["pLdSt","gLdSt",0o243,2,NUM_OPERANDS_ANY,False,False],
-   "STMD" : ["pLdSt","gLdSt",0o243,2,NUM_OPERANDS_ANY,False,False],
-   "CMB"  : ["pAri","gAri",0o300,2,NUM_OPERANDS_ANY,False,False],
-   "CMM"  : ["pAri","gAri",0o301,2,NUM_OPERANDS_ANY,False,False],
-   "CMBD"  : ["pAri","gAri",0o300,2,NUM_OPERANDS_ANY,False,False],
-   "CMMD"  : ["pAri","gAri",0o301,2,NUM_OPERANDS_ANY,False,False],
-   "ADB"  : ["pAri","gAri",0o302,2,NUM_OPERANDS_ANY,False,False],
-   "ADM"  : ["pAri","gAri",0o303,2,NUM_OPERANDS_ANY,False,False],
-   "ADBD"  : ["pAri","gAri",0o302,2,NUM_OPERANDS_ANY,False,False],
-   "ADMD"  : ["pAri","gAri",0o303,2,NUM_OPERANDS_ANY,False,False],
-   "SBB"  : ["pAri","gAri",0o304,2,NUM_OPERANDS_ANY,False,False],
-   "SBM"  : ["pAri","gAri",0o305,2,NUM_OPERANDS_ANY,False,False],
-   "SBBD"  : ["pAri","gAri",0o304,2,NUM_OPERANDS_ANY,False,False],
-   "SBMD"  : ["pAri","gAri",0o305,2,NUM_OPERANDS_ANY,False,False],
-   "ANM"  : ["pAri","gAri",0o307,2,NUM_OPERANDS_ANY,False,False],
-   "ANMD"  : ["pAri","gAri",0o307,2,NUM_OPERANDS_ANY,False,False],
-   "JSB"  : ["pJsb","gJsb",0o306,1,2,False,False],
-   "POBD" : ["pStack","gStack",0o340,2,2,False,False],
-   "POMD" : ["pStack","gStack",0o341,2,2,False,False],
-   "PUBD" : ["pStack","gStack",0o344,2,2,False,False],
-   "PUMD" : ["pStack","gStack",0o345,2,2,False,False],
-   "POBI" : ["pStack","gStack",0o350,2,2,False,False],
-   "POMI" : ["pStack","gStack",0o351,2,2,False,False],
-   "PUBI" : ["pStack","gStack",0o354,2,2,False,False],
-   "PUMI" : ["pStack","gStack",0o355,2,2,False,False],
+   "ARP" : ["pArp","gdarp",0o0,1,1,False,False,False],
+   "DRP" : ["pDrp","gdarp",0o100,1,1,False,False,False],
+   "ELB" : ["p1reg","gdirect",0o200,1,1,False,False,False],
+   "ELM" : ["p1reg","gdirect",0o201,1,1,False,False,False],
+   "ERB" : ["p1reg","gdirect",0o202,1,1,False,False,False],
+   "ERM" : ["p1reg","gdirect",0o203,1,1,False,False,False],
+   "LLB" : ["p1reg","gdirect",0o204,1,1,False,False,False],
+   "LLM" : ["p1reg","gdirect",0o205,1,1,False,False,False],
+   "LRB" : ["p1reg","gdirect",0o206,1,1,False,False,False],
+   "LRM" : ["p1reg","gdirect",0o207,1,1,False,False,False],
+   "ICB" : ["p1reg","gdirect",0o210,1,1,False,False,False],
+   "ICM" : ["p1reg","gdirect",0o211,1,1,False,False,False],
+   "DCB" : ["p1reg","gdirect",0o212,1,1,False,False,False],
+   "DCM" : ["p1reg","gdirect",0o213,1,1,False,False,False],
+   "TCB" : ["p1reg","gdirect",0o214,1,1,False,False,False],
+   "TCM" : ["p1reg","gdirect",0o215,1,1,False,False,False],
+   "NCB" : ["p1reg","gdirect",0o216,1,1,False,False,False],
+   "NCM" : ["p1reg","gdirect",0o217,1,1,False,False,False],
+   "TSB" : ["p1reg","gdirect",0o220,1,1,False,False,False],
+   "TSM" : ["p1reg","gdirect",0o221,1,1,False,False,False],
+   "CLB" : ["p1reg","gdirect",0o222,1,1,False,False,False],
+   "CLM" : ["p1reg","gdirect",0o223,1,1,False,False,False],
+   "ORB" : ["pOrXr","gdirect",0o224,2,2,False,False,False],
+   "ORM" : ["pOrXr","gdirect",0o225,2,2,False,False,False],
+   "XRB" : ["pOrXr","gdirect",0o226,2,2,False,False,False],
+   "XRM" : ["pOrXr","gdirect",0o227,2,2,False,False,False],
+   "BIN" : ["pNoPer","gdirect",0o230,0,0,False,False,False],
+   "BCD" : ["pNoPer","gdirect",0o231,0,0,False,False,False],
+   "SAD" : ["pNoPer","gdirect",0o232,0,0,False,False,False],
+   "DCE" : ["pNoPer","gdirect",0o233,0,0,False,False,False],
+   "ICE" : ["pNoPer","gdirect",0o234,0,0,False,False,False],
+   "CLE" : ["pNoPer","gdirect",0o235,0,0,False,False,False],
+   "PAD" : ["pNoPer","gdirect",0o237,0,0,False,False,False],
+   "LDB" : ["pLdSt","gLdSt",0o240,2,10,False,False,False],
+   "LDBI" : ["pLdSt","gLdSt",0o240,2,NUM_OPERANDS_ANY,False,False,False],
+   "LDBD" : ["pLdSt","gLdSt",0o240,2,NUM_OPERANDS_ANY,False,False,False],
+   "LDM" : ["pLdSt","gLdSt",0o241,2,NUM_OPERANDS_ANY,False,False,False],
+   "LDMI" : ["pLdSt","gLdSt",0o241,2,NUM_OPERANDS_ANY,False,False,False],
+   "LDMD" : ["pLdSt","gLdSt",0o241,2,NUM_OPERANDS_ANY,False,False,False],
+   "STB" : ["pLdSt","gLdSt",0o242,2,NUM_OPERANDS_ANY,False,False,False],
+   "STBI" : ["pLdSt","gLdSt",0o242,2,NUM_OPERANDS_ANY,False,False,False],
+   "STBD" : ["pLdSt","gLdSt",0o242,2,NUM_OPERANDS_ANY,False,False,False],
+   "STM" : ["pLdSt","gLdSt",0o243,2,NUM_OPERANDS_ANY,False,False,False],
+   "STMI" : ["pLdSt","gLdSt",0o243,2,NUM_OPERANDS_ANY,False,False,False],
+   "STMD" : ["pLdSt","gLdSt",0o243,2,NUM_OPERANDS_ANY,False,False,False],
+   "CMB"  : ["pAri","gAri",0o300,2,NUM_OPERANDS_ANY,False,False,False],
+   "CMM"  : ["pAri","gAri",0o301,2,NUM_OPERANDS_ANY,False,False,False],
+   "CMBD"  : ["pAri","gAri",0o300,2,NUM_OPERANDS_ANY,False,False,False],
+   "CMMD"  : ["pAri","gAri",0o301,2,NUM_OPERANDS_ANY,False,False,False],
+   "ADB"  : ["pAri","gAri",0o302,2,NUM_OPERANDS_ANY,False,False,False],
+   "ADM"  : ["pAri","gAri",0o303,2,NUM_OPERANDS_ANY,False,False,False],
+   "ADBD"  : ["pAri","gAri",0o302,2,NUM_OPERANDS_ANY,False,False,False],
+   "ADMD"  : ["pAri","gAri",0o303,2,NUM_OPERANDS_ANY,False,False,False],
+   "SBB"  : ["pAri","gAri",0o304,2,NUM_OPERANDS_ANY,False,False,False],
+   "SBM"  : ["pAri","gAri",0o305,2,NUM_OPERANDS_ANY,False,False,False],
+   "SBBD"  : ["pAri","gAri",0o304,2,NUM_OPERANDS_ANY,False,False,False],
+   "SBMD"  : ["pAri","gAri",0o305,2,NUM_OPERANDS_ANY,False,False,False],
+   "ANM"  : ["pAri","gAri",0o307,2,NUM_OPERANDS_ANY,False,False,False],
+   "ANMD"  : ["pAri","gAri",0o307,2,NUM_OPERANDS_ANY,False,False,False],
+   "JSB"  : ["pJsb","gJsb",0o306,1,2,False,False,False],
+   "POBD" : ["pStack","gStack",0o340,2,2,False,False,False],
+   "POMD" : ["pStack","gStack",0o341,2,2,False,False,False],
+   "PUBD" : ["pStack","gStack",0o344,2,2,False,False,False],
+   "PUMD" : ["pStack","gStack",0o345,2,2,False,False,False],
+   "POBI" : ["pStack","gStack",0o350,2,2,False,False,False],
+   "POMI" : ["pStack","gStack",0o351,2,2,False,False,False],
+   "PUBI" : ["pStack","gStack",0o354,2,2,False,False,False],
+   "PUMI" : ["pStack","gStack",0o355,2,2,False,False,False],
 #
 #  Jump and conditional jump Instructions
 #
-   "JMP"  : ["pJrel","gJrel",0o360,1,1,True,0],
-   "JNO"  : ["pJrel","gJrel",0o361,1,1,False,False],
-   "JOD"  : ["pJrel","gJrel",0o362,1,1,False,False],
-   "JEV"  : ["pJrel","gJrel",0o363,1,1,False,False],
-   "JNG"  : ["pJrel","gJrel",0o364,1,1,False,False],
-   "JPS"  : ["pJrel","gJrel",0o365,1,1,False,False],
-   "JNZ"  : ["pJrel","gJrel",0o366,1,1,False,False],
-   "JZR"  : ["pJrel","gJrel",0o367,1,1,False,False],
-   "JEN"  : ["pJrel","gJrel",0o370,1,1,False,False],
-   "JEZ"  : ["pJrel","gJrel",0o371,1,1,False,False],
-   "JNC"  : ["pJrel","gJrel",0o372,1,1,False,False],
-   "JCY"  : ["pJrel","gJrel",0o373,1,1,False,False],
-   "JLZ"  : ["pJrel","gJrel",0o374,1,1,False,False],
-   "JLN"  : ["pJrel","gJrel",0o375,1,1,False,False],
-   "JRZ"  : ["pJrel","gJrel",0o376,1,1,False,False],
-   "JRN"  : ["pJrel","gJrel",0o377,1,1,False,False],
+   "JMP"  : ["pJrel","gJrel",0o360,1,1,True,False,False],
+   "JNO"  : ["pJrel","gJrel",0o361,1,1,False,False,False],
+   "JOD"  : ["pJrel","gJrel",0o362,1,1,False,False,False],
+   "JEV"  : ["pJrel","gJrel",0o363,1,1,False,False,False],
+   "JNG"  : ["pJrel","gJrel",0o364,1,1,False,False,False],
+   "JPS"  : ["pJrel","gJrel",0o365,1,1,False,False,False],
+   "JNZ"  : ["pJrel","gJrel",0o366,1,1,False,False,False],
+   "JZR"  : ["pJrel","gJrel",0o367,1,1,False,False,False],
+   "JEN"  : ["pJrel","gJrel",0o370,1,1,False,False,False],
+   "JEZ"  : ["pJrel","gJrel",0o371,1,1,False,False,False],
+   "JNC"  : ["pJrel","gJrel",0o372,1,1,False,False,False],
+   "JCY"  : ["pJrel","gJrel",0o373,1,1,False,False,False],
+   "JLZ"  : ["pJrel","gJrel",0o374,1,1,False,False,False],
+   "JLN"  : ["pJrel","gJrel",0o375,1,1,False,False,False],
+   "JRZ"  : ["pJrel","gJrel",0o376,1,1,False,False,False],
+   "JRN"  : ["pJrel","gJrel",0o377,1,1,False,False,False],
    }
+   __condAssemblyOpcodes__= []
 #
 #  extend the basic opcodes above with the assembler pseudo ops
 #
@@ -481,7 +493,7 @@ class MESSAGE(object):
       E_FLAGNOTDEFINED: "Flag not defined",
       E_AIFEIFMISMATCH: "AIF/EIF mismatch",
       E_ILLFLAGNAME: "Illegal flag name",
-      E_MISSING_FIN: "Missing FIN statement",
+      E_MISSING_FIN: "Missing FIN/END statement",
       E_ROM_EXPECTED: "ROM expected",
       E_ILL_ADDRESS: "Illegal Address",
       E_MISSINGRPAREN: "Missing ) in expression",
@@ -657,13 +669,34 @@ class clsSymDict(object):
 #
 # Conditional assembling class ---------------------------------------------
 #
+# Conditional assembly controls with IF <condition> ENDIF or
+# IF <condition> ELSE ENDIF clauses whether a source file line is "active"
+# == has to be executed or "not active" == "has to be treated as comment".
+#
+# The conditional assembly class maintains the following data:
+# - flags               : Dictionary of flag names and their conditions
+#                         The dictionary is populated by the set or the
+#                         clr method
+# - stack               : The current state of the parsed conditions are pushed
+#                         on a stack, because conditions can be nested
+# - activeConditionIndex: Index of the "current" active condition. 
+#
 class clsConditionalAssembly(object):
 
-   def __init__(self):
+   def __init__(self,definedFlags):
     
       super().__init__()
       self.__stack__= []
-      self.__flags__ = { }
+      self.__flags__ = {}
+      self.__activeConditionIndex__= -1
+   
+      for f in definedFlags:
+         self.__flags__[f]=True
+#
+#  returns True, if the current condition is active 
+#
+   def isActive(self):
+      return (len(self.__stack__)-1) == self.__activeConditionIndex__
 #
 #  returns True, if we are within a condition
 #
@@ -675,13 +708,14 @@ class clsConditionalAssembly(object):
    def isSuppressed(self):
       if not self.isOpen():
          return False
-      return self.__stack__[-1]
+      return self.__stack__[self.__activeConditionIndex__]
 #
-#  eif, pop condition from stack
+#  endif, pop condition from stack
 #
-   def eif(self):
+   def endif(self):
+      if self.isActive():
+         self.__activeConditionIndex__-=1
       self.__stack__.pop()
-   
 #
 #  set flag
 #
@@ -693,14 +727,52 @@ class clsConditionalAssembly(object):
    def clr(self,name):
       self.__flags__[name]= False
 #
-#  aif, push new condition on stack
+#  ifdef, push new condition on stack
 #
-   def aif(self,name):
+   def ifdef(self,name):
+      if not self.isSuppressed():
+         self.__activeConditionIndex__+=1
+      if name in self.__flags__:
+         self.__stack__.append(False)
+      else:
+         self.__stack__.append(True)
+      
+#
+#  ifndef, push new condition on stack
+#
+   def ifndef(self,name):
+      if not self.isSuppressed():
+         self.__activeConditionIndex__+=1
+      if name in self.__flags__:
+         self.__stack__.append(True)
+      else:
+         self.__stack__.append(False)
+#
+#  ifset, push new condition on stack
+#
+   def ifset(self,name):
+      if not self.isSuppressed():
+         self.__activeConditionIndex__+=1
       try:
-        self.__stack__.append(self.__flags__[name]==False)
-        return True
+         self.__stack__.append(self.__flags__[name]==False)
       except KeyError:
-        return False
+         self.__stack__.append(False)
+         if not self.isSuppressed():
+            return False
+      return True
+#
+#  ifnset, push new condition on stack
+#
+   def ifnset(self,name):
+      if not self.isSuppressed():
+         self.__activeConditionIndex__+=1
+      try:
+         self.__stack__.append(self.__flags__[name]!=False)
+      except KeyError:
+         self.__stack__.append(False)
+         if not self.isSuppressed():
+            return False
+      return True
 #
 #  else reverts the status of the topmost condition
 #
@@ -1095,6 +1167,7 @@ class clsListWriter(object):
 #  printed to standard output only if any diagnostics exist
 #
    def writeLine(self,parsedLine,codeInfo):
+      lineNumber="{:5d} ".format(parsedLine.lineInfo[1])
 #
 #     check if we have a page break
 #
@@ -1115,7 +1188,7 @@ class clsListWriter(object):
 #
 #     PC 
 #
-      s=self.formatAddress(pc)+" "
+      s=lineNumber+self.formatAddress(pc)+" "
 #
 #     Bytes of code (max 3 octal or 4 hex)
 #
@@ -2232,7 +2305,82 @@ class clsParserBase(object):
          return [clsParsedString("")]
       else:
          return [clsParsedString(title)]
-   
+#
+#  Parse the conditinal assembly pseudo ops
+#
+   def pCondSet(self):
+      cond=self.__globVar__.condAssembly
+      pLabel=self.parseLabelOp(0)
+      if pLabel.isInvalid():
+         self.addError(MESSAGE.E_ILLFLAGNAME)
+      else:
+        cond.set(pLabel.label)
+      return
+
+   def pCondClr(self):
+      cond=self.__globVar__.condAssembly
+      pLabel=self.parseLabelOp(0)
+      if pLabel.isInvalid():
+         self.addError(MESSAGE.E_ILLFLAGNAME)
+      else:
+        cond.clr(pLabel.label)
+      return
+
+   def pCondIfDef(self):
+      cond=self.__globVar__.condAssembly
+      pLabel=self.parseLabelOp(0)
+      if pLabel.isInvalid():
+         self.addError(MESSAGE.E_ILLFLAGNAME)
+      else:
+        cond.ifdef(pLabel.label)
+      return
+
+   def pCondIfNotDef(self):
+      cond=self.__globVar__.condAssembly
+      pLabel=self.parseLabelOp(0)
+      if pLabel.isInvalid():
+         self.addError(MESSAGE.E_ILLFLAGNAME)
+      else:
+        cond.ifndef(pLabel.label)
+      return
+
+   def pCondIfSet(self):
+      cond=self.__globVar__.condAssembly
+      pLabel=self.parseLabelOp(0)
+      if pLabel.isInvalid():
+         self.addError(MESSAGE.E_ILLFLAGNAME)
+      else:
+        ret=cond.ifset(pLabel.label)
+        if not ret:
+           self.addError(MESSAGE.E_FLAGNOTDEFINED)
+      return
+
+   def pCondIfNotSet(self):
+      cond=self.__globVar__.condAssembly
+      pLabel=self.parseLabelOp(0)
+      if pLabel.isInvalid():
+         self.addError(MESSAGE.E_ILLFLAGNAME)
+      else:
+        ret=cond.ifnset(pLabel.label)
+        if not ret:
+           self.addError(MESSAGE.E_FLAGNOTDEFINED)
+      return
+
+   def pCondElse(self):
+      cond=self.__globVar__.condAssembly
+      if not cond.isOpen():
+         self.addError(MESSAGE.E_AIFEIFMISMATCH)
+      else:
+         cond.els()
+      return
+
+   def pCondEndif(self):
+      cond=self.__globVar__.condAssembly
+      if not cond.isOpen():
+         self.addError(MESSAGE.E_AIFEIFMISMATCH)
+      else:
+         cond.endif()
+      return
 #
 #  Now the opcode specific parsing methods follow. They are specified
 #  in the opcode table.
@@ -2802,17 +2950,6 @@ class clsParserBase(object):
          return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
                 self.__line__)
 #
-#     We have to check the conditional assembly status,
-#     treat the line as comment if we are in False state
-#     except we have an EIF statement
-#
-      if condAssemblyIsSuppressed and \
-         self.__scannedOpcode__.string !="EIF":
-         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
-                self.__line__)
-
-      
-#
 #     Return if we have a comment ! in the opcode field
 #
       if self.__scannedOpcode__.string=="!":
@@ -2820,6 +2957,28 @@ class clsParserBase(object):
                 self.__line__)
 
       self.__opcode__=self.__scannedOpcode__.string
+#
+#     Get information how to parse the opcode
+# 
+      self.__opcodeInfo__=OPCODES.get(self.__opcode__)
+#
+#        return error information, if opcode not found
+#
+      if self.__opcodeInfo__ ==[]:
+         self.__hasLcl__=False
+         self.addError(MESSAGE.E_ILL_OPCODE)
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                              self.__line__)
+#
+#     We have to check the conditional assembly status,
+#     treat the line as comment if we are in False state
+#     except we have an conditional assembly statement
+#
+      if self.__opcodeInfo__[7]:
+         condAssemblyIsSuppressed=False
+      if condAssemblyIsSuppressed: 
+         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                self.__line__)
 #
 #     Invalidate arp, drp context if the previous statement was a subroutine 
 #     call or PAD
@@ -2829,64 +2988,51 @@ class clsParserBase(object):
          self.__globVar__.drpReg= -1
          self.__globVar__.lastStmtWasPAD=False
          self.__globVar__.lastStmtWasJSB=False
-#
-#     Get information how to parse the opcode
-# 
-      self.__opcodeInfo__=OPCODES.get(self.__opcode__)
 
-      if self.__opcodeInfo__ !=[]:
 #
-#        We have a valid opcode or pseudo opcode, check number of params
+#     Check number of params for the opcode
 #
-         if len(self.__scannedOperand__)< self.__opcodeInfo__[3]:
-               self.addError(MESSAGE.E_ILL_NUMOPERANDS)
-               return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
-                              self.__line__)
-         if self.__opcodeInfo__[4] != OPCODES.NUM_OPERANDS_ANY:
-            if len(self.__scannedOperand__)> self.__opcodeInfo__[4]:
-               self.addError(MESSAGE.E_ILL_NUMOPERANDS)
-               return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+      if len(self.__scannedOperand__)< self.__opcodeInfo__[3]:
+            self.addError(MESSAGE.E_ILL_NUMOPERANDS)
+            return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+                           self.__line__)
+      if self.__opcodeInfo__[4] != OPCODES.NUM_OPERANDS_ANY:
+         if len(self.__scannedOperand__)> self.__opcodeInfo__[4]:
+            self.addError(MESSAGE.E_ILL_NUMOPERANDS)
+            return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
                               self.__line__)
 #
-#        Invalidate arp/drp context if we the following conditions are met:
-#        - the opcode generates executable code
-#        - the opcode is no unconditional jump
-#        - a local label exists for that line 
+#     Invalidate arp/drp context if we the following conditions are met:
+#     - the opcode generates executable code
+#     - the opcode is no unconditional jump
+#     - a local label exists for that line 
 #
-         if not self.__opcodeInfo__[6]:
-            if self.__hasLcl__ and not self.__opcodeInfo__[5]:
-                self.__globVar__.arpReg= -1
-                self.__globVar__.drpReg= -1
-         self.__hasLcl__=False
+      if not self.__opcodeInfo__[6]:
+         if self.__hasLcl__ and not self.__opcodeInfo__[5]:
+             self.__globVar__.arpReg= -1
+             self.__globVar__.drpReg= -1
+      self.__hasLcl__=False
 #
-#        Call operand parse method
+#     Call operand parse method
 #
-         fname=self.__opcodeInfo__[0]
-         self.__parsedOperand__= getattr(self,fname)()
+      fname=self.__opcodeInfo__[0]
+      self.__parsedOperand__= getattr(self,fname)()
 #
-#        Set flag, if the parsed operand is an unconditional JMP
-#        This flag is needed for parsing an immediately following ELSE
-#        statement which will eliminate the jump instructions to the
-#        corresponding ENDIF
+#     Set flag, if the parsed operand is an unconditional JMP
+#     This flag is needed for parsing an immediately following ELSE
+#     statement which will eliminate the jump instructions to the
+#     corresponding ENDIF
 #
-         if self.__opcodeInfo__[5]:
-            self.__globVar__.lastOpcodeWasJmp=True
-         else:
-            if not self.__opcodeInfo__[6]:
-               self.__globVar__.lastOpcodeWasJmp=False
-#
-#        return parsed statement information
-#
-         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
-                self.__line__, \
-                self.__opcode__,self.__opcodeLen__, self.__parsedOperand__, \
-                self.__needsArp__,self.__needsDrp__,self.__addressMode__)
-
+      if self.__opcodeInfo__[5]:
+         self.__globVar__.lastOpcodeWasJmp=True
       else:
+         if not self.__opcodeInfo__[6]:
+            self.__globVar__.lastOpcodeWasJmp=False
 #
-#        return error information
+#     return parsed statement information
 #
-         self.__hasLcl__=False
-         self.addError(MESSAGE.E_ILL_OPCODE)
-         return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
-                              self.__line__)
+      return clsParserInfo(PC,self.__lineInfo__,self.__messages__, \
+             self.__line__, \
+             self.__opcode__,self.__opcodeLen__, self.__parsedOperand__, \
+             self.__needsArp__,self.__needsDrp__,self.__addressMode__)
+
