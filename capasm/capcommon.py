@@ -1213,12 +1213,11 @@ class clsListWriter(object):
 #
       j=0
       i=numCode
-      s=""
       skippedCode=False
       while i < codeLen:
          if j==0:
             pc+=numCode
-            s=self.formatAddress(pc)+" "
+            s="      "+self.formatAddress(pc)+" "
          s+=self.formatCode(codeInfo.code[i])+" "
          j+=1
          if j==numCode:
@@ -1229,7 +1228,7 @@ class clsListWriter(object):
             j=0
          i+=1
       if (skippedCode):
-         self.wrL("...")
+         self.wrL("      ...")
       if j>0:
          self.wrL(s)
 #
