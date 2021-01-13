@@ -37,20 +37,14 @@ You need approximately 700MB free disk space for CAPASM and the Python
 runtime environment. Everything is installed as a local user and thus no 
 administrator privileges are needed. 
 
-Note: CAPASM is available for Python 3.7 and Python 3.8 for the Anaconda/Miniconda platform at the moment. Future versions of CAPASM will only support 
-Python 3.8 if that version becomes default of the Anaconda/Miniconda installer.
 
-**Note for Windows**: Due to recent changes in the Anaconda installation
-environment it is strongly encouraged to do a clean reinstallation of an older
-Anaconda/Miniconda environment.
-
-Download the Python 3.x version of [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and follow the [Installation Instructions](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and install Miniconda first.
+Download the Python 3.8 version of [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and follow the [Installation Instructions](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and install Miniconda first.
 
 
-**Note for Windows**: Do not instruct the installer to change the PATH. 
+**Windows**: Do not instruct the installer to change the PATH. 
 Use always the Anaconda Prompt which is available from the start menu.
 
-**Note for Linux and macOS**: If you install Miniconda the first time
+**Linux and macOS**: If you install Miniconda the first time
 then let the installer modify the PATH variable of your environment.
 
 Reopen a new terminal window (Linux, macOS) or Anaconda Prompt (Windows) 
@@ -81,6 +75,18 @@ You should issue occasionally:
      conda clean --all
 
 to clean the conda package cache and save disk space.
+
+Note: CAPASM requires at least Python 3.8. If you get no CAPASM updates check your Anaconda/Miniconda Python version with:
+
+     conda list
+
+You can upgrade the Python version to 3.8 with:
+
+     conda install python=3.8
+
+**Windows**:
+If an update to a current Python version fails, do a clean reinstallation of the
+Anaconda/Miniconda environment.
 
 
 Installation without the ANACONDA platform
