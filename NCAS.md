@@ -731,9 +731,11 @@ Generate the result of expression into the program code. The value is resized to
 Examples
 --------
 
-The *ncas* subdirectory contains the file *example.asm* which is the example
+The *ncas* subdirectory contains the file [example.asm](https://github.com/bug400/capasm/blob/master/ncas/example.asm) which is the example
 ROM-based LEX file from *Appendix A* of the HP-75C *Description and Entry Points* Document. 
 
-The *riowio.asm* which exists in the same directory shows how to create a
-lex file including the HP-75 RAM-header and the LIF-header without additional
-post-processing.
+The [riowio.asm](https://github.com/bug400/capasm/blob/master/ncas/riowio.asm) 
+which exists in the same directory shows how to create a lex file including 
+the HP-75 RAM-header and the LIF-header without additional post-processing. This 
+file includes the file [lexheader.inc](https://github.com/bug400/capasm/blob/master/ncas/lexheader.inc)
+which provides a generic component to create lex files.
