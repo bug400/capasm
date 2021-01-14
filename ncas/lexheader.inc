@@ -1,4 +1,19 @@
 *
+* This is a generic module to create LIF- and RAM-file headers
+* for HP-75 LEX-files. Include this file in the source of the LEX-file.
+*
+* Requirements:
+*
+* The following symbol must be defined b e f o r e this file is included:
+*
+* Name          Type     Description
+* LEXFILE_NAME  EQU      Name of the lex file, 8 characters long, blank padded
+*
+* The following local labels must exist in the source of the LEX-file:
+* Name          Type     Description
+* RMBASE        LCL      Start of LEX-file header
+* LXEND         LCL      End of LEX-file
+*
 * LIF file header
 *
        DATA LEXFILE_NAME        ; lex file name 8 characters length for HP-75
