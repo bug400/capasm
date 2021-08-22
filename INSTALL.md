@@ -38,7 +38,7 @@ runtime environment. Everything is installed as a local user and thus no
 administrator privileges are needed. 
 
 
-Download the Python 3.8 version of [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and follow the [Installation Instructions](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and install Miniconda first.
+Download the Python 3.9 version of [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and follow the [Installation Instructions](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and install Miniconda first.
 
 
 **Windows**: Do not instruct the installer to change the PATH. 
@@ -76,13 +76,13 @@ You should issue occasionally:
 
 to clean the conda package cache and save disk space.
 
-Note: CAPASM requires at least Python 3.8. If you get no CAPASM updates check your Anaconda/Miniconda Python version with:
+Note: CAPASM requires at least Python 3.9. If you get no CAPASM updates check your Anaconda/Miniconda Python version with:
 
      conda list
 
-You can upgrade the Python version to 3.8 with:
+You can upgrade the Python version to 3.9 with:
 
-     conda install python=3.8
+     conda install python=3.9
 
 **Windows**:
 If an update to a current Python version fails, do a clean reinstallation of the
