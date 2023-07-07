@@ -199,7 +199,7 @@ speak.
 error.
        jsb  =ONEB
        ldb  r20,r76     
-       jsb  =ERROR
+       jsb  =ERRORR
        rtn
 
 *****************************************************
