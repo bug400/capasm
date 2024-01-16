@@ -1,6 +1,8 @@
 ﻿CAPASM installation instructions
 =================================
 
+Note: this installation instruction is outdated and under revision.
+
 Index
 -----
 
