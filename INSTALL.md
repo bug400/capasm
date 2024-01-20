@@ -1,106 +1,135 @@
-﻿CAPASM installation instructions
-=================================
-
-Note: this installation instruction is outdated and under revision.
+﻿# CAPASM installation instructions
 
 Index
 -----
 
-* [General](#general)
-* [Installation with the ANACONDA platform](#installation-with-the-anaconda-platform)
-* [Installation without the ANACONDA platform](#installation-without-the-anaconda-platform)
-* [Installation of development versions from the GitHub Repository](#installation-of-development-versions-from-the-GitHub-Repository)
-
-General
--------
-
-CAPASM requires a Python interpreter version 3.6 or higher. 
-
-It is recommended to use the [ANACONDA platform](https://www.continuum.io) 
-to install CAPASM and the required Python software and keep them up to date.
-
-Note: dependent on the operating systems the Python version 3 interpreter may be called either *python* or *python3*.
+* [Requirements](#requirements)
+* [Overview of the Installation from PyPi](#overview-of-the-installation-from-pypi)
+     * [Installation on Windows](#installation-on-windows)
+     * [Installation on macOS](#installation-on-macos)
+     * [Installation on Linux](#installation-on-linux)
+* [Installation from GitHub](#installation-from-github)
+* [Installation of development versions](#installation-of-development-versions)
+* [Virtual Environment Maintenance](#virtual-environment-maintenance)
 
 
-Installation with the ANACONDA platform
----------------------------------------
+## Requirements
 
-Anaconda is a Python distribution widely used in Data Science applications.
-It provides a Python environment that is easy to install and maintain
-on Windows, macOS and Linux. The Anaconda cloud gives access to more than
-1000 Python applications.
-
-The Anaconda distribution installs more than 150 Python packages on your
-computer which are not needed to run CAPASM. Therefore, it is recommended
-to use the Miniconda installer instead which only provides Python and the
-Anaconda package manager.
-
-You need approximately 700MB free disk space for CAPASM and the Python 
-runtime environment. Everything is installed as a local user and thus no 
-administrator privileges are needed. 
+CAPASM requires a Python interpreter version 3.6 or higher. Python version 3.11 is currently recommended.
 
 
-Download the Python 3.11 version of [Miniconda](https://docs.conda.io/en/latest/miniconda.html) and follow the [Installation Instructions](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and install Miniconda first.
+## Overview of the Installation from PyPi
+
+This installation method of CAPASM requires the following steps:
+
+1. Get a Python interpreter for your system:
+
+* Windows: install it from Microsoft Store (free)
+* macOS: download it from the [www.python.org](https://www.python.org) website and install the pkg file
+* Linux: install it from system repositories if not already installed on your system
 
 
-**Windows**: Do not instruct the installer to change the PATH. 
-Use always the Anaconda Prompt which is available from the start menu.
+2. Create a virtual Python environment for CAPASM
 
-**Linux and macOS**: If you install Miniconda the first time
-then let the installer modify the PATH variable of your environment.
+A virtual environment is a directory tree that contains a dedicated Python runtime version with CAPASM for the current user. This environment must be "activated" (see below) and it works isolated from the operating systems or other environments.
 
-Reopen a new terminal window (Linux, macOS) or Anaconda Prompt (Windows) 
-and type:
+A virtual environment can be removed by simply removing the directory in question.
 
-     conda update conda
-     conda config --add channels bug400
-     conda install capasm
+3. Activate the virtual Python environment
 
-This installs CAPASM. 
+The virtual environment is activated by calling an activation script. An activated environment is indicated
+in the prompt string. 
 
-To update CAPASM and the Python runtime type:
+4. Install CAPASM
 
-     conda update --all
+This step fetches CAPASM from the [Python Package Index](https://pypi.org) (PyPi), which is the official 
+third-party software repository for Python. You can also install additional software in the 
+environment from the Python Package Index.
 
-in a terminal window (Linux and macOS) or Anaconda Prompt (Windows).
+<b>Warning: always call the Python interpreter "python3" if you create a virtual environment and "python" after the environment has been activated!!!</b>
 
-To start the *capasm* assembler type:
+5. Maintain the virtual environment
 
-     capasm -h
-
-in a terminal window (Linux and macOS) or Anaconda Prompt (Windows). This
-shows a help screen with a description of the necessary command line parameters
-to run the program. That way the other programs of the CAPASM software suite like *caplif* are invoked.
-
-You should issue occasionally:
-
-     conda clean --all
-
-to clean the conda package cache and save disk space.
-
-Note: CAPASM requires at least Python 3.9. If you get no CAPASM updates check your Anaconda/Miniconda Python version with:
-
-     conda list
-
-You can upgrade the Python version to 3.9 with:
-
-     conda install python=3.9
-
-**Windows**:
-If an update to a current Python version fails, do a clean reinstallation of the
-Anaconda/Miniconda environment.
+See [Virtual environment maintenance](#virtual-environment-maintenance)
 
 
-Installation without the ANACONDA platform
-------------------------------------------
+### Installation on Windows
 
-The requirements specified above must be available on the system.
+To install the Python interpreter open the Microsoft Store, search for Python and select the recommended version (see above) for installation. Python is installed for the current user.
 
-On Debian based Linux systems you can install the CAPASM Debian package.
+Example: create a virtual environment "py311" in the home directory of the current user, install and start CAPASM:
 
-On all other systems unzip the CAPASM source code in an arbitrary
-location. You get the CAPASM directory capasm-x.y.z, where x.y.z is
-the version number.
+
+     C:\>cd %USERPROFILE%                                  (change to users home directory)
+     
+     C:\Users\bug400>python3 -m venv py311                 (create environment %USERPROFILE%\py311, use python3 to call the interpreter here!!!)
+
+     C:\Users\bug400>py311\scripts\activate                (activate the environment, the environment name becomes component of the prompt string)
+     
+     (py311) C:\Users\bug400>python -m pip install capasm  (install CAPASM with the required runtime dependecies)
+     Collecting capasm
+       Obtaining dependency information for capasm from https://files.pythonhosted.org/packages/3e/
+     
+     ...
+     
+     Installing collected packages: capasm
+     Successfully installed capasm-1.0.1 
+     
+     [notice] A new release of pip is available: 23.2.1 -> 23.3.2
+     [notice] To update, run: python.exe -m pip install --upgrade pip
+     
+     (py311) C:\Users\bug400>capasm                        (start CAPASM)
+
+
+
+If the Python interpreter is run for the first time, a window opens and requests firewall permissions. To grant permissions for Python applications administrator privileges are needed.
+
+You can invoke CAPASM (or other programs of the CAPASM suite) without activating the environment by calling:
+
+     %USERPROFILE%\py311\scripts\capasm
+
+
+
+### Installation on macOS
+
+Install Python for macOS from the [Python website](https://www.python.org/). Choose the recommended Python version (see above) on the Downloads page. Download and install the macOS 64-bit universal installer. You need administrator privileges for that.
+
+See [Using Python on a Mac](https://docs.python.org/3/using/mac.html) for further details.
+
+Example: create a virtual environment "py311" in the home directory of the current user, install and start CAPASM:
+
+     node1-mac:~ bug400$ python3 -m venv py311                  (create virtual environment ~/py311)
+     node1-mac:~ bug400$ source py311/bin/activate              (activate virtual environment ~/py311)
+     (py311) node1-mac:~ bug400$ python -m pip install capasm   (install CAPASM and required runtime components)
+     Collecting capasm
+       Obtaining dependency information for capasm from https://files.pythonhosted.org/packages/3e
+
+     ...
+
+     Installing collected packages: capasm
+     Successfully installed capasm-1.0.1 
+     
+     [notice] A new release of pip is available: 23.2.1 -> 23.3.2
+     [notice] To update, run: pip install --upgrade pip
+     (py311) node1-mac:~ bug400$ capasm                        (start CAPASM)
+     
+You can invoke CAPASM without activating the environment by calling:
+
+     node1-mac:~ bug400$ ~/py311/bin/capasm
+
+
+### Installation on Linux
+
+Generally, it is recommended to use the Python Interpreter provided by the Linux distribution. 
+
+Install CAPASM from the Python Package Index. See the macOS installation instructions for details.
+
+
+## Installation from GitHub
+
+To install CAPASM this way, the above-mentioned system requirements must be installed on your computer.
+
+Download the latest source code from the [CAPASM Releases page](https://github.com/bug400/capasm/releases/) and unzip the CAPASM source code in an arbitrary location. You get the CAPASM directory capasm-x.y.z, where x.y.z is the version number.
 
 Now you can start the assembler with:
 
@@ -110,13 +139,14 @@ or the *caplif* tool with:
 
       python <Path to the CAPASM directory>/startup.py caplif (parameters)
 
-If you get the error message "This script requires Python 3.6 or newer!" use python3 instead.
-
 You can call the Python script *start.py* from everywhere in the file system. Because this scripts must not be moved out of the CAPASM directory it is recommended to create short shell- (Linux, macOs) or CMD- (Windows) helper scripts and put them into a directory which is specified in your search path.
 
+Note: it depends on your Linux distribution and system configuration whether the Python interpreter is invoked as "phyton" or "python3".
 
-Installation of development versions from the GitHub Repository
----------------------------------------------------------------
+The [CAPASM Releases page](https://github.com/bug400/capasm/releases/) provides an installation package for the current Debian release. This package might also be installable on Linux distributions which were derived from the Debian release in question.
+
+
+## Installation of development versions
 
 To use development versions of CAPASM download the capasm-master.zip file from GitHub [front page of CAPASM](https://github.com/bug400/capasm) ("Download ZIP" button). 
 
@@ -131,3 +161,65 @@ Note to beta or development versions:
 * The beta or development versions do not affect the configuration of an already installed production version because a different naming convention is used for the configuration files.
 
 To obtain more recent development versions of CAPASM download the capasm-master.zip file again. If you are familiar with a git client you can synchronize a local capasm-master directory with the remote GitHub repository.
+
+
+## Virtual Environment Maintenance
+
+Generally, it is recommended to check whether a new version of CAPASM exists and to upgrade that package only.
+
+Note: To upgrade the python interpreter itself it is safest to uninstall the old interpreter, remove the environment and reinstall/recreate interpreter and environment.
+
+To do virtual environment maintenance you have to activate it first:
+
+     <path to venv directory>/scripts/activate (Windows)
+     or
+     source <path to venv directory>/bin/activate (macOS, Linux)
+
+
+Deactivate an environment:
+
+     deactivate
+
+Check for packages that can be updated:
+
+     python -m pip list -o
+
+Update CAPASM
+
+     python -m pip upgrade capasm
+
+
+Further maintenance commands:
+
+List installed packages:
+
+     python -m pip list
+
+Install a package:
+
+     python -m pip install <packagename>
+
+Show details of a package:
+
+     python -m pip show <packagename>
+
+Remove a package:
+
+     python -m pip uninstall <packagename>
+
+Check for new versions of a package
+
+     python -m pip list -o
+
+Upgrade a package (pip itself can be upgraded with pip)
+
+     python -m pip upgrade capasm
+
+Clear package cache (saves space on disk):
+
+     python -m pip cache  purge
+
+Remove an environment:
+
+     delete the entire directory tree of the environment
+
