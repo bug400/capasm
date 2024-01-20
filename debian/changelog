@@ -1,3 +1,9 @@
+capasm (1.0.1) bookworm; urgency=medium
+
+  * improved PyPi packaging 
+
+ -- bookworm <achim@trillian>  Sat, 20 Jan 2024 10:37:52 +0100
+
 capasm (1.0.0) focal; urgency=medium
 
   * bug fixes

@@ -14,7 +14,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0',
+    version='1.0.1',
 
     description='Assembler for the HP capricorn CPU',
     long_description=long_description,
@@ -51,17 +51,15 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
 
     # What does your project relate to?
-    keywords='pyqt5 HP-IL PIL-Box HP-41 HP-71 HP-75',
+    keywords='HP-75','HP-85',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['misc', 'debian', 'tests*']),
-#   package_data = {
-#      'capasm' : ['Manual/*.html', 'Manual/js/*.js', 'Manual/css/*.css','lifimage/*.DAT'],
-#   },
     entry_points={
        'console_scripts': [ 'capasm= capasm:capasm',
                             'ncas= capasm:ncas',

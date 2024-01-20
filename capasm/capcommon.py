@@ -38,8 +38,8 @@ from pathlib import Path
 #
 # Program Constants -----------------------------------------------------
 #
-CAPASM_VERSION="Version 1.0.0"
-CAPASM_VERSION_DATE="January 2021"
+CAPASM_VERSION="Version 1.0.1"
+CAPASM_VERSION_DATE="January 2024"
 
 #
 # CAPASM custom exception -----------------------------------------------

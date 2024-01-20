@@ -2,20 +2,20 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+exclude = ['debian/','lex75/','lex85/','symbols/','ncas/','*.md']
+
+
 [project]
 name = "capasm"
-version = "1.0.0"
+version = "1.0.1"
 description = "Assembler for the HP Capricorn CPU"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.5"
+requires-python = ">=3.6"
 authors= [
    {email="bug400@gmx.de"},
    {name="Joachim Siebold"}
-]
-dependencies= [
-   "PySide6",
-   "pyserial"
 ]
 classifiers=[
         'Development Status :: 4 - Beta',

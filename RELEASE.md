@@ -1,6 +1,10 @@
 ﻿CAPASM release notes
 ====================
 
+1.0.1 (Production)
+------------------
+ * all: improved PyPi packaging
+
 1.0.0 (Production)
 -----------------
  * CAPASM: fix incorrect range checks of relative jumps
