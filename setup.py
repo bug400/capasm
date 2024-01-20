@@ -55,7 +55,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='HP-75','HP-85',
+    keywords='HP-75 HP-85',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
