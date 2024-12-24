@@ -127,7 +127,7 @@ Install CAPASM from the Python Package Index. See the macOS installation instruc
 
 ## Installation from GitHub
 
-To install CAPASM this way, the above-mentioned system requirements must be installed on your computer.
+To install CAPASM this way, the above mentioned system requirements must be installed on your computer.
 
 Download the latest source code from the [CAPASM Releases page](https://github.com/bug400/capasm/releases/) and unzip the CAPASM source code in an arbitrary location. You get the CAPASM directory capasm-x.y.z, where x.y.z is the version number.
 
@@ -186,7 +186,7 @@ Check for packages that can be updated:
 
 Update CAPASM
 
-     python -m pip upgrade capasm
+     python -m pip install --upgrade capasm
 
 
 Further maintenance commands:
@@ -213,7 +213,7 @@ Check for new versions of a package
 
 Upgrade a package (pip itself can be upgraded with pip)
 
-     python -m pip upgrade capasm
+     python -m pip install --upgrade <packagename>
 
 Clear package cache (saves space on disk):
 
