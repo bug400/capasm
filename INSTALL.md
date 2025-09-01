@@ -122,7 +122,16 @@ You can invoke CAPASM without activating the environment by calling:
 
 Generally, it is recommended to use the Python Interpreter provided by the Linux distribution. 
 
-Install CAPASM from the Python Package Index. See the macOS installation instructions for details.
+The [releases section](https://github.com/bug400/capasm/releases) provides an installer (.deb file) for
+DEBIAN Linux and compatible distributions.
+See the release comments, which DEBIAN version is currently supported. To install the .deb file, issue the
+following command as root in the directory containing the installer file:
+
+    apt install ./capasm_X.Y.Z_all.deb
+
+This will also install additional software components, which are necessary to run <em>capasm</em>.
+
+**Note:** This command installs the software package from a downloaded file, not from a repository. To obtain a new version of the software, you must download the corresponding deb package and install it using the command above. The previous program version will then be overwritten.
 
 
 ## Installation from GitHub
