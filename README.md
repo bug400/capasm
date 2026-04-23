@@ -1,4 +1,4 @@
-CAPASM: an Assembler for the HP Capricorn CPU
+CAPASM: An Assembler for the HP Capricorn CPU
 =============================================
 
 
@@ -25,12 +25,12 @@ Index
 
 Description
 -----------
-CAPASM is a software suite primary intended for programmers who would like to
+CAPASM is a software suite primarly intended for programmers who would like to
 assemble ROM or LEX files for the Series 80 desktop or the HP-75 handheld 
 computers. 
 
-Essential part of the software suite are the assemblers:
-* *capasm* which is almost compatible to the assembler of the HP-83/85 Assembler 
+Essential parts of the software suite are the assemblers:
+* *capasm* which is almost compatible with the assembler of the HP-83/85 Assembler 
   ROM and the HP-86/87 Assembler ROM. See the 
   [CAPASM Assembler language description](CAPASM.md) for details.
 * *ncas* which implements language elements to facilitate the assembly of
@@ -39,17 +39,17 @@ Essential part of the software suite are the assemblers:
   [NCAS Assembler language description](NCAS.md) for details.
 
 In addition, the CAPASM suite provides tools to post-process the assembled
-object files to LEX, LIF image or ROM files in order to use the assembled
+object files to LEX, LIF image, or ROM files in order to use the assembled
 files in emulators or "real" hardware.
 
-The CAPASM software is entirely written in Python3 and was successfully 
-tested on LINUX, macOS and Windows 10.
+The CAPASM software is entirely written in Python 3 and was successfully 
+tested on Linux, macOS and Windows 11.
 
 
 Installation
 ------------
 
-See the [Installation Instructions](https://github.com/bug400/capasm/blob/master/INSTALL.md) for details.
+See the [installation instructions](https://github.com/bug400/capasm/blob/master/INSTALL.md) for details.
 
 
 Assemble files
@@ -61,17 +61,17 @@ The *lex85* subdirectory of this repository contains the sample HP-85 LEX file f
 
 This assembles the file *ftoc.asm* and creates a binary object file *ftoc.bin*. Any error messages are printed to the terminal.
 
-To get a list file type:
+To get a list-file type:
 
         capasm ftoc.asm -l ftoc.lst
 
-This creates a list file *ftoc.lst* with the default symbol table. To get a symbol table with a cross-reference use the *-r 2* option:
+This creates a list-file *ftoc.lst* with the default symbol table. To get a symbol table with a cross-reference, use the *-r 2* option:
 
         capasm ftoc.asm -l ftoc.lst -r 2
 
 Note: The default base of addresses in the list file is octal.
 
-If not specified, the name of the binar object file is the name of the source file with the extension *.bin*. You can specify a different binary object file name with the *-b* option:
+If not specified, the name of the binary object-file is the name of the source file with the extension *.bin*. You can specify a different binary object file name with the *-b* option:
 
         capasm ftoc.asm -l ftoc.lst -b result.bin -r 2
 
@@ -125,7 +125,7 @@ optional arguments:
 See https://github.com/bug400/capasm for details
 ```
 
-*capasm* provides built-in global symbol tables for the HP-83/85, HP86/87 
+*capasm* provides built-in global symbol tables for the HP-83/85, HP-86/87 
 or HP-75 computers. The required symbol table is selected with the *-g* 
 option. The naming of these tables is:
 
@@ -134,15 +134,15 @@ option. The naming of these tables is:
 - 75  : symbol table for the HP-75
 - none: use no symbol table (this is the default)
 
-Alternatively you can provide the file path of a global symbol table which must be created with the *capglo* utility (see below). The file must have
+Alternatively, you can provide the file path of a global symbol table, which must be created with the *capglo* utility (see below). The file must have
 the extension ".py".
 
 You can enable additional checks with the *-c* option. The assembler issues
 a warning if:
 
-* A symbol defined in the source file has an other value or type than a global
+* A symbol defined in the source file has another value or type than a global
   symbol of the same name
-* R# is used as data register operand in literal immediate mode and the value of
+* R# is used as a data register operand in literal immediate mode, and the value of
   the drp is unknown, e.g.: `LABELA   ADM R#,1,2,3,4`
 
 
@@ -194,25 +194,25 @@ this with the *-g* option to use not any or another symbol table. Custom symbol
 tables must be created with the *capglo* command (see below). This file must
 have the extension *.py*.
 
-Regarding the extended checks option see the chapter above.
+Regarding the extended checks option, see the chapter above.
 
 
 Create LIF image files for Series 80 computers
 ----------------------------------------------
 
-To store the assembled LEX file *ftoc.bin* into an Upload LIF image file type:
+To store the assembled LEX file *ftoc.bin* into an upload LIF image file type:
 
         caplif ftoc.bin
 
 This creates a LIF image file *ftoc.dat* that has a LIF file system where
 the file *ftoc.bin* is stored with the default file name *WS_FILE* and the
-file type 0xE008 (BPGM Binary Program). This Upload LIF image has a nonstandard 
-volume header and is inteded for use with the
+file type 0xE008 (BPGM Binary Program). This upload LIF image has a nonstandard 
+volume header and is intended for use with the
 [HP-85/85B787 Emulator](http://www.kaser.com/hp85.html) of Everett Kaser.
 
 *caplif* can not insert multiple input files into an upload LIF image file.
 
-You can specify a different file name for the Upload LIF image file with the 
+You can specify a different file name for the upload LIF image file with the 
 *-l* option:
 
         caplif ftoc.bin -l disk0.dat
@@ -223,11 +223,11 @@ You can define another name for the LIF directory entry than WS_FILE as well:
 
 The file name specified with the *-f* parameter is converted to uppercase. 
 
-For the LIF directory entries the following rules apply:
+For the LIF directory entries, the following rules apply:
 
 * The maximum length is 8 charaters
 * The file name must begin with a character
-* The remaining characters must be letters, digits or underscores - 
+* The remaining characters must be letters, digits, or underscores - 
   underscores are allowed for the Series 80 only!
 
 
@@ -237,7 +237,7 @@ Create LIF images for the HP-75
 Upload LIF images for the HP-75 are created in almost the same manner as for the Series 80 computers. However, the command line parameter *-m 75* is required for *capasm* and *caplif*.
 
 *caplif* adds an HP-75 RAM file header to the assembled LEX file and stores it 
-in the file system of the Upload LIF image with the file type 0xE089 (HP75 LEX file). The default file name in the directory entry is the name of the binary object file without suffix. This Upload LIF image file has
+in the file system of the Upload LIF image with the file type 0xE089 (HP75 LEX file). The default file name in the directory entry is the name of the binary object file without a suffix. This upload LIF image file has
 a standard volume header and can be used with the [EMU-75 Emulator](http://www.jeffcalc.hp41.eu/emu71/index.html) of J-F Garnier.
 
 
@@ -276,7 +276,7 @@ Add LEX file headers to assembled LEX files
 
 The *caplex* utility adds a LEX file header to an assembled Series 80 LEX file.
 If the *-m 75* parameter is specified, an HP-75 RAM file header and a
-LEX file header is put in front of the assembled lex file.
+LEX file header are put in front of the assembled lex file.
 The program operates the same way as the *caplif* utility.
 
 
@@ -291,7 +291,7 @@ Use *caprom -h* for a description of parameters.
 Create custom global symbol tables
 ----------------------------------
 
-A custom global symbol table is a text file which only has DAD or EQU definitions. The *capglo* utility converts this file into a global symbol table which can be fed to the assembler with the *-g* option.
+A custom global symbol table is a text file that only has DAD or EQU definitions. The *capglo* utility converts this file into a global symbol table, which can be fed to the assembler with the *-g* option.
 
 If you have a custom global symbol source file *myglobal.glo* then:
 
@@ -313,10 +313,10 @@ Convert Series 80 Assembler files
 
 The *capconv* utility can convert binary global symbol data files or 
 tokenized Series 80 assembler source files to text files. See 
-*capconv -h* for details how to invoke this tool. Note: Since the 
+*capconv -h* for details on how to invoke this tool. Note: Since the 
 *capasm* software suite does not support the Series 80 character set, 
 the result files must be revised if any characters exist in the file 
-which are not in the code range (0x20-0x7A, 0x7C).
+that are not in the code range (0x20-0x7A, 0x7C).
 
 
 Known Issues
@@ -326,14 +326,14 @@ The global symbol file for the HP-75 contains a couple of duplicate entries
 (see the file *duplicateSymbols.txt* in the *symbols* directory).
 The last entry is used in each case.
 
-The *ncas* assembler is still in beta phase. Processing faulty assembler 
+The *ncas* assembler is still in a beta phase. Processing faulty assembler 
 files has not been tested sufficiently.
 
 
 Release Notes
 -------------
 
-See the [Release Notes](https://github.com/bug400/capasm/blob/master/RELEASE.md) for details.
+See the [release notes](https://github.com/bug400/capasm/blob/master/RELEASE.md) for details.
 
 
 License
@@ -348,10 +348,10 @@ Acknowledgements
 
 A special acknowledgement goes to 
 [Everett Kaser](https://www.kaser.com/hp85.html).
-He formerly wrote the HP-83/85 Assembler ROM software which is a heroic deed
+He formerly wrote the HP-83/85 Assembler ROM software, which is a heroic deed
 compared to writing an assembler in Python without any constraints concerning
 memory or CPU speed.
 
 On his website you can download his HP85/HP87 emulator and a powerful disassembler (CAPDIS) for the Capricorn CPU. His  documentation 
-[Understanding how the HP85 Works from the Inside](https://groups.io/g/hpseries80/wiki/1884), the source files he disassembled from the ROM binaries 
+[Understanding how the HP85 Works from the Inside](https://groups.io/g/hpseries80/wiki/1884), the source files he disassembled from the ROM binaries,
 and his warm support were essential for me to get this software done.

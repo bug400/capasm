@@ -14,7 +14,7 @@ Index
 Introduction
 ------------
 
-The machine instructions for the *CAPRICORN* CPU are as far as possible documented in section 4 of the HP-83/85 Assembler ROM manual. The manual is available on the [www.series80.org](http://www.series80.org) website.
+The machine instructions for the *CAPRICORN* CPU are, as far as possible, documented in section 4 of the HP-83/85 Assembler ROM manual. The manual is available on the [www.series80.org](http://www.series80.org) website.
 
 
 Restrictions to the HP-83/85 Assembler ROM language
@@ -32,13 +32,13 @@ Restrictions to the HP-83/85 Assembler ROM language
 Extensions to the HP-83/85 Assembler ROM language
 -------------------------------------------------
 
-* The assembler provides built in symbol tables for the HP-85, HP-87 and
+* The assembler provides built in symbol tables for the HP-85, HP-87, and
   HP-75. The *-g* option specifies which table to use. This makes an
-  ORG pseudo op redundant. The default is to use no symbol table. Combined with
-  the *capglo* tool you can use custom symbol tables as well.
-* If a program number is supplied in a ````NAM```` pseudo operation *capasm* 
+  ORG pseudo-op redundant. The default is to use no symbol table. Combined with
+  the *capglo* tool, you can use custom symbol tables as well.
+* If a program number is supplied in a ````NAM```` pseudo operation, *capasm* 
   generates an HP-87 program header.
-* A symbol cross-reference listing which is activated with the *-r 2* option.
+* A symbol cross-reference listing, which is activated with the *-r 2* option.
 * The maximum length of symbol names can be adjusted within the range from 
   6 to 12 characters.
 * Line numbers in the assembler source file are optional.
@@ -88,7 +88,7 @@ the corresponding *AID* or *DIF* conditional.
     DIF <symbol>
 
 Tests if the specified conditional assembly flag does exist, e.g. was either
-defined by a *SET*, or *CLR* pseudo-op or was set with the *-d* command line
+defined by a *SET* or *CLR* pseudo-op or was set with the *-d* command line
 option.
 
 Conditional assembly *AIF/DIF-EIF* or *AIF/DIF-ELS-EIF* pseudo-op sequences can

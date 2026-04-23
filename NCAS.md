@@ -39,32 +39,32 @@ Introduction
 ------------
 The *ncas* assembler is a further development of the *capasm* assembler. The main
  goal of *ncas* is to assemble source files derived from source files of HP-75
-system and application ROMS, which were developed with the HP *karma* assembler.
+system and application ROMs, which were developed with the HP *karma* assembler.
 
-The *karma* assembler which was only used by HP internally and got lost after 
-cancellation of the HP-75 project had numerous extensions to the HP-85 ROM 
+The *karma* assembler, which was only used by HP internally and got lost after 
+cancellation of the HP-75 project, had numerous extensions to the HP-85 ROM 
 assembler. The most important extensions were expressions support and language 
 elements for structured programming. This causes a major effort to convert 
-*karma* assembler files into a HP-85 ROM assembler source file format.
+*karma* assembler files into an HP-85 ROM assembler source file format.
 
-The *karma* assembler language has numerous features, bells and whistles which 
-sometimes lack sound concepts. HP did a redesign of the assembler called *koda*
-which was likely never realized. A language description still exists which 
+The *karma* assembler language has numerous features, bells, and whistles that
+sometimes lack sound concepts. HP did a redesign of the assembler called *koda*,
+that was likely never realized. A language description still exists which 
 shows some interesting and better designed features. See 
 [this post](https://groups.io/g/hp75/topic/koda/5171903) for more
 information.
 
-For the *ncas* development the following features ware added based on *koda* 
+For the *ncas* development the following features were added based on *koda* 
 concepts:
 
 * Sized expressions
-* Strucured programming language elements IFXX-ELSE-ENDIF and LOOP-WHXX
+* Structured programming language elements IFXX-ELSE-ENDIF and LOOP-WHXX
 * *DATA* lists
 
 This made many pseudo operations of the *capasm* assembler obsolete.
 
-*ncas* is neither compatible to *karma* nor *koda*. This is not necessary because
-neither *karma* nor *koda* assembler source files do exist anymore. Listings of
+*ncas* is neither compatible with *karma* nor *koda*. This is not necessary because
+neither *karma* nor *koda* assembler source files exist anymore. Listings of
 *karma* assembled files can be easily converted to the *ncas* format.
 
 
@@ -108,7 +108,7 @@ Example:
 Blanks are mandatory:
 
 * Between label and opcode
-* Before the opcode if no label is present (two blanks are required)
+* Before the opcode, if no label is present (two blanks are required)
 * Between opcode and operands
 * Between operands and the semicolon of a comment
 
@@ -162,8 +162,8 @@ Constants
 Notes:
 
 * The default base of numbers is octal!
-* A hex constant must always begin with a decimal number e.g. 0FAH
-* Strings enclosed in "`" or "^" yield in a string with the top bit of the last
+* A hex constant must always begin with a decimal number, e.g. 0FAH
+* Strings enclosed in "`" or "^" will be converted to a string with the top bit of the last
   character set 
 
 
@@ -179,14 +179,14 @@ Symbols
 Notes:
 * Symbol names must not exceed 32 characters
 * The symbol "$" returns the address of the beginning of the source line
-* Due to the implementation of expressions (see below) the characters "(", ")"
-  "'", ""","`" and "^" are not allowed in symbol names. Unfortunately some
+* Due to the implementation of expressions (see below), the characters "(", ")"
+  "'", ""","`" and "^" are not allowed in symbol names. Unfortunately, some
   global symbols of the HP-75 system ROMs use these characters. It is
   recommended to use "\_" as a replacement character. The HP-75 global symbol
-  file for *ncas* considers that, e.g. X(K-1) was renamed to X\_K-1\_.
+  file for *ncas* considers that, e.g., X(K-1) was renamed to X\_K-1\_.
 
-To support the generation of file headers the one bytes symbols *BCD_YEAR*, 
-*BCD_MONTH*, *BCD_DAY*, *BCD_HOUR*, *BCD_MIN*, *BCD_SEC* and the four byte
+To support the generation of file headers, the one byte symbols *BCD_YEAR*, 
+*BCD_MONTH*, *BCD_DAY*, *BCD_HOUR*, *BCD_MIN*, *BCD_SEC*, and the four byte
 symbol *SECONDS1900* represent the current system date.
 
 
@@ -219,9 +219,9 @@ Expressions
 Notes:
 
 * *ncas* regards the size of the result of a computation always as unknown. 
-* With a few exceptions (see below) expressions are evaluated in the second
+* With a few exceptions (see below), expressions are evaluated in the second
   pass of the assembly. In this case the use of forward references
-  (symbols which are defined later in the source file) is allowed.
+  (symbols that are defined later in the source file) is allowed.
 
 
 Data Lists
@@ -230,7 +230,7 @@ Data Lists
     <data list> ::= <sized exp>, {, <sized exp>}
 
 Many machine instructions and the *DATA* pseudo-op use \<data lists\>. 
-This is a comma separated list of expressions which is generated into the
+This is a comma separated list of expressions that is generated into the
 object code.
 
 Example:
@@ -245,12 +245,12 @@ Example:
 An additional .\<constant\> after an expression is a \<size spec\>. The
 \<size spec\> forces the expression to take up that number of bytes.
 
-If a data list is used as an operand then its required size is determined
+If a data list is used as an operand, then its required size is determined
 according to the following rules:
 
 * If the instruction intrinsically wants a two-byte operant (like LDMD), the
   required size is two bytes. Single byte values are sized to two bytes.
-* If the instruction is a single byte instruction (like ADB), the required size
+* If the instruction is a single-byte instruction (like ADB), the required size
   is one byte.
 * If the drp is known, then the required size of the data list is determined
   by the register boundary. If the length of the data list is less than the
@@ -263,20 +263,20 @@ Exceeding the required length of a data list is an error.
 If \<data list\> items are not sized explicitly, their size is determined in the
 following way:
 
-* Address symbols which are either local labels or symbols which were defined
-  with the *ADDR* pseudo operation have always a size of two bytes
+* Address symbols, which are either local labels or symbols that were defined
+  with the *ADDR* pseudo operation, have always a size of two bytes
 * The size of strings is their number of characters
 * The size of integer constants is the smallest number of bytes to store that
   number
 
-If an expressions has any operand, then the size of the result is *unknown*
+If an expression has any operand, then the size of the result is *unknown*
 because expressions are executed in the second pass of the assembler. 
 Therefore, expressions with operands must always be explicitly. 
 
 Note:
 The monadic "-" is regarded as an operand. Therefore, negative constants must
 always be sized in data lists. Sized negative constants are converted to a
-2'S representation.
+2's representation.
 
 
 Example:
@@ -301,7 +301,7 @@ Example:
 Machine Instructions
 --------------------
 
-The machine instructions for the *CAPRICORN* CPU are as far as possible documented in section 4 of the HP-83/85 Assembler ROM manual. The manual is available on the [www.series80.org](http://www.series80.org) web site.
+The machine instructions for the *CAPRICORN* CPU are, as far as possible, documented in section 4 of the HP-83/85 Assembler ROM manual. The manual is available on the [www.series80.org](http://www.series80.org) web site.
 
 *ncas* extends the machine instructions in the following way:
 
@@ -362,7 +362,7 @@ to use forward references in these expressions.
 Conditions
 ----------
 
-The concept of a *condition* is used in the conditional branches machine
+The concept of a *condition* is used in the conditional branches of machine
 instructions and the pseudo operations for conditional returns, *IF-ELSE-ENDIFs*,
 *LOOP-WHs*, and *EXs*.
 
@@ -386,9 +386,9 @@ Conditional Returns
 
 There is no ROV pseudo operation. The assembler tries to generate a conditional
 jump to a previous return statement. If no previous return statement exists
-within an address range of -128 bytes a call to the next return statement is 
+within an address range of -128 bytes, a call to the next return statement is 
 generated. If no next return statement exists within an address range of +127 
-bytes an error is generated.
+bytes, an error is generated.
 
 Example:
 
@@ -427,7 +427,7 @@ ADDR pseudo-op
     <label>  ADDR  <expression>
 
 Define \<label\> to have the value of the result of \<expression\>.  The size of 
-\<label\> will be forced to two-bytes.  An error will be generated if the size 
+\<label\> will be forced to two bytes.  An error will be generated if the size 
 of \<expression\> is greater than two bytes.
 
 Note: Forward references are not allowed in \<expression\> because the result of
@@ -471,7 +471,7 @@ Examples:
 END pseudo-op
 -------------
 
-The *END* pseudo operation indicates the logical end of the assembly. *END* is 
+The *END* pseudo-operation indicates the logical end of the assembly. *END* is 
 required.
 
 
@@ -480,7 +480,7 @@ INCLUDE pseudo-op
 
     INCLUDE 'quoted string'
 
-Include the given file into the program.  The *INCLUDE* instruction is printed in 
+Include the given file in the program.  The *INCLUDE* instruction is printed in 
 the program listing. Included files can be nested up to a level of 3.
 
 
@@ -500,8 +500,8 @@ ABS pseudo-op
 
     ABS
 
-Indicates that the program shall be assembled as an absoulte program. This
-pseudo-op must precede any other instruction that generates code including
+Indicates that the program shall be assembled as an absolute program. This
+pseudo-op must precede any other instruction that generates code, including
 the *ORG* pseudo-op.
 
 
@@ -649,9 +649,9 @@ DATA pseudo-op
 
     DATA <data list>
 
-*DATA* assembles data into memory. The \<data list\> is a comma separated list of any constants, equates, symbols and expressions containing them.
+*DATA* assembles data into memory. The \<data list\> is a comma-separated list of any constants, equates, symbols, and expressions containing them.
 
-Note: an expression must always be sized if it contains an operand 
+Note: An expression must always be sized if it contains an operand 
 ([see Data Lists](#data-lists)).
 
 
@@ -683,8 +683,8 @@ Terminates the conditional assembly in progress.
 
     .IFDEF <symbol>
 
-Tests if the specified conditional assembly flag does exist, e.g. was either
-defined by a *.SET*, or *.CLR* pseudo-op or was set with the *-d* command line
+Tests if the specified conditional assembly flag does exist, e.g., was either
+defined by a *.SET* or *.CLR* pseudo-op or was set with the *-d* command line
 option.
     
     .SET <symbol>
@@ -712,18 +712,18 @@ This pseudo instruction generates a *CLE, ICE* machine instruction sequence.
        NOP
 
 This pseudo instruction generates a *TSB* machine instruction. If you would 
-like to use the *real* NOP machine instruction (0o336) use *NOP1* instead.
+like to use the *real* NOP machine instruction (0o336), use *NOP1* instead.
 
        DEF <expression>
 
-Generate the result of expression into the program code. The value is resized to two bytes. This is equivalent to:
+Generate the result of the expression into the program code. The value is resized to two bytes. This is equivalent to:
 
        DATA (<expression>).2
 
 
        VAL <expression>
 
-Generate the result of expression into the program code. The value is resized to one byte. This is equivalent to:
+Generate the result of the expression into the program code. The value is resized to one byte. This is equivalent to:
 
        DATA (<expression>).1
 
@@ -735,7 +735,7 @@ The *ncas* subdirectory contains the file [example.asm](https://github.com/bug40
 ROM-based LEX file from *Appendix A* of the HP-75C *Description and Entry Points* Document. 
 
 The [riowio.asm](https://github.com/bug400/capasm/blob/master/ncas/riowio.asm) 
-which exists in the same directory shows how to create a lex file including 
+which exists in the same directory, shows how to create a lex file including 
 the HP-75 RAM-header and the LIF-header without additional post-processing. This 
-file includes the file [lexheader.inc](https://github.com/bug400/capasm/blob/master/ncas/lexheader.inc)
+file includes the file [lexheader.inc](https://github.com/bug400/capasm/blob/master/ncas/lexheader.inc),
 which provides a generic component to create lex files.
